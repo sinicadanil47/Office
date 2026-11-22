@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0B1120">
 <title>Корпоративный небоскрёб</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#0B1120;--panel:#151F32;--panel2:#1b2940;--line:#2a3a55;--gold:#F59E0B;--green:#10B981;--red:#ef4444;--text:#eef3fb;--muted:#8fa0b8}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}button:active{transform:scale(.98)}#app{height:100dvh;min-height:0;display:flex;flex-direction:column;max-width:760px;margin:auto;background:radial-gradient(ellipse at 50% -15%,#1c2c48 0,transparent 55%),var(--bg);padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
@@ -86,8 +87,16 @@ if(tg){try{tg.ready();tg.expand();}catch(e){}}
 const $=id=>document.getElementById(id);
 const money=n=>"$"+Math.floor(n).toLocaleString("ru-RU");
 const haptic=()=>{try{if(tg&&tg.HapticFeedback)tg.HapticFeedback.impactOccurred("light");}catch(e){}};
-const player=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.first_name)||"Вы (Директор)";
+const tgUser=tg?.initDataUnsafe?.user||null;
+let guestId=localStorage.getItem("corporate_guest_id");
+if(!tgUser&&!guestId){guestId="guest_"+Math.floor(Math.random()*900000000+100000000);localStorage.setItem("corporate_guest_id",guestId);}
+const playerId=tgUser?String(tgUser.id):guestId;
+const player=tgUser?(tgUser.username?"@"+tgUser.username:(tgUser.first_name||"Директор")):("Директор #"+guestId.slice(-4));
 $("playerName").textContent=player;$("cabName").textContent=player;
+const SUPABASE_URL="https://pksslllgveuozcxcedwx.supabase.co";
+const SUPABASE_KEY="sb_publishable_35obuE3AIAi3mN6XfO9_dw_DtkL9iSh";
+const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
+let cloudReady=false,saveTimer=null,remotePlayers=[];
 const TYPES={
  desk:{name:"IT-стол",cost:500,base:25,icon:"desk"},
  coffee:{name:"Кофемашина",cost:800,base:0,icon:"coffee"},
@@ -97,7 +106,11 @@ const TYPES={
 const KEY="corporate_skyscraper_v1";
 let state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};
 try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&typeof saved==="object")state={...state,...saved,viewing:null,selected:null,sellMode:false};}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned}));}catch(e){}};
+function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned}));}catch(e){}}
+function cloudPayload(){return {id:playerId,username:player,balance:Math.floor(state.balance),income:incomeFor(state.layout),prestige:prestigeFor(state.layout),mode:state.peace?"peace":"compete",layout:state.layout,updated_at:new Date().toISOString()};}
+async function syncPlayer(showError=false){localSave();if(!db)return false;try{const {error}=await db.from("players").upsert(cloudPayload(),{onConflict:"id"});if(error)throw error;cloudReady=true;return true;}catch(err){cloudReady=false;console.warn("Supabase save failed:",err);if(showError)toast("Нет связи — прогресс сохранён локально");return false;}}
+function save(){localSave();clearTimeout(saveTimer);saveTimer=setTimeout(()=>syncPlayer(false),400);}
+async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);state.layout=Array.isArray(data.layout)?data.layout:[];state.prestige=0;state.peace=data.mode!=="compete";}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:[]},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();draw();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
 function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1900);}
 function incomeFor(layout){
  let sum=0;

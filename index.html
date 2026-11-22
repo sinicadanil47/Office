@@ -110,7 +110,7 @@ function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.
 function cloudPayload(){return {id:playerId,username:player,balance:Math.floor(state.balance),income:incomeFor(state.layout),prestige:prestigeFor(state.layout),mode:state.peace?"peace":"compete",layout:state.layout,updated_at:new Date().toISOString()};}
 async function syncPlayer(showError=false){localSave();if(!db)return false;try{const {error}=await db.from("players").upsert(cloudPayload(),{onConflict:"id"});if(error)throw error;cloudReady=true;return true;}catch(err){cloudReady=false;console.warn("Supabase save failed:",err);if(showError)toast("Нет связи — прогресс сохранён локально");return false;}}
 function save(){localSave();clearTimeout(saveTimer);saveTimer=setTimeout(()=>syncPlayer(false),400);}
-async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);state.layout=Array.isArray(data.layout)?data.layout:[];state.prestige=0;state.peace=data.mode!=="compete";}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:[]},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();draw();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
+async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);state.layout=Array.isArray(data.layout)?data.layout:[];state.prestige=Math.max(0,(Number(data.prestige)||0)-basePrestigeFor(state.layout));state.peace=data.mode!=="compete";}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:[]},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();draw();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
 function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1900);}
 function incomeFor(layout){
  let sum=0;
@@ -122,7 +122,7 @@ function incomeFor(layout){
  });
  return sum;
 }
-function prestigeFor(layout){let n=layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0),0);layout.filter(o=>o.type==="boss").forEach(b=>layout.forEach(m=>{if(m.type==="meeting"&&Math.abs(m.x-b.x)+Math.abs(m.y-b.y)<=1)n+=25;}));return n+state.prestige;}
+function basePrestigeFor(layout){let n=layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0),0);layout.filter(o=>o.type==="boss").forEach(b=>layout.forEach(m=>{if(m.type==="meeting"&&Math.abs(m.x-b.x)+Math.abs(m.y-b.y)<=1)n+=25;}));return n;}function prestigeFor(layout){return basePrestigeFor(layout)+state.prestige;}
 const currentLayout=()=>state.viewing?state.viewing.layout:state.layout;
 function updateUI(){
  const inc=incomeFor(state.layout);

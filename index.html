@@ -94,7 +94,7 @@ const playerId=tgUser?String(tgUser.id):guestId;
 const player=tgUser?(tgUser.username?"@"+tgUser.username:(tgUser.first_name||"Директор")):("Директор #"+guestId.slice(-4));
 $("playerName").textContent=player;$("cabName").textContent=player;
 const SUPABASE_URL="https://pksslllgveuozcxcedwx.supabase.co";
-const SUPABASE_KEY="sb_publishable_35obuE3AIAi3mN6XfO9_dw_DtkL9iSh";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrc3NsbGxndmV1b3pjeGNlZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNzkxODAsImV4cCI6MjExMDk1NTE4MH0.kda0uVV07i2GQHOq6hmWhUnyCZZL_CKBTkGexKh_avE";
 const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
 let cloudReady=false,saveTimer=null,remotePlayers=[];
 const TYPES={

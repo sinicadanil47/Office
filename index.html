@@ -144,7 +144,7 @@ function resize(){
  const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;
  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
  cellW=Math.min((W-28)/8/2,38);cellH=cellW*.5;
- originX=W/2;originY=H/2-8*cellH;
+ originX=W/2;originY=H/2-8*cellH+46;
  draw();
 }
 function iso(x,y){return {x:originX+(x-y)*cellW+camX,y:originY+(x+y)*cellH+camY};}
@@ -267,7 +267,7 @@ document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>
 function closeShop(){$("shop").classList.remove("open");$("installBar").classList.remove("show");}
 function showUpgradeCard(index){const o=state.layout[index];if(!o)return;const name=TYPES[o.type]?.name||"Объект",level=Number(o.level)||1,cost=Math.floor(TYPES[o.type].cost*(.65+level*.45));$("upgradeCard").innerHTML='<div class="upgrade-top"><b>'+escapeHtml(name)+'</b><button id="closeUpgrade">✕</button></div><small>Уровень '+level+' · '+money(TYPES[o.type].base||0)+'/сек</small><div class="upgrade-actions"><button id="upgradeObject" class="primary">Улучшить за '+money(cost)+'</button></div>';$("upgradeCard").classList.add("show");$("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");$("upgradeObject").onclick=()=>{if(state.balance<cost){toast("Недостаточно средств");return;}state.balance-=cost;o.level=level+1;o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");toast("Уровень объекта повышен");};}
 function selectBuild(type){state.sellMode=false;state.selected=type;$("shop").classList.remove("open");$("installLabel").textContent="Установка: "+TYPES[type].name+" ("+money(TYPES[type].cost)+")";$("installBar").classList.add("show");updateUI();draw();}
-$("openShop").addEventListener("click",()=>$("shop").classList.add("open"));
+$("openShop").addEventListener("click",()=>{$("shop").classList.toggle("open");});
 $("quickSell").addEventListener("click",()=>{$("shop").classList.remove("open");state.selected=null;state.sellMode=!state.sellMode;$("installBar").classList.remove("show");toast(state.sellMode?"Нажмите на объект для продажи":"Продажа выключена");});
 $("installRotate").addEventListener("click",()=>{state.rotation=(state.rotation+1)%4;save();toast("Поворот: "+state.rotation*90+"°");});
 $("cancelInstall").addEventListener("click",()=>{state.selected=null;$("installBar").classList.remove("show");draw();});

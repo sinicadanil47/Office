@@ -96,7 +96,7 @@ $("playerName").textContent=player;$("cabName").textContent=player;
 const SUPABASE_URL="https://pksslllgveuozcxcedwx.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrc3NsbGxndmV1b3pjeGNlZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNzkxODAsImV4cCI6MjExMDk1NTE4MH0.kda0uVV07i2GQHOq6hmWhUnyCZZL_CKBTkGexKh_avE";
 const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
-let cloudReady=false,saveTimer=null,remotePlayers=[];
+let cloudReady=false,saveTimer=null,remotePlayers=[],activeVip=null,lastVipAt=0,offlineReward=0;const previousVisit=(()=>{try{return Number(JSON.parse(localStorage.getItem("corporate_skyscraper_v1")||"{}").lastVisit)||Date.now();}catch(e){return Date.now();}})();
 const TYPES={
  desk:{name:"IT-стол",cost:500,base:25,icon:"desk"},
  coffee:{name:"Кофемашина",cost:800,base:0,icon:"coffee"},
@@ -208,6 +208,7 @@ function synergyCells(o){
  for(let x=0;x<8;x++)for(let y=0;y<8;y++)if(Math.abs(x-o.x)+Math.abs(y-o.y)===1)a.push({x,y});
  return a;
 }
+function drawBackWalls(){const wh=65;for(let i=0;i<8;i++){const a=iso(i,0),b=iso(i+1,0);poly([{x:a.x,y:a.y},{x:b.x,y:b.y},{x:b.x,y:b.y-wh},{x:a.x,y:a.y-wh}],"rgba(30,52,78,.42)","rgba(126,164,198,.35)");const wx=(a.x+b.x)/2,wy=(a.y+b.y)/2-wh*.55,g=ctx.createLinearGradient(0,wy-20,0,wy+22);g.addColorStop(0,"#07172f");g.addColorStop(1,"#173b61");ctx.fillStyle=g;ctx.fillRect(wx-cellW*.38,wy-17,cellW*.76,34);for(let k=0;k<3;k++){const bx=wx-cellW*.3+k*cellW*.22,bh=12+(i*7+k*9)%20;ctx.fillStyle="#081426";ctx.fillRect(bx,wy+16-bh,6,bh);ctx.fillStyle=k%2?"#fbbf24":"#38bdf8";ctx.fillRect(bx+1,wy+16-bh+4,2,2);}}for(let i=0;i<8;i++){const a=iso(0,i),b=iso(0,i+1);poly([{x:a.x,y:a.y},{x:b.x,y:b.y},{x:b.x,y:b.y-wh},{x:a.x,y:a.y-wh}],"rgba(22,43,68,.34)","rgba(126,164,198,.28)");const wx=(a.x+b.x)/2,wy=(a.y+b.y)/2-wh*.55,g=ctx.createLinearGradient(0,wy-18,0,wy+20);g.addColorStop(0,"#08172e");g.addColorStop(1,"#1b4265");ctx.fillStyle=g;ctx.fillRect(wx-cellW*.35,wy-16,cellW*.7,32);}}
 function draw(){
  if(!ctx||!W)return;
  ctx.clearRect(0,0,W,H);
@@ -217,6 +218,7 @@ function draw(){
  for(let s=0;s<15;s++){const y=18+s*17;ctx.strokeStyle="rgba(116,145,180,.035)";ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
  // tiles
  for(let sum=0;sum<=14;sum++)for(let x=0;x<8;x++){let y=sum-x;if(y>=0&&y<8)diamond(x,y,(x+y)%2?"#23334a":"#263850","#40546e");}
+ drawBackWalls();
  // highlights for selected item
  if(pointer&&state.selected&&!state.viewing){
   const valid=pointer.x>=0&&pointer.x<8&&pointer.y>=0&&pointer.y<8&&!floor.some(o=>o.x===pointer.x&&o.y===pointer.y);
@@ -225,6 +227,7 @@ function draw(){
  }
  const sorted=[...floor].sort((a,b)=>(a.x+a.y)-(b.x+b.y)||a.x-b.x);
  sorted.forEach(drawObject);
+ if(activeVip&&!state.viewing&&Date.now()<activeVip.expires){const p=iso(activeVip.x+.5,activeVip.y+.5),q=1+Math.sin(performance.now()/120)*.12;ctx.save();ctx.translate(p.x,p.y-39);ctx.scale(q,q);ctx.fillStyle="#fbbf24";ctx.shadowColor="#f59e0b";ctx.shadowBlur=18;ctx.beginPath();ctx.arc(0,0,12,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle="#392307";ctx.font="bold 14px sans-serif";ctx.textAlign="center";ctx.fillText("⚡",0,5);ctx.restore();}
  if(pointer&&state.selected&&!state.viewing&&pointer.x>=0&&pointer.x<8&&pointer.y>=0&&pointer.y<8){
   const valid=!floor.some(o=>o.x===pointer.x&&o.y===pointer.y);
   const ghost={type:state.selected,x:pointer.x,y:pointer.y,rot:state.rotation};
@@ -243,6 +246,7 @@ canvas.addEventListener("pointerdown",e=>{
  if(state.viewing)return;haptic();const c=cellFromEvent(e);
  if(c.x<0||c.x>7||c.y<0||c.y>7)return;
  const i=state.layout.findIndex(o=>o.x===c.x&&o.y===c.y);
+ if(activeVip&&Date.now()<activeVip.expires&&i>=0&&state.layout[i].x===activeVip.x&&state.layout[i].y===activeVip.y){closeVipDeal();return;}
  if(state.sellMode){if(i>=0){const o=state.layout.splice(i,1)[0];state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
  if(!state.selected){if(i>=0)toast(TYPES[state.layout[i].type].name);else toast("Выберите объект в магазине");return;}
  if(i>=0){toast("Клетка занята");return;}
@@ -257,6 +261,8 @@ $("returnBtn").addEventListener("click",()=>{state.viewing=null;updateUI();draw(
 function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(page==="floor")setTimeout(resize,30);haptic();}
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 
+function showNotice(msg){const n=$("notice");n.textContent=msg;n.classList.add("show");clearTimeout(showNotice.timer);showNotice.timer=setTimeout(()=>n.classList.remove("show"),3200);}
+function addEventFeed(msg){const el=document.createElement("div");el.className="feed";el.textContent=new Date().toLocaleTimeString("ru-RU")+" "+msg;$("feed").prepend(el);while($("feed").children.length>7)$("feed").lastElementChild.remove();}
 async function refreshLeaderboard(){
  if(!db)return;
  try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").order("prestige",{ascending:false}).limit(50);if(error)throw error;remotePlayers=data||[];}catch(e){console.warn("Leaderboard unavailable",e);}
@@ -282,7 +288,9 @@ function addFeed(){const f=$("feed"),d=new Date(),time=d.toLocaleTimeString("ru-
 function dividends(){let paid=0;Object.entries(state.investments).forEach(([id,v])=>{const target=remotePlayers.find(p=>String(p.id)===id);if(target)paid+=Math.min(Number(v)||0,10000)*Math.max(.001,(Number(target.income)||0)/10000);});if(paid>0){state.balance+=paid;state.totalEarned+=paid;save();updateUI();toast("Расчётный дивиденд: +"+money(paid));}addFeed();}
 $("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};save();syncPlayer(true);updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
 let last=performance.now(),incomeTimer=0;
-function tick(now){
+function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="desk");if(workers.length){const o=workers[Math.floor(Math.random()*workers.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
+function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
+function tick(now){spawnVip();
  const dt=Math.min((now-last)/1000,.25);last=now;
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  draw();requestAnimationFrame(tick);
@@ -290,7 +298,9 @@ function tick(now){
 window.addEventListener("resize",resize);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
 updateUI();renderTop();renderCompanies();addFeed();resize();requestAnimationFrame(tick);
-loadPlayer().then(async()=>{await refreshLeaderboard();renderTop();renderCompanies();});
+loadPlayer().then(async()=>{await refreshLeaderboard();renderTop();renderCompanies();const elapsed=Math.max(0,Math.min(28800,(Date.now()-previousVisit)/1000)),inc=incomeFor(state.layout);if(elapsed>60&&inc>0){offlineReward=elapsed*inc*.5;$("offlineText").textContent="Офис работал без вас "+Math.floor(elapsed/60)+" мин и принёс "+money(offlineReward)+".";$("offlineModal").classList.add("show");}localSave();});
+$("claimOffline").addEventListener("click",()=>{state.balance+=offlineReward;state.totalEarned+=offlineReward;offlineReward=0;$("offlineModal").classList.remove("show");save();syncPlayer(false);updateUI();haptic();});
+window.addEventListener("pagehide",()=>localSave());
 setInterval(()=>syncPlayer(false),15000);setInterval(refreshLeaderboard,20000);
 setInterval(dividends,10000);setInterval(addFeed,6500);
 })();

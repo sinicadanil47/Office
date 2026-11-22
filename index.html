@@ -61,14 +61,14 @@ canvas{display:block;width:100%;height:clamp(270px,43vh,390px);touch-action:pan-
 <div class="panel"><div class="row"><h3 style="margin:0">Рыночная лента</h3><span class="green" style="font-size:10px">● LIVE DEMO</span></div><div id="feed"></div></div>
 <div class="section-head"><h2>Инвестиционные возможности</h2><span>ВЛОЖИТЬ КАПИТАЛ</span></div>
 <div id="companies"></div>
-<div class="panel"><div class="row"><span class="muted" style="font-size:11px">Ваш инвестиционный портфель</span><b class="gold" id="portfolio">$0</b></div><small class="muted">Дивиденды начисляются автоматически каждые 10 секунд. Доходность демонстрационная.</small></div>
+<div class="panel"><div class="row"><span class="muted" style="font-size:11px">Ваш инвестиционный портфель</span><b class="gold" id="portfolio">$0</b></div><small class="muted">Периодический расчёт демо-дивидендов по доходу выбранного участника.</small></div>
 </section>
 <section class="page" id="page-office">
 <div class="section-head"><h2>Кабинет директора</h2><span>УПРАВЛЕНИЕ</span></div>
 <div class="panel"><h3>Профиль</h3><div class="row"><div><b id="cabName">Директор</b><div class="muted" style="font-size:10px;margin-top:3px">Корпорация · Независимая</div></div><div style="font-size:24px">♛</div></div></div>
 <div class="panel"><h3>Статистика этажа</h3><div class="row" style="padding:7px 0"><span class="muted">Построено объектов</span><b id="objectCount">0</b></div><div class="row" style="padding:7px 0"><span class="muted">Общий доход в секунду</span><b class="green" id="cabIncome">$0</b></div><div class="row" style="padding:7px 0"><span class="muted">Престиж</span><b class="gold" id="cabPrestige">0 ★</b></div><div class="row" style="padding:7px 0"><span class="muted">Инвестиции</span><b id="cabInvest">$0</b></div></div>
 <div class="panel"><div class="row"><div><h3 style="margin:0 0 4px">Мирный режим</h3><small class="muted" id="modeText">Развитие без борьбы за Пентхаус</small></div><button class="switch" id="modeSwitch" aria-label="Переключить режим"></button></div></div>
-<div class="panel"><h3>Данные игры</h3><small class="muted">Планировка и прогресс хранятся локально в браузере на этом устройстве.</small><div style="height:10px"></div><button class="danger" id="resetBtn">Сбросить прогресс</button></div>
+<div class="panel"><h3>Данные игры</h3><small class="muted">Прогресс синхронизируется с Supabase; при отсутствии сети используется локальная копия.</small><div style="height:10px"></div><button class="danger" id="resetBtn">Сбросить прогресс</button></div>
 </section>
 </main>
 <nav class="bottom-nav">
@@ -287,20 +287,16 @@ function renderTop(){
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 $("leaderboard").addEventListener("click",e=>{const b=e.target.closest("[data-inspect]");if(!b)return;const p=remotePlayers.find(x=>String(x.id)===b.dataset.inspect);if(!p)return;state.viewing={nick:p.username||("Директор "+String(p.id).slice(-4)),layout:Array.isArray(p.layout)?p.layout:[]};state.selected=null;go("floor");updateUI();draw();});
-$("modeSwitch").addEventListener("click",()=>{state.peace=!state.peace;save();updateUI();renderTop();haptic();toast(state.peace?"Включён мирный режим":"Вы вступили в гонку за Пентхаус");});
-const firms=[
- {id:"nova",name:"Nova Dynamics",sector:"AI & автоматизация",icon:"✦",yield:.08,desc:"Технологический рост"},
- {id:"green",name:"GreenGrid Energy",sector:"Энергетика",icon:"⌁",yield:.06,desc:"Устойчивая инфраструктура"},
- {id:"urban",name:"Urban Core",sector:"Недвижимость",icon:"▦",yield:.05,desc:"Коммерческие площади"},
- {id:"cloud",name:"Cloud Harbor",sector:"Облачные сервисы",icon:"☁",yield:.07,desc:"Цифровые платформы"}
-];
+$("modeSwitch").addEventListener("click",()=>{state.peace=!state.peace;save();syncPlayer(true);updateUI();renderTop();haptic();toast(state.peace?"Включён мирный режим":"Вы вступили в гонку за Пентхаус");});
+const firms=[];
 function renderCompanies(){
- $("companies").innerHTML=firms.map(f=>'<div class="panel"><div class="company"><div class="logo">'+f.icon+'</div><div class="company-info"><b>'+f.name+'</b><small>'+f.sector+' · '+(f.yield*100).toFixed(0)+'% за цикл</small></div><button class="invest" data-invest="'+f.id+'">Вложить $250</button></div><div class="muted" style="font-size:10px;margin-top:8px">'+f.desc+' · Вложено: '+money(state.investments[f.id]||0)+'</div></div>').join("");
+ const others=remotePlayers.filter(p=>String(p.id)!==playerId);
+ $("companies").innerHTML=others.map(p=>'<div class="panel"><div class="company"><div class="logo">♙</div><div class="company-info"><b>'+escapeHtml(p.username||("Директор "+String(p.id).slice(-4)))+'</b><small>'+(p.mode==="compete"?"В гонке за Пентхаус":"Мирный")+' · '+money(Number(p.income)||0)+'/сек</small></div><button class="invest" data-invest="'+escapeHtml(String(p.id))+'">Вложить $250</button></div><div class="muted" style="font-size:10px;margin-top:8px">Престиж: '+(Number(p.prestige)||0)+' ★ · Вложено: '+money(state.investments[p.id]||0)+'</div></div>').join("")||'<div class="panel empty-note">Другие реальные игроки появятся здесь после регистрации.</div>';
 }
-$("companies").addEventListener("click",e=>{const b=e.target.closest("[data-invest]");if(!b)return;const id=b.dataset.invest;if(state.balance<250){toast("Недостаточно средств");return;}state.balance-=250;state.investments[id]=(state.investments[id]||0)+250;save();updateUI();renderCompanies();haptic();toast("Инвестиция $250 размещена");});
+$("companies").addEventListener("click",e=>{const b=e.target.closest("[data-invest]");if(!b)return;const id=b.dataset.invest;if(state.balance<250){toast("Недостаточно средств");return;}state.balance-=250;state.investments[id]=(state.investments[id]||0)+250;save();syncPlayer(true);updateUI();renderCompanies();haptic();toast("Инвестиция $250 учтена в демо-портфеле");});
 const feedItems=["Nova Dynamics объявила о запуске нового продукта","GreenGrid Energy привлекла стратегического партнёра","Urban Core расширяет сеть офисных пространств","Cloud Harbor сообщил о росте клиентской базы","На бирже зафиксирован повышенный спрос на AI-сектор","Индекс корпоративной активности вырос на 1,8%"];
 function addFeed(){const f=$("feed"),d=new Date(),time=d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit",second:"2-digit"});const el=document.createElement("div");el.className="feed";el.innerHTML="<time>"+time+"</time>"+feedItems[Math.floor(Math.random()*feedItems.length)];f.prepend(el);while(f.children.length>7)f.lastElementChild.remove();}
-function dividends(){let paid=0;firms.forEach(f=>{const v=state.investments[f.id]||0;paid+=v*f.yield;});if(paid>0){state.balance+=paid;state.totalEarned+=paid;save();updateUI();toast("Дивиденды начислены: +"+money(paid));}addFeed();}
+function dividends(){let paid=0;Object.entries(state.investments).forEach(([id,v])=>{const target=remotePlayers.find(p=>String(p.id)===id);if(target)paid+=Math.min(Number(v)||0,10000)*Math.max(.001,(Number(target.income)||0)/10000);});if(paid>0){state.balance+=paid;state.totalEarned+=paid;save();updateUI();toast("Расчётный дивиденд: +"+money(paid));}addFeed();}
 $("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};save();updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
 let last=performance.now(),incomeTimer=0;
 function tick(now){
@@ -311,6 +307,8 @@ function tick(now){
 window.addEventListener("resize",resize);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
 updateUI();renderTop();renderCompanies();addFeed();resize();requestAnimationFrame(tick);
+loadPlayer().then(async()=>{await refreshLeaderboard();renderTop();renderCompanies();});
+setInterval(()=>syncPlayer(false),15000);setInterval(refreshLeaderboard,20000);
 setInterval(dividends,10000);setInterval(addFeed,6500);
 })();
 </script>

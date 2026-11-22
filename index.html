@@ -23,7 +23,7 @@ canvas{display:block;width:100%;height:clamp(270px,43vh,390px);touch-action:pan-
 .company{display:flex;align-items:center;gap:9px}.company .logo{width:36px;height:36px;border-radius:11px;background:#263953;display:grid;place-items:center;font-size:18px}.company-info{flex:1;min-width:0}.company-info b{font-size:12px;display:block}.company-info small{font-size:10px;color:var(--muted)}.invest{background:#24523f;color:#a4f3cf;border:1px solid #287d5b;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:800}.feed{font-size:11px;line-height:1.45;color:#b8c7d9;padding:7px 0;border-bottom:1px solid #293850}.feed:last-child{border:0}.feed time{color:#71839d;margin-right:6px}
 .switch{position:relative;width:46px;height:26px;border-radius:20px;background:#40516a;transition:.2s}.switch:after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:white;transition:.2s}.switch.on{background:#a86d0c}.switch.on:after{left:23px}.danger{background:#51232a;border:1px solid #8a3944;color:#ffb4bc;border-radius:10px;padding:11px 13px;font-size:12px;font-weight:700;width:100%}.primary{background:var(--gold);color:#211605;border-radius:10px;padding:10px 13px;font-weight:800;font-size:12px}
 .toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translate(-50%,15px);opacity:0;pointer-events:none;background:#23334c;border:1px solid #49617f;padding:10px 14px;border-radius:12px;font-size:12px;z-index:20;transition:.2s;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
-.empty-note{text-align:center;color:var(--muted);font-size:11px;padding:12px}
+.modal-backdrop{position:fixed;inset:0;background:#020817c9;display:none;align-items:center;justify-content:center;padding:22px;z-index:50}.modal-backdrop.show{display:flex}.modal-card{width:min(100%,360px);background:#17263d;border:1px solid #806022;border-radius:18px;padding:22px;text-align:center}.modal-card p{font-size:13px;line-height:1.5;color:#b8c7d9}.modal-card .primary{width:100%;padding:13px}.notice{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-140%);opacity:0;z-index:40;background:#173a31;border:1px solid #1c9b70;border-radius:13px;padding:12px 16px;width:min(92%,420px);font-size:12px;text-align:center;transition:.25s}.notice.show{transform:translate(-50%,0);opacity:1}.empty-note{text-align:center;color:var(--muted);font-size:11px;padding:12px}
 @media(min-width:600px){.shop{grid-template-columns:repeat(4,minmax(0,1fr))}canvas{height:390px}.room-wrap{min-height:390px}}
 </style>
 </head>
@@ -48,7 +48,7 @@ canvas{display:block;width:100%;height:clamp(270px,43vh,390px);touch-action:pan-
 <button class="item" data-type="desk"><span class="ico">🧑‍💻</span><b>IT-стол с работником</b><small>Программист · +$25/сек</small><strong>$500</strong></button>
 <button class="item" data-type="coffee"><span class="ico">☕</span><b>Кофемашина</b><small>+25% к соседним IT-столам</small><strong>$800</strong></button>
 <button class="item" data-type="server"><span class="ico">▥</span><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
-<button class="item" data-type="boss"><span class="ico">♛</span><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button>
+<button class="item" data-type="boss"><span class="ico">♛</span><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button><button class="item" data-type="meeting"><span class="ico">🤝</span><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><span class="ico">🛡️</span><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
 </div>
 <div class="tools"><button class="tool-btn" id="rotateBtn">↻ Повернуть (90°)</button><button class="tool-btn" id="sellBtn">⌫ Режим продажи</button></div>
 </section>
@@ -78,7 +78,7 @@ canvas{display:block;width:100%;height:clamp(270px,43vh,390px);touch-action:pan-
 <button class="nav-btn" data-page="office"><span class="ni">♙</span>Кабинет</button>
 </nav>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"></div><div class="notice" id="notice"></div><div class="modal-backdrop" id="offlineModal"><div class="modal-card"><h2>Офис работал без вас</h2><p id="offlineText"></p><button class="primary" id="claimOffline">Забрать прибыль</button></div></div>
 <script>
 (function(){
 "use strict";
@@ -101,12 +101,12 @@ const TYPES={
  desk:{name:"IT-стол",cost:500,base:25,icon:"desk"},
  coffee:{name:"Кофемашина",cost:800,base:0,icon:"coffee"},
  server:{name:"Серверная стойка",cost:2000,base:90,icon:"server"},
- boss:{name:"Стол руководителя",cost:5000,base:150,prestige:50,icon:"boss"}
+ boss:{name:"Стол руководителя",cost:5000,base:150,prestige:50,icon:"boss"},meeting:{name:"Переговорная",cost:3500,base:110,prestige:20,icon:"meeting"},security:{name:"Отдел безопасности",cost:4000,base:80,prestige:30,icon:"security"}
 };
 const KEY="corporate_skyscraper_v1";
 let state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};
 try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&typeof saved==="object")state={...state,...saved,viewing:null,selected:null,sellMode:false};}catch(e){}
-function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned}));}catch(e){}}
+function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned,lastVisit:Date.now()}));}catch(e){}}
 function cloudPayload(){return {id:playerId,username:player,balance:Math.floor(state.balance),income:incomeFor(state.layout),prestige:prestigeFor(state.layout),mode:state.peace?"peace":"compete",layout:state.layout,updated_at:new Date().toISOString()};}
 async function syncPlayer(showError=false){localSave();if(!db)return false;try{const {error}=await db.from("players").upsert(cloudPayload(),{onConflict:"id"});if(error)throw error;cloudReady=true;return true;}catch(err){cloudReady=false;console.warn("Supabase save failed:",err);if(showError)toast("Нет связи — прогресс сохранён локально");return false;}}
 function save(){localSave();clearTimeout(saveTimer);saveTimer=setTimeout(()=>syncPlayer(false),400);}
@@ -122,7 +122,7 @@ function incomeFor(layout){
  });
  return sum;
 }
-function prestigeFor(layout){return layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0),0)+state.prestige;}
+function prestigeFor(layout){let n=layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0),0);layout.filter(o=>o.type==="boss").forEach(b=>layout.forEach(m=>{if(m.type==="meeting"&&Math.abs(m.x-b.x)+Math.abs(m.y-b.y)<=1)n+=25;}));return n+state.prestige;}
 const currentLayout=()=>state.viewing?state.viewing.layout:state.layout;
 function updateUI(){
  const inc=incomeFor(state.layout);
@@ -194,7 +194,7 @@ function drawServer(o){
  for(let i=0;i<3;i++){ctx.fillStyle="#0d1828";ctx.fillRect(-8,-27+i*8,16,6);ctx.fillStyle="#36d9b0";ctx.fillRect(5,-25+i*8,2,2);}
  ctx.restore();
 }
-function drawBoss(o){
+function drawMeeting(o){const p=iso(o.x+.5,o.y+.5);ctx.save();ctx.translate(p.x,p.y);box(o.x+.02,o.y+.25,.96,.5,9,"#806044","#3b2e2a","#9a7651");ctx.fillStyle="#8bd5df";ctx.globalAlpha=.65;ctx.fillRect(-15,-13,30,4);ctx.globalAlpha=1;ctx.fillStyle="#263b54";ctx.fillRect(-20,-3,6,9);ctx.fillRect(14,-3,6,9);ctx.restore();}\nfunction drawSecurity(o){const p=iso(o.x+.5,o.y+.5);ctx.save();ctx.translate(p.x,p.y);box(o.x+.15,o.y+.2,.7,.6,23,"#53677f","#26364d","#344b67");for(let i=0;i<3;i++){ctx.fillStyle="#071629";ctx.fillRect(-10,-22+i*7,8,5);ctx.fillStyle="#38bdf8";ctx.fillRect(-8,-21+i*7,4,2);}ctx.fillStyle="#38bdf8";ctx.shadowColor="#38bdf8";ctx.shadowBlur=9;ctx.beginPath();ctx.arc(9,-12,3,0,7);ctx.fill();ctx.shadowBlur=0;ctx.restore();}\nfunction drawBoss(o){
  const p=iso(o.x+.5,o.y+.5);ctx.save();ctx.translate(p.x,p.y);
  ctx.fillStyle="#0008";ctx.beginPath();ctx.ellipse(0,9,cellW*.75,cellH*.4,0,0,7);ctx.fill();
  box(o.x+.08,o.y+.18,.84,.62,12,"#b58a43","#6c4d25","#89632e");
@@ -202,7 +202,7 @@ function drawBoss(o){
  ctx.fillStyle="#e7b46b";ctx.beginPath();ctx.arc(0,-5,6,0,7);ctx.fill();
  ctx.fillStyle="#314e70";ctx.beginPath();ctx.ellipse(0,3,8,8,0,0,7);ctx.fill();ctx.restore();
 }
-function drawObject(o){if(o.type==="desk")drawDesk(o);if(o.type==="coffee")drawCoffee(o);if(o.type==="server")drawServer(o);if(o.type==="boss")drawBoss(o);}
+function drawObject(o){if(o.type==="desk")drawDesk(o);if(o.type==="coffee")drawCoffee(o);if(o.type==="server")drawServer(o);if(o.type==="boss")drawBoss(o);if(o.type==="meeting")drawMeeting(o);if(o.type==="security")drawSecurity(o);}
 function synergyCells(o){
  if(!o)return[];const a=[];
  for(let x=0;x<8;x++)for(let y=0;y<8;y++)if(Math.abs(x-o.x)+Math.abs(y-o.y)===1)a.push({x,y});

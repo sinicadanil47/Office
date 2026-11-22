@@ -250,29 +250,12 @@ canvas.addEventListener("pointerdown",e=>{
  state.balance-=t.cost;state.layout.push({type:state.selected,x:c.x,y:c.y,rot:state.rotation});state.prestige+=0;save();updateUI();haptic();toast(t.name+" установлен");floaters.push({x:c.x,y:c.y,amount:0,t:performance.now()});draw();
 });
 $("shop").addEventListener("click",e=>{const b=e.target.closest("[data-type]");if(!b||state.viewing)return;haptic();state.sellMode=false;state.selected=state.selected===b.dataset.type?null:b.dataset.type;pointer=null;updateUI();draw();});
-$("rotateBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.rotation=(state.rotation+1)%4;toast("Поворот: "+(state.rotation*90)+"°");});
+$("rotateBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.rotation=(state.rotation+1)%4;save();toast("Поворот: "+(state.rotation*90)+"°");});
 $("sellBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.sellMode=!state.sellMode;state.selected=null;updateUI();toast(state.sellMode?"Выберите объект для продажи":"Режим продажи выключен");draw();});
 $("clearSelection").addEventListener("click",()=>{state.selected=null;state.sellMode=false;pointer=null;updateUI();draw();});
 $("returnBtn").addEventListener("click",()=>{state.viewing=null;updateUI();draw();});
 function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(page==="floor")setTimeout(resize,30);haptic();}
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
-const rivalNames=["pixel_ceo","MiraCapital","northstar_88","bytefounder","KiraWorks","volkov_group","NexaPrime","urban_mind","AntonBuilds","silver_fox","data_monk","VegaOffice","maximillion","quiet_owl"];
-const rivalLayouts=[
- [["desk",1,1],["desk",3,1],["coffee",2,2],["server",5,3],["boss",4,5]],
- [["server",1,1],["desk",3,2],["desk",4,3],["coffee",2,4]],
- [["desk",1,2],["desk",2,3],["desk",4,1],["boss",5,5]],
- [["server",2,1],["server",4,1],["desk",2,3],["desk",4,3],["coffee",3,4]],
- [["desk",1,1],["coffee",2,1],["desk",4,2],["boss",5,4]],
- [["desk",1,3],["desk",2,4],["server",4,2],["boss",5,5]],
- [["server",1,1],["desk",3,1],["desk",4,2],["desk",5,3]],
- [["coffee",2,2],["desk",3,2],["desk",4,3],["boss",5,5]],
- [["desk",1,1],["desk",2,2],["desk",3,3],["server",5,4]],
- [["boss",4,4],["server",2,2],["desk",1,1],["coffee",3,2]],
- [["server",1,1],["server",2,2],["desk",4,3],["desk",5,4]],
- [["desk",1,2],["desk",3,2],["coffee",2,3],["boss",5,5]],
- [["desk",1,1],["server",4,1],["desk",2,4],["desk",4,4]],
- [["coffee",1,1],["desk",2,2],["desk",3,3],["server",5,5]]
-];
 let remotePlayers=[];
 async function refreshLeaderboard(){
  if(!db)return;
@@ -297,11 +280,11 @@ $("companies").addEventListener("click",e=>{const b=e.target.closest("[data-inve
 const feedItems=["Nova Dynamics объявила о запуске нового продукта","GreenGrid Energy привлекла стратегического партнёра","Urban Core расширяет сеть офисных пространств","Cloud Harbor сообщил о росте клиентской базы","На бирже зафиксирован повышенный спрос на AI-сектор","Индекс корпоративной активности вырос на 1,8%"];
 function addFeed(){const f=$("feed"),d=new Date(),time=d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit",second:"2-digit"});const el=document.createElement("div");el.className="feed";el.innerHTML="<time>"+time+"</time>"+feedItems[Math.floor(Math.random()*feedItems.length)];f.prepend(el);while(f.children.length>7)f.lastElementChild.remove();}
 function dividends(){let paid=0;Object.entries(state.investments).forEach(([id,v])=>{const target=remotePlayers.find(p=>String(p.id)===id);if(target)paid+=Math.min(Number(v)||0,10000)*Math.max(.001,(Number(target.income)||0)/10000);});if(paid>0){state.balance+=paid;state.totalEarned+=paid;save();updateUI();toast("Расчётный дивиденд: +"+money(paid));}addFeed();}
-$("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};save();updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
+$("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};save();syncPlayer(true);updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
 let last=performance.now(),incomeTimer=0;
 function tick(now){
  const dt=Math.min((now-last)/1000,.25);last=now;
- if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));save();updateUI();}}}
+ if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  draw();requestAnimationFrame(tick);
 }
 window.addEventListener("resize",resize);

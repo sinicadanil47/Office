@@ -177,7 +177,14 @@ security:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><l
 // Реальные файлы в sprites/ проверены: подходящих изображений пока нет.
 // Для каждого типа оставлен встроенный SVG-fallback; при добавлении файла
 // достаточно прописать его путь в SPRITE_ASSETS.
-const SPRITE_ASSETS={desk:null,coffee:null,server:null,ceo:null,meeting:null,security:null};
+const SPRITE_ASSETS={
+ desk:"sprites/office_furniture_desk_straight_01.png",
+ coffee:"sprites/office_props_mug_01.png",
+ server:"sprites/office_electronics_computer_tower_01.png",
+ ceo:"sprites/office_furniture_desk_corner_l_01.png",
+ meeting:"sprites/office_furniture_chair_meeting_01.png",
+ security:"sprites/office_electronics_camera_security_01.png"
+};
 const SPRITE_URI={},SPRITE_IMAGES={};
 function spriteKey(type){return type==="boss"?"ceo":type;}
 function spriteData(type){const key=spriteKey(type);if(!SPRITE_URI[key])SPRITE_URI[key]="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(SPRITE_SVG[key]||SPRITE_SVG.desk);return SPRITE_URI[key];}

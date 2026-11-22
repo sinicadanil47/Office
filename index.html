@@ -144,7 +144,7 @@ function resize(){
  const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;
  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
  cellW=Math.min((W-28)/8/2,38);cellH=cellW*.5;
- originX=W/2;originY=Math.max(115,H*.27);
+ originX=W/2;originY=H/2-8*cellH;
  draw();
 }
 function iso(x,y){return {x:originX+(x-y)*cellW+camX,y:originY+(x+y)*cellH+camY};}

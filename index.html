@@ -25,7 +25,7 @@ canvas{display:block;width:100%;height:clamp(270px,43vh,390px);touch-action:none
 .toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translate(-50%,15px);opacity:0;pointer-events:none;background:#23334c;border:1px solid #49617f;padding:10px 14px;border-radius:12px;font-size:12px;z-index:20;transition:.2s;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
 .modal-backdrop{position:fixed;inset:0;background:#020817c9;display:none;align-items:center;justify-content:center;padding:22px;z-index:50}.modal-backdrop.show{display:flex}.modal-card{width:min(100%,360px);background:#17263d;border:1px solid #806022;border-radius:18px;padding:22px;text-align:center}.modal-card p{font-size:13px;line-height:1.5;color:#b8c7d9}.modal-card .primary{width:100%;padding:13px}.notice{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-140%);opacity:0;z-index:40;background:#173a31;border:1px solid #1c9b70;border-radius:13px;padding:12px 16px;width:min(92%,420px);font-size:12px;text-align:center;transition:.25s}.notice.show{transform:translate(-50%,0);opacity:1}.empty-note{text-align:center;color:var(--muted);font-size:11px;padding:12px}
 @media(min-width:600px){.shop{grid-template-columns:repeat(4,minmax(0,1fr))}canvas{height:390px}.room-wrap{min-height:390px}}
-html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:100%;height:100%;margin:0;background:#091321}#app{display:block;width:100%;max-width:none;height:100dvh;padding:0;margin:0;background:transparent;overflow:hidden}#app>header{display:none!important}#app>main{display:contents!important}#room{position:fixed;inset:0;width:100vw;height:100dvh;z-index:1;touch-action:none;display:block}.room-wrap{position:static;min-height:0;border:0;border-radius:0;overflow:visible;background:transparent;box-shadow:none}.room-top,.legend{display:none!important}#page-floor{display:block!important}#page-floor .stats,#page-floor .view-banner,#page-floor .section-head,#page-floor .tools{display:none!important}#shop{display:none;position:fixed;z-index:14;left:10px;right:10px;bottom:calc(142px + env(safe-area-inset-bottom));padding:10px;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:18px;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;max-height:42dvh;overflow-y:auto}#shop.open{display:grid}.expansion-card{grid-column:1/-1;display:flex;align-items:center;gap:9px;padding:9px;border:1px solid #8b672d;border-radius:12px;background:rgba(91,62,20,.28)}.expansion-copy{flex:1;min-width:0;font-size:10px;color:#f4d28e;line-height:1.35}.expansion-card button{font-size:10px;padding:9px 10px;white-space:nowrap}.expansion-card button:disabled{opacity:.55;cursor:default}#shop .item{min-height:92px;padding:8px;background:rgba(31,47,70,.82);border-color:#40516b}#shop .item b{font-size:10px}#shop .item small{font-size:9px}#shop .item strong{font-size:11px}.glass{background:rgba(11,17,32,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);box-shadow:0 12px 35px #0005}.top-hud{position:fixed;z-index:10;top:calc(8px + env(safe-area-inset-top));left:10px;right:10px;pointer-events:none;border-radius:17px;padding:10px 11px;display:flex;flex-direction:column;gap:8px}.hud-head{display:flex;justify-content:space-between;align-items:center;gap:8px;pointer-events:auto}.hud-brand{font-size:10px;letter-spacing:.6px;font-weight:900;color:#9fb1c9}.hud-brand b{color:var(--gold);font-size:12px;display:block;margin-top:2px}.hud-floor{font-size:10px;color:#b9c9dd;text-align:right}.hud-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;pointer-events:auto}.hud-stats .stat{margin:0;padding:7px;background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.07)}.hud-stats .stat small{font-size:9px;margin-bottom:3px}.hud-stats .stat strong{font-size:clamp(12px,3.6vw,16px)}.hud-stat{min-width:0;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:7px}.hud-stat small{display:block;font-size:9px;color:#91a4bf;margin-bottom:3px}.hud-stat strong{display:block;font-size:clamp(12px,3.6vw,16px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.goal-line{display:flex;align-items:center;gap:8px;pointer-events:auto;font-size:10px;color:#c6d2e2}.goal-line .goal-copy{flex:1;min-width:0}.goal-line b{color:#f7ca76}.goal-progress{height:4px;background:#35445a;border-radius:5px;margin-top:5px;overflow:hidden}.goal-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f59e0b,#fcd34d)}.goal-line button{background:#6d4a12;color:#ffe1a3;border:1px solid #a87624;border-radius:8px;padding:6px 8px;font-size:9px}.view-banner{position:fixed!important;z-index:11;top:calc(132px + env(safe-area-inset-top));left:10px;right:10px;margin:0!important;background:rgba(91,59,13,.9)!important;backdrop-filter:blur(12px);border:1px solid #9a6c20}.view-banner.show{display:flex}.floor-actions{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));display:flex;gap:8px;pointer-events:auto}.floor-actions button,.install-bar button,.camera-center{background:rgba(22,36,56,.9);backdrop-filter:blur(12px);border:1px solid #526780;border-radius:12px;padding:10px 14px;font-size:12px;font-weight:800;box-shadow:0 8px 22px #0005}.floor-actions .build{background:rgba(160,103,12,.94);border-color:#d99a2a;color:#fff0cb}.bottom-nav{position:fixed;z-index:13;left:8px;right:8px;bottom:calc(5px + env(safe-area-inset-bottom));border:1px solid rgba(255,255,255,.1);border-radius:16px;background:rgba(11,17,32,.86);backdrop-filter:blur(16px);padding:5px 7px;box-shadow:0 10px 28px #0007}.nav-btn{padding:7px 3px 5px}.nav-btn .ni{font-size:17px}.install-bar{display:none;position:fixed;z-index:15;left:10px;right:10px;bottom:calc(78px + env(safe-area-inset-bottom));align-items:center;gap:6px;padding:8px;border-radius:14px;pointer-events:auto}.install-bar.show{display:flex}.install-bar .install-label{flex:1;min-width:0;font-size:10px;color:#f4d28e;line-height:1.3}.install-bar button{padding:8px 10px;font-size:10px} .upgrade-card{display:none;position:fixed;z-index:16;left:10px;right:10px;bottom:calc(82px + env(safe-area-inset-bottom));padding:12px;border-radius:15px;pointer-events:auto}.upgrade-card.show{display:block}.upgrade-top{display:flex;justify-content:space-between;align-items:center}.upgrade-top button{background:#30435e;border-radius:8px;padding:5px 9px}.upgrade-actions{margin-top:9px}.camera-center{position:fixed;z-index:9;right:12px;top:48%;width:42px;height:42px;padding:0;font-size:20px;border-radius:50%;pointer-events:auto}.modal-page{display:none;position:fixed;z-index:20;left:10px;right:10px;top:calc(150px + env(safe-area-inset-top));bottom:calc(82px + env(safe-area-inset-bottom));overflow-y:auto;padding:13px;border-radius:19px;background:rgba(11,17,32,.84);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 55px #0008}.modal-page.active{display:block}.modal-page .section-head{margin:2px 2px 10px}.modal-page .panel{background:rgba(26,41,62,.86)}.toast{z-index:60;bottom:calc(145px + env(safe-area-inset-bottom))}.notice{z-index:61}.modal-backdrop{z-index:70}@media(min-width:650px){.top-hud{left:50%;right:auto;transform:translateX(-50%);width:min(640px,calc(100vw - 28px))}.modal-page{left:50%;right:auto;transform:translateX(-50%);width:min(680px,calc(100vw - 28px))}#shop{left:50%;right:auto;transform:translateX(-50%);width:min(680px,calc(100vw - 28px))}}
+html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:100%;height:100%;margin:0;background:#091321}#app{display:block;width:100%;max-width:none;height:100dvh;padding:0;margin:0;background:transparent;overflow:hidden}#app>header{display:none!important}#app>main{display:contents!important}#room{position:fixed;inset:0;width:100vw;height:100dvh;z-index:1;touch-action:none;display:block}.room-wrap{position:static;min-height:0;border:0;border-radius:0;overflow:visible;background:transparent;box-shadow:none}.room-top,.legend{display:none!important}#page-floor{display:block!important}#page-floor .stats,#page-floor .view-banner,#page-floor .section-head,#page-floor .tools{display:none!important}#shop{display:none;position:fixed;z-index:14;left:10px;right:10px;bottom:calc(142px + env(safe-area-inset-bottom));padding:10px;background:rgba(11,17,32,.88);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:18px;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;max-height:42dvh;overflow-y:auto}#shop.open{display:grid}.expansion-card{grid-column:1/-1;display:flex;align-items:center;gap:9px;padding:9px;border:1px solid #8b672d;border-radius:12px;background:rgba(91,62,20,.28)}.expansion-copy{flex:1;min-width:0;font-size:10px;color:#f4d28e;line-height:1.45;white-space:pre-line}.expansion-card button{font-size:10px;padding:9px 10px;white-space:nowrap}.expansion-card button:disabled{opacity:.55;cursor:default}#shop .item{min-height:92px;padding:8px;background:rgba(31,47,70,.82);border-color:#40516b}#shop .item b{font-size:10px}#shop .item small{font-size:9px}#shop .item strong{font-size:11px}.glass{background:rgba(11,17,32,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);box-shadow:0 12px 35px #0005}.top-hud{position:fixed;z-index:10;top:calc(8px + env(safe-area-inset-top));left:10px;right:10px;pointer-events:none;border-radius:17px;padding:10px 11px;display:flex;flex-direction:column;gap:8px}.hud-head{display:flex;justify-content:space-between;align-items:center;gap:8px;pointer-events:auto}.hud-brand{font-size:10px;letter-spacing:.6px;font-weight:900;color:#9fb1c9}.hud-brand b{color:var(--gold);font-size:12px;display:block;margin-top:2px}.hud-floor{font-size:10px;color:#b9c9dd;text-align:right}.hud-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;pointer-events:auto}.hud-stats .stat{margin:0;padding:7px;background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.07)}.hud-stats .stat small{font-size:9px;margin-bottom:3px}.hud-stats .stat strong{font-size:clamp(12px,3.6vw,16px)}.hud-stat{min-width:0;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:7px}.hud-stat small{display:block;font-size:9px;color:#91a4bf;margin-bottom:3px}.hud-stat strong{display:block;font-size:clamp(12px,3.6vw,16px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.goal-line{display:flex;align-items:center;gap:8px;pointer-events:auto;font-size:10px;color:#c6d2e2}.goal-line .goal-copy{flex:1;min-width:0}.goal-line b{color:#f7ca76}.goal-progress{height:4px;background:#35445a;border-radius:5px;margin-top:5px;overflow:hidden}.goal-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f59e0b,#fcd34d)}.goal-line button{background:#6d4a12;color:#ffe1a3;border:1px solid #a87624;border-radius:8px;padding:6px 8px;font-size:9px}.view-banner{position:fixed!important;z-index:11;top:calc(132px + env(safe-area-inset-top));left:10px;right:10px;margin:0!important;background:rgba(91,59,13,.9)!important;backdrop-filter:blur(12px);border:1px solid #9a6c20}.view-banner.show{display:flex}.floor-actions{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));display:flex;gap:8px;pointer-events:auto}.floor-actions button,.install-bar button,.camera-center{background:rgba(22,36,56,.9);backdrop-filter:blur(12px);border:1px solid #526780;border-radius:12px;padding:10px 14px;font-size:12px;font-weight:800;box-shadow:0 8px 22px #0005}.floor-actions .build{background:rgba(160,103,12,.94);border-color:#d99a2a;color:#fff0cb}.bottom-nav{position:fixed;z-index:13;left:8px;right:8px;bottom:calc(5px + env(safe-area-inset-bottom));border:1px solid rgba(255,255,255,.1);border-radius:16px;background:rgba(11,17,32,.86);backdrop-filter:blur(16px);padding:5px 7px;box-shadow:0 10px 28px #0007}.nav-btn{padding:7px 3px 5px}.nav-btn .ni{font-size:17px}.install-bar{display:none;position:fixed;z-index:15;left:10px;right:10px;bottom:calc(78px + env(safe-area-inset-bottom));align-items:center;gap:6px;padding:8px;border-radius:14px;pointer-events:auto}.install-bar.show{display:flex}.install-bar .install-label{flex:1;min-width:0;font-size:10px;color:#f4d28e;line-height:1.3}.install-bar button{padding:8px 10px;font-size:10px} .upgrade-card{display:none;position:fixed;z-index:16;left:10px;right:10px;bottom:calc(82px + env(safe-area-inset-bottom));padding:12px;border-radius:15px;pointer-events:auto}.upgrade-card.show{display:block}.upgrade-top{display:flex;justify-content:space-between;align-items:center}.upgrade-top button{background:#30435e;border-radius:8px;padding:5px 9px}.upgrade-actions{margin-top:9px}.camera-center{position:fixed;z-index:9;right:12px;top:48%;width:42px;height:42px;padding:0;font-size:20px;border-radius:50%;pointer-events:auto}.modal-page{display:none;position:fixed;z-index:20;left:10px;right:10px;top:calc(150px + env(safe-area-inset-top));bottom:calc(82px + env(safe-area-inset-bottom));overflow-y:auto;padding:13px;border-radius:19px;background:rgba(11,17,32,.84);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 55px #0008}.modal-page.active{display:block}.modal-page .section-head{margin:2px 2px 10px}.modal-page .panel{background:rgba(26,41,62,.86)}.toast{z-index:60;bottom:calc(145px + env(safe-area-inset-bottom))}.notice{z-index:61}.modal-backdrop{z-index:70}@media(min-width:650px){.top-hud{left:50%;right:auto;transform:translateX(-50%);width:min(640px,calc(100vw - 28px))}.modal-page{left:50%;right:auto;transform:translateX(-50%);width:min(680px,calc(100vw - 28px))}#shop{left:50%;right:auto;transform:translateX(-50%);width:min(680px,calc(100vw - 28px))}}
 </style>
 </head>
 <body><div class="top-hud glass" id="topHud"><div class="hud-head"><div class="hud-brand">КОРПОРАТИВНЫЙ НЕБОСКРЁБ<b id="hudPlayer">Директор</b></div><div class="hud-floor" id="hudFloor">ВАШ ОФИС · ЭТАЖ 01</div></div><div class="hud-stats" id="hudStats"></div><div class="goal-line" id="directorGoal"><div class="goal-copy"><b>Цель директора</b> · Развивайте этаж<div class="goal-progress"><i id="goalFill"></i></div></div><button id="goalToggle" type="button">Цель</button></div></div><div class="floor-actions" id="floorActions"><button class="build" id="openShop">🔨 Строить</button><button id="quickSell">💰 Продать</button></div><div class="install-bar glass" id="installBar"><span class="install-label" id="installLabel">Установка</span><button id="installRotate">↻ Повернуть</button><button id="cancelInstall">✕ Отмена</button></div>
@@ -46,7 +46,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 <div class="legend"><span><i class="dot" style="background:#10B981"></i>Доход</span><span><i class="dot" style="background:#F59E0B"></i>Престиж</span><span><i class="dot" style="background:#64748b"></i>Синергия</span></div>
 <div class="section-head"><h2>Строительство</h2><span>ВЫБЕРИТЕ ОБЪЕКТ</span></div>
 <div class="shop" id="shop">
-<div class="expansion-card"><div class="expansion-copy" id="shopExpansionStatus">Площадь офиса · 8×8</div><button class="primary" id="expandShopBtn" type="button">📐 Расширить этаж</button></div>
+<div class="expansion-card"><div class="expansion-copy" id="shopExpansionStatus">Переезд на следующий этаж</div><button class="primary" id="expandShopBtn" type="button">📐 Расширить этаж</button></div>
 <button class="item" data-type="desk"><span class="ico">🧑‍💻</span><b>IT-стол с работником</b><small>Программист · +$25/сек</small><strong>$500</strong></button>
 <button class="item" data-type="coffee"><span class="ico">☕</span><b>Кофемашина</b><small>+25% к соседним IT-столам</small><strong>$800</strong></button>
 <button class="item" data-type="server"><span class="ico">▥</span><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
@@ -70,7 +70,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 <div class="panel"><h3>Профиль</h3><div class="row"><div><b id="cabName">Директор</b><div class="muted" style="font-size:10px;margin-top:3px">Корпорация · Независимая</div></div><div style="font-size:24px">♛</div></div></div>
 <div class="panel"><h3>Статистика этажа</h3><div class="row" style="padding:7px 0"><span class="muted">Построено объектов</span><b id="objectCount">0</b></div><div class="row" style="padding:7px 0"><span class="muted">Общий доход в секунду</span><b class="green" id="cabIncome">$0</b></div><div class="row" style="padding:7px 0"><span class="muted">Престиж</span><b class="gold" id="cabPrestige">0 ★</b></div><div class="row" style="padding:7px 0"><span class="muted">Инвестиции</span><b id="cabInvest">$0</b></div></div>
 <div class="panel"><div class="row"><div><h3 style="margin:0 0 4px">Мирный режим</h3><small class="muted" id="modeText">Развитие без борьбы за Пентхаус</small></div><button class="switch" id="modeSwitch" aria-label="Переключить режим"></button></div></div>
-<div class="panel" id="officeExpansion"><h3>Площадь офиса</h3><div class="muted" id="officeExpansionStatus" style="font-size:11px;margin-bottom:9px">Текущий размер: 8×8</div><button class="primary" id="expandOfficeBtn" type="button" style="width:100%">📐 Расширить этаж</button></div>
+<div class="panel" id="officeExpansion"><h3>Площадь офиса</h3><div class="muted" id="officeExpansionStatus" style="font-size:11px;margin-bottom:9px">Переезд на следующий этаж</div><button class="primary" id="expandOfficeBtn" type="button" style="width:100%">📐 Расширить этаж</button></div>
 <div class="panel"><h3>Данные игры</h3><small class="muted">Прогресс синхронизируется с Supabase; при отсутствии сети используется локальная копия.</small><div style="height:10px"></div><button class="danger" id="resetBtn">Сбросить прогресс</button></div>
 </section>
 </main>
@@ -107,20 +107,34 @@ const TYPES={
  boss:{name:"Стол руководителя",cost:5000,base:150,prestige:50,icon:"boss"},meeting:{name:"Переговорная",cost:3500,base:110,prestige:20,icon:"meeting"},security:{name:"Отдел безопасности",cost:4000,base:80,prestige:30,icon:"security"}
 };
 const KEY="corporate_skyscraper_v1";
-let state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};
+const FLOORS=[
+ {tier:0,name:"Подвал",floorLabel:"ПОДВАЛ · 5×5",gridSize:5,reqPrestige:0,cost:0,incomeMult:1.0,bonus:0},
+ {tier:1,name:"Коворкинг",floorLabel:"ЭТАЖ 02 · 7×7",gridSize:7,reqPrestige:20,cost:3000,incomeMult:1.15,bonus:15},
+ {tier:2,name:"Бизнес-центр",floorLabel:"ЭТАЖ 10 · 9×9",gridSize:9,reqPrestige:75,cost:10000,incomeMult:1.35,bonus:35},
+ {tier:3,name:"IT-башня",floorLabel:"ЭТАЖ 25 · 11×11",gridSize:11,reqPrestige:200,cost:30000,incomeMult:1.65,bonus:65},
+ {tier:4,name:"Пентхаус",floorLabel:"ЭТАЖ 50 · 13×13",gridSize:13,reqPrestige:500,cost:85000,incomeMult:2.0,bonus:100}
+];
+let state={balance:2500,prestige:0,layout:[],floorTier:0,gridSize:5,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};
 try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&typeof saved==="object")state={...state,...saved,viewing:null,selected:null,sellMode:false};}catch(e){}
-let gridSize=[8,10,12,14].includes(Number(state.gridSize))?Number(state.gridSize):8;state.gridSize=gridSize;
-const EXPANSIONS=[{size:10,cost:5000,prestige:25},{size:12,cost:18000,prestige:75},{size:14,cost:50000,prestige:200}];
-function currentGridSize(){return state.viewing?(state.viewing.gridSize||8):gridSize;}
-function decodeCloudLayout(raw,fallback=8){const arr=Array.isArray(raw)?raw:[],meta=arr.find(o=>o&&o.type==="__meta");return {layout:arr.filter(o=>o&&o.type!=="__meta"),gridSize:[8,10,12,14].includes(Number(meta?.gridSize))?Number(meta.gridSize):fallback};}
-function cloudLayout(){return [...state.layout,{type:"__meta",gridSize}];}
-function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,gridSize,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned,lastVisit:Date.now()}));}catch(e){}}
+function legacyTier(size){return ({8:0,10:1,12:2,14:3})[Number(size)]??0;}
+let floorTier=Number.isInteger(Number(state.floorTier))&&Number(state.floorTier)>=0&&Number(state.floorTier)<=4?Number(state.floorTier):legacyTier(state.gridSize);
+let gridSize=FLOORS[floorTier].gridSize;state.floorTier=floorTier;state.gridSize=gridSize;
+function currentFloorTier(){return state.viewing?Math.max(0,Math.min(4,Number(state.viewing.floorTier)||0)):floorTier;}
+function currentGridSize(){return state.viewing?(state.viewing.gridSize||FLOORS[currentFloorTier()].gridSize):gridSize;}
+function decodeCloudLayout(raw,fallbackTier=floorTier){
+ const arr=Array.isArray(raw)?raw:[],meta=arr.find(o=>o&&o.type==="__meta");let tier=fallbackTier;
+ if(meta&&meta.floorTier!==undefined&&Number.isInteger(Number(meta.floorTier))&&Number(meta.floorTier)>=0&&Number(meta.floorTier)<=4)tier=Number(meta.floorTier);
+ else if(meta&&meta.gridSize)tier=legacyTier(meta.gridSize);
+ return {layout:arr.filter(o=>o&&o.type!=="__meta"),floorTier:tier,gridSize:FLOORS[tier].gridSize};
+}
+function cloudLayout(){return [...state.layout,{type:"__meta",floorTier,gridSize}];}
+function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,floorTier,gridSize,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned,lastVisit:Date.now()}));}catch(e){}}
 function cloudPayload(){return {id:playerId,username:player,balance:Math.floor(state.balance),income:incomeFor(state.layout),prestige:prestigeFor(state.layout),mode:state.peace?"peace":"compete",layout:cloudLayout(),updated_at:new Date().toISOString()};}
 async function syncPlayer(showError=false){localSave();if(!db)return false;try{const {error}=await db.from("players").upsert(cloudPayload(),{onConflict:"id"});if(error)throw error;cloudReady=true;return true;}catch(err){cloudReady=false;console.warn("Supabase save failed:",err);if(showError)toast("Нет связи — прогресс сохранён локально");return false;}}
 function save(){localSave();clearTimeout(saveTimer);saveTimer=setTimeout(()=>syncPlayer(false),400);}
-async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);const decoded=decodeCloudLayout(data.layout,gridSize);state.layout=decoded.layout;gridSize=decoded.gridSize;state.gridSize=gridSize;state.prestige=Math.max(0,(Number(data.prestige)||0)-basePrestigeFor(state.layout));state.peace=data.mode!=="compete";}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:cloudLayout()},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();resize();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
+async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);const decoded=decodeCloudLayout(data.layout,floorTier);state.layout=decoded.layout;floorTier=decoded.floorTier;gridSize=FLOORS[floorTier].gridSize;state.floorTier=floorTier;state.gridSize=gridSize;state.prestige=Math.max(0,(Number(data.prestige)||0)-basePrestigeFor(state.layout));state.peace=data.mode!=="compete";}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:cloudLayout()},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();resize();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
 function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1900);}
-function incomeFor(layout){
+function incomeFor(layout,tier=floorTier){
  let sum=0;
  layout.forEach(o=>{const t=TYPES[o.type];if(t)sum+=(t.base||0)+(Number(o.baseBonus)||0);});
  layout.filter(o=>o.type==="desk").forEach(d=>{
@@ -128,12 +142,24 @@ function incomeFor(layout){
   layout.forEach(o=>{if(o===d)return;const dist=Math.abs(o.x-d.x)+Math.abs(o.y-d.y);if(dist<=1){if(o.type==="coffee")bonus+=.25*(1+Math.max(0,(o.level||1)-1)*.1);if(o.type==="server")bonus+=.15*(1+Math.max(0,(o.level||1)-1)*.1);}});
   sum+=25*bonus;
  });
- return sum;
+ return sum*FLOORS[Math.max(0,Math.min(4,Number(tier)||0))].incomeMult;
 }
 function basePrestigeFor(layout){let n=layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0)+Math.max(0,(Number(o.level)||1)-1)*5,0);layout.filter(o=>o.type==="boss").forEach(b=>layout.forEach(m=>{if(m.type==="meeting"&&Math.abs(m.x-b.x)+Math.abs(m.y-b.y)<=1)n+=25;}));return n;}function prestigeFor(layout){return basePrestigeFor(layout)+state.prestige;}
 const currentLayout=()=>state.viewing?state.viewing.layout:state.layout;
-function updateExpansionUI(){const next=EXPANSIONS.find(x=>x.size>gridSize),status=next?`Площадь ${gridSize}×${gridSize} · следующая ${next.size}×${next.size} за ${money(next.cost)} · +${next.prestige} престижа`:"Максимальная площадь (14×14)";$("shopExpansionStatus").textContent=status;$("officeExpansionStatus").textContent=status;["expandShopBtn","expandOfficeBtn"].forEach(id=>{const b=$(id);b.disabled=!next||state.balance<next.cost||!!state.viewing;b.textContent=!next?"Максимальная площадь (14×14)":`📐 Расширить этаж до ${next.size}×${next.size} — ${money(next.cost)}`;});}
-function buyExpansion(){const next=EXPANSIONS.find(x=>x.size>gridSize);if(!next){toast("Достигнута максимальная площадь");return;}if(state.balance<next.cost){toast("Недостаточно средств для расширения");return;}state.balance-=next.cost;state.prestige+=next.prestige;gridSize=next.size;state.gridSize=gridSize;zoomAt(Math.max(.6,cameraZoom-.08),W/2,H/2);resize();save();syncPlayer(false);updateUI();haptic();toast(`Офис расширен до ${gridSize}×${gridSize} · +${next.prestige} престижа`);}
+function updateExpansionUI(){
+ const next=FLOORS[floorTier+1],prestige=prestigeFor(state.layout);
+ const status=next?"Следующий этаж: "+next.name+" · "+next.gridSize+"×"+next.gridSize+"\nБонус: +"+next.bonus+"% ко всему доходу\nПрестиж: "+prestige+" / "+next.reqPrestige+" ★\nЦена переезда: "+money(next.cost):"Максимальный уровень — Пентхаус · доход ×2.0";
+ $("shopExpansionStatus").textContent=status;$("officeExpansionStatus").textContent=status;
+ ["expandShopBtn","expandOfficeBtn"].forEach(id=>{const b=$(id);b.disabled=!next||prestige<next.reqPrestige||state.balance<next.cost||!!state.viewing;b.textContent=!next?"Максимальный этаж":"🏢 Переехать на этаж выше · "+money(next.cost);});
+}
+function buyExpansion(){
+ const next=FLOORS[floorTier+1];if(!next){toast("Вы уже на самом высоком этаже");return;}
+ const prestige=prestigeFor(state.layout);
+ if(prestige<next.reqPrestige){toast("Недостаточно престижа: нужно "+next.reqPrestige+" ★");return;}
+ if(state.balance<next.cost){toast("Недостаточно денег для переезда");return;}
+ state.balance-=next.cost;floorTier=next.tier;gridSize=next.gridSize;state.floorTier=floorTier;state.gridSize=gridSize;
+ pointer=null;cameraZoom=1;cameraOffsetX=0;cameraOffsetY=0;resize();save();syncPlayer(false);updateUI();haptic();toast("Переезд выполнен! Доход офиса увеличен!");
+}
 function updateUI(){
  const inc=incomeFor(state.layout);
  $("balance").textContent=money(state.balance);$("income").textContent=money(inc);$("prestige").textContent=prestigeFor(state.layout)+" ★";
@@ -141,10 +167,10 @@ function updateUI(){
  $("cabInvest").textContent=money(Object.values(state.investments).reduce((a,b)=>a+b,0));
  $("portfolio").textContent=money(Object.values(state.investments).reduce((a,b)=>a+b,0));
  $("modeSwitch").classList.toggle("on",!state.peace);$("modeText").textContent=state.peace?"Развитие без борьбы за Пентхаус":"Вы участвуете в гонке за Пентхаус";
- $("roomLabel").textContent=state.viewing?"ПРОСМОТР · "+state.viewing.nick+" · "+currentGridSize()+"×"+currentGridSize():"ЭТАЖ 01 · "+gridSize+"×"+gridSize;
+ $("roomLabel").textContent=state.viewing?"ПРОСМОТР · "+state.viewing.nick+" · "+currentGridSize()+"×"+currentGridSize():FLOORS[floorTier].floorLabel;
  $("viewBanner").classList.toggle("show",!!state.viewing);$("floorActions").style.display=state.viewing?"none":"flex";
  if(state.viewing)$("viewLabel").textContent="Вы осматриваете этаж @"+state.viewing.nick;
- $("shop").querySelectorAll(".item").forEach(b=>b.classList.toggle("selected",b.dataset.type===state.selected&&!state.viewing));$("hudPlayer").textContent=player;$("hudFloor").textContent=state.viewing?"ОСМОТР · "+state.viewing.nick+" · "+currentGridSize()+"×"+currentGridSize():"ВАШ ОФИС · ЭТАЖ 01 · "+gridSize+"×"+gridSize;updateExpansionUI();$("goalFill").style.width=Math.min(100,state.layout.length/12*100)+"%";
+ $("shop").querySelectorAll(".item").forEach(b=>b.classList.toggle("selected",b.dataset.type===state.selected&&!state.viewing));$("hudPlayer").textContent=player;$("hudFloor").textContent=state.viewing?"ОСМОТР · "+state.viewing.nick+" · "+currentGridSize()+"×"+currentGridSize():"ВАШ ОФИС · "+FLOORS[floorTier].floorLabel;updateExpansionUI();$("goalFill").style.width=Math.min(100,state.layout.length/12*100)+"%";
  $("sellBtn").classList.toggle("active",state.sellMode);
 }
 const canvas=$("room"),ctx=canvas.getContext("2d");
@@ -245,13 +271,102 @@ function drawBoss(o){
  ctx.fillStyle="#e7b46b";ctx.beginPath();ctx.arc(0,-5,6,0,7);ctx.fill();
  ctx.fillStyle="#314e70";ctx.beginPath();ctx.ellipse(0,3,8,8,0,0,7);ctx.fill();ctx.restore();
 }
-function drawObject(o){if(o.type==="desk")drawDesk(o);if(o.type==="coffee")drawCoffee(o);if(o.type==="server")drawServer(o);if(o.type==="boss")drawBoss(o);if(o.type==="meeting")drawMeeting(o);if(o.type==="security")drawSecurity(o);}
+function drawObject(o){
+ const p=iso(o.x+.5,o.y+.5);
+ ctx.save();ctx.fillStyle="rgba(0,0,0,.28)";ctx.beginPath();ctx.ellipse(p.x,p.y+8,cellW*.58,cellH*.34,0,0,Math.PI*2);ctx.fill();
+ const glow=o.type==="desk"?"rgba(56,189,248,.2)":o.type==="server"?"rgba(45,212,191,.22)":o.type==="boss"?"rgba(245,181,65,.24)":null;
+ if(glow){ctx.shadowColor=glow;ctx.shadowBlur=18;ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(p.x,p.y+5,cellW*.7,cellH*.45,0,0,Math.PI*2);ctx.fill();}
+ ctx.restore();
+ if(o.type==="desk")drawDesk(o);if(o.type==="coffee")drawCoffee(o);if(o.type==="server")drawServer(o);if(o.type==="boss")drawBoss(o);if(o.type==="meeting")drawMeeting(o);if(o.type==="security")drawSecurity(o);
+}
 function synergyCells(o){
  if(!o)return[];const a=[];
  for(let x=0;x<currentGridSize();x++)for(let y=0;y<currentGridSize();y++)if(Math.abs(x-o.x)+Math.abs(y-o.y)===1)a.push({x,y});
  return a;
 }
-function drawBackWalls(){const wh=65,n=currentGridSize();for(let i=0;i<n;i++){const a=iso(i,0),b=iso(i+1,0);poly([{x:a.x,y:a.y},{x:b.x,y:b.y},{x:b.x,y:b.y-wh},{x:a.x,y:a.y-wh}],"rgba(30,52,78,.42)","rgba(126,164,198,.35)");const wx=(a.x+b.x)/2,wy=(a.y+b.y)/2-wh*.55,g=ctx.createLinearGradient(0,wy-20,0,wy+22);g.addColorStop(0,"#07172f");g.addColorStop(1,"#173b61");ctx.fillStyle=g;ctx.fillRect(wx-cellW*.38,wy-17,cellW*.76,34);for(let k=0;k<3;k++){const bx=wx-cellW*.3+k*cellW*.22,bh=12+(i*7+k*9)%20;ctx.fillStyle="#081426";ctx.fillRect(bx,wy+16-bh,6,bh);ctx.fillStyle=k%2?"#fbbf24":"#38bdf8";ctx.fillRect(bx+1,wy+16-bh+4,2,2);}}for(let i=0;i<n;i++){const a=iso(0,i),b=iso(0,i+1);poly([{x:a.x,y:a.y},{x:b.x,y:b.y},{x:b.x,y:b.y-wh},{x:a.x,y:a.y-wh}],"rgba(22,43,68,.34)","rgba(126,164,198,.28)");const wx=(a.x+b.x)/2,wy=(a.y+b.y)/2-wh*.55,g=ctx.createLinearGradient(0,wy-18,0,wy+20);g.addColorStop(0,"#08172e");g.addColorStop(1,"#1b4265");ctx.fillStyle=g;ctx.fillRect(wx-cellW*.35,wy-16,cellW*.7,32);}}
+function floorPalette(tier){
+ return [
+  {a:"#34383d",b:"#2b3035",line:"#555b60",sideL:"#292d31",sideR:"#1c2024",edge:"#15191d"},
+  {a:"#805a3b",b:"#986b45",line:"#bd9166",sideL:"#68482f",sideR:"#49372b",edge:"#30251e"},
+  {a:"#182b49",b:"#203858",line:"#355477",sideL:"#14243b",sideR:"#0c192d",edge:"#07111f"},
+  {a:"#102b31",b:"#163b42",line:"#28b8ad",sideL:"#0d272d",sideR:"#081a20",edge:"#041116"},
+  {a:"#29272b",b:"#343036",line:"#c69a43",sideL:"#5a4425",sideR:"#342819",edge:"#17120c"}
+ ][tier]||{a:"#263850",b:"#23334a",line:"#40546e",sideL:"#14243b",sideR:"#0c192d",edge:"#07111f"};
+}
+function drawPlatformBase(){
+ const n=currentGridSize(),p=floorPalette(currentFloorTier()),a=iso(0,n),b=iso(n,n),c=iso(n,0),d=iso(0,0),thick=14;
+ poly([{x:a.x,y:a.y},{x:b.x,y:b.y},{x:b.x,y:b.y+thick},{x:a.x,y:a.y+thick}],p.sideL,p.edge);
+ poly([{x:c.x,y:c.y},{x:b.x,y:b.y},{x:b.x,y:b.y+thick},{x:c.x,y:c.y+thick}],p.sideR,p.edge);
+ poly([{x:a.x,y:a.y},{x:b.x,y:b.y},{x:c.x,y:c.y},{x:d.x,y:d.y}],p.a,p.line);
+ ctx.save();ctx.lineWidth=2;ctx.strokeStyle=p.line;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.stroke();ctx.restore();
+}
+function drawFloorDetails(){
+ const tier=currentFloorTier(),n=currentGridSize();
+ if(tier===0){
+  ctx.save();ctx.strokeStyle="rgba(8,10,12,.62)";ctx.lineWidth=1.15;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++)if((i*7+j*3)%4===0){const p=iso(i+.22,j+.38);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+cellW*.12,p.y+cellH*.16);ctx.lineTo(p.x+cellW*.08,p.y+cellH*.34);ctx.lineTo(p.x+cellW*.23,p.y+cellH*.47);ctx.stroke();}
+  ctx.strokeStyle="rgba(190,190,180,.15)";ctx.setLineDash([5,5]);const a=iso(.35,.35),b=iso(n-.35,.35);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore();
+ }else if(tier===1){
+  ctx.save();ctx.strokeStyle="rgba(45,27,17,.35)";ctx.lineWidth=.8;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){const a=iso(i+.12,j+.5),b=iso(i+.88,j+.5);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+  ctx.restore();
+ }else if(tier===2){
+  ctx.save();ctx.strokeStyle="rgba(112,157,207,.16)";ctx.lineWidth=.7;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++)if((i+j)%2===0){const p=iso(i+.5,j+.5);ctx.beginPath();ctx.arc(p.x,p.y,2.2,0,Math.PI*2);ctx.stroke();}
+  ctx.restore();
+ }else if(tier===3){
+  ctx.save();ctx.strokeStyle="rgba(58,232,218,.28)";ctx.lineWidth=.8;
+  for(let i=0;i<n;i++){const a=iso(i+.5,0),b=iso(i+.5,n);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+  ctx.restore();
+ }else{
+  ctx.save();ctx.strokeStyle="rgba(238,190,91,.42)";ctx.lineWidth=1;
+  for(let i=0;i<n;i++){const a=iso(i+.5,0),b=iso(i+.5,n);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+  ctx.restore();
+ }
+}
+function drawTierPlants(x,y){
+ ctx.save();ctx.fillStyle="#4c382b";ctx.fillRect(x-5,y-3,10,8);ctx.strokeStyle="#4d9a6c";ctx.lineWidth=3;
+ for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.sin(i*1.4)*9,y-12-i%2*4);ctx.stroke();}
+ ctx.restore();
+}
+function drawBackWalls(){
+ const tier=currentFloorTier(),n=currentGridSize(),wh=tier===0?58:76;
+ const wall=(a,b,fill,stroke)=>poly([{x:a.x,y:a.y},{x:b.x,y:b.y},{x:b.x,y:b.y-wh},{x:a.x,y:a.y-wh}],fill,stroke);
+ const windowPanel=(x,y,w,h,fill,stroke)=>{ctx.fillStyle=fill;ctx.fillRect(x-w/2,y-h/2,w,h);ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.strokeRect(x-w/2,y-h/2,w,h);};
+ for(let i=0;i<n;i++){
+  const a=iso(i,0),b=iso(i+1,0),c=iso(0,i),d=iso(0,i+1);
+  if(tier===0){
+   wall(a,b,"#303236","#55585b");wall(c,d,"#292d31","#484c50");
+   const wx=(a.x+b.x)/2,wy=(a.y+b.y)/2-wh*.55;
+   ctx.strokeStyle="rgba(12,14,16,.8)";ctx.lineWidth=2;
+   for(let row=0;row<3;row++){ctx.beginPath();ctx.moveTo(a.x,wy-14+row*11);ctx.lineTo(b.x,wy-14+row*11);ctx.stroke();}
+   if(i===Math.floor(n/2)){windowPanel(wx,wy-4,cellW*.72,14,"#172a38","#71818a");ctx.fillStyle="#91b6c5";ctx.fillRect(wx-cellW*.3,wy-9,cellW*.6,2);}
+   const lx=(c.x+d.x)/2,ly=(c.y+d.y)/2-wh*.55;
+   if(i===1||i===n-2){ctx.strokeStyle="#89949b";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(lx-cellW*.2,ly-25);ctx.lineTo(lx-cellW*.2,ly+14);ctx.stroke();ctx.strokeStyle="#3b454c";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(lx-cellW*.2+4,ly-25);ctx.lineTo(lx-cellW*.2+4,ly+14);ctx.stroke();}
+  }else if(tier===1){
+   wall(a,b,"#aeb7bd","#d9e0e4");wall(c,d,"#939fa8","#cbd4d9");
+   const wx=(a.x+b.x)/2,wy=(a.y+b.y)/2-wh*.56;
+   windowPanel(wx,wy,cellW*.72,wh*.62,"#42647a","#e0e7e9");ctx.strokeStyle="#d8e0e4";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(wx,wy-wh*.31);ctx.lineTo(wx,wy+wh*.31);ctx.stroke();
+   if(i===0||i===n-1)drawTierPlants(wx,wy+wh*.3);
+  }else{
+   const wallFill=tier===2?"#142b45":tier===3?"#102a31":"rgba(18,25,37,.48)";
+   wall(a,b,wallFill,tier===2?"#315779":tier===3?"#267b7b":"#b68c45");wall(c,d,wallFill,tier===2?"#315779":tier===3?"#267b7b":"#b68c45");
+   const wx=(a.x+b.x)/2,wy=(a.y+b.y)/2-wh*.55,lx=(c.x+d.x)/2,ly=(c.y+d.y)/2-wh*.55;
+   windowPanel(wx,wy,cellW*.82,wh*.82,tier===2?"#0a1c32":tier===3?"#071c27":"rgba(9,18,31,.24)",tier===4?"#d3a74e":"#4c849d");
+   windowPanel(lx,ly,cellW*.82,wh*.82,tier===2?"#0a1c32":tier===3?"#071c27":"rgba(9,18,31,.24)",tier===4?"#d3a74e":"#4c849d");
+   if(tier===2||tier===3){
+    for(let k=0;k<5;k++){const bx=wx-cellW*.37+k*cellW*.16,bh=10+(i*13+k*17)%34;ctx.fillStyle=tier===2?"#0b1728":"#0a202b";ctx.fillRect(bx,wy+wh*.28-bh,cellW*.1,bh);ctx.fillStyle=(i+k)%3?"#f5bd52":"#5dd6ed";ctx.fillRect(bx+2,wy+wh*.28-bh+4,3,3);}
+    if(tier===3){const pulse=.35+.65*(.5+.5*Math.sin(performance.now()/420+i));ctx.fillStyle="rgba(255,55,64,"+pulse+")";ctx.beginPath();ctx.arc(wx,wy+wh*.28-34,2.5,0,Math.PI*2);ctx.fill();}
+   }else{
+    for(let k=0;k<3;k++){const sx=wx-cellW*.25+k*cellW*.23,sy=wy-wh*.18+(k%2)*9;ctx.fillStyle="rgba(246,207,130,.8)";ctx.beginPath();ctx.arc(sx,sy,1.2,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle="rgba(245,193,93,.28)";ctx.fillRect(wx-cellW*.42,wy+wh*.38,cellW*.84,2);
+   }
+  }
+ }
+ if(tier===2||tier===3){ctx.save();ctx.shadowColor=tier===2?"#24a9ff":"#29e6d4";ctx.shadowBlur=12;ctx.strokeStyle=tier===2?"#248ee8":"#29cbbf";ctx.lineWidth=2;const a=iso(0,n),b=iso(n,n);ctx.beginPath();ctx.moveTo(a.x,a.y-1);ctx.lineTo(b.x,b.y-1);ctx.stroke();ctx.restore();}
+ if(tier===4){ctx.save();const g=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,W*.7);g.addColorStop(0,"rgba(236,181,76,.02)");g.addColorStop(1,"rgba(232,170,60,.22)");ctx.fillStyle=g;ctx.fillRect(-W,-H,3*W,3*H);ctx.restore();}
+ if(tier===0){ctx.save();const g=ctx.createRadialGradient(W/2,H/2,5,W/2,H/2,W*.48);g.addColorStop(0,"rgba(236,157,73,.13)");g.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=g;ctx.fillRect(-W,-H,3*W,3*H);ctx.restore();}
+}
 function draw(){
  if(!ctx||!W)return;
  ctx.clearRect(0,0,W,H);
@@ -261,7 +376,10 @@ function draw(){
  for(let s=0;s<15;s++){const y=18+s*17;ctx.strokeStyle="rgba(116,145,180,.035)";ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
  ctx.save();ctx.translate(cameraOffsetX,cameraOffsetY);ctx.scale(cameraZoom,cameraZoom);
  // tiles
- for(let sum=0;sum<=2*(currentGridSize()-1);sum++)for(let x=0;x<currentGridSize();x++){let y=sum-x;if(y>=0&&y<currentGridSize())diamond(x,y,(x+y)%2?"#23334a":"#263850","#40546e");}
+ drawPlatformBase();
+ const palette=floorPalette(currentFloorTier());
+ for(let sum=0;sum<=2*(currentGridSize()-1);sum++)for(let x=0;x<currentGridSize();x++){let y=sum-x;if(y>=0&&y<currentGridSize())diamond(x,y,(x+y)%2?palette.a:palette.b,palette.line);}
+ drawFloorDetails();
  drawBackWalls();
  // highlights for selected item
  if(pointer&&state.selected&&!state.viewing){
@@ -364,13 +482,13 @@ function addEventFeed(msg){const el=document.createElement("div");el.className="
 async function intercept(id){if(state.peace){toast("Включите режим конкуренции");return;}if(Date.now()<interceptReadyAt){toast("Перехват перезаряжается");return;}const target=remotePlayers.find(p=>String(p.id)===id)||botPlayers.find(p=>p.id===id);if(!target||target.mode!=="compete")return;interceptReadyAt=Date.now()+45000;const defense=(target.layout||[]).filter(o=>o.type==="security").reduce((v,o)=>v+.25+Math.max(0,(Number(o.level)||1)-1)*.05,0),diff=prestigeFor(state.layout)-(Number(target.prestige)||0),chance=Math.max(.15,Math.min(.85,.55+Math.max(-20,Math.min(20,diff))*.008-defense));let msg;if(Math.random()<chance){const capital=Math.max(0,Number(target.balance)||0),amount=Math.min(capital,Math.max(500,capital*(.05+Math.random()*.05)));state.balance+=amount;state.prestige+=15;if(!String(target.id).startsWith("bot_")&&db){const newBalance=Math.max(0,capital-amount);const {error}=await db.from("players").update({balance:newBalance}).eq("id",String(target.id));if(error)console.warn("Target debit failed",error);}else target.balance=Math.max(0,capital-amount);msg="Перехват успешен: +"+money(amount)+" и +15 престижа · "+target.username;}else{state.balance=Math.max(0,state.balance-300);msg="Перехват провален: штраф $300 · "+target.username;}showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();renderTop();haptic();}
 function renderTop(){
  const source=remotePlayers.length?remotePlayers:botPlayers;
- const all=source.map(p=>{const decoded=decodeCloudLayout(p.layout);return {id:String(p.id),nick:p.username||("Директор "+String(p.id).slice(-4)),score:Number(p.prestige)||0,income:Number(p.income)||0,peace:p.mode!=="compete",layout:decoded.layout,gridSize:decoded.gridSize,isOwn:String(p.id)===playerId};});
- if(!all.some(p=>p.isOwn))all.push({id:playerId,nick:player,score:prestigeFor(state.layout),income:incomeFor(state.layout),peace:state.peace,layout:state.layout,isOwn:true});
+ const all=source.map(p=>{const decoded=decodeCloudLayout(p.layout,floorTier);return {id:String(p.id),nick:p.username||("Директор "+String(p.id).slice(-4)),score:Number(p.prestige)||0,income:Number(p.income)||0,peace:p.mode!=="compete",layout:decoded.layout,gridSize:decoded.gridSize,floorTier:decoded.floorTier,isOwn:String(p.id)===playerId};});
+ if(!all.some(p=>p.isOwn))all.push({id:playerId,nick:player,score:prestigeFor(state.layout),income:incomeFor(state.layout),peace:state.peace,layout:state.layout,gridSize,floorTier,isOwn:true});
  all.sort((a,b)=>b.score-a.score);
  $("leaderboard").innerHTML=all.slice(0,50).map((p,i)=>'<div class="player"><div class="rank">#'+(i+1)+'</div><div><b>'+(p.isOwn?"★ ":"")+escapeHtml(p.nick)+'</b><small>'+(p.peace?"Мирный":"В гонке за Пентхаус")+' · '+money(p.income)+'/сек</small>'+(p.isOwn?'':'<button class="inspect" data-inspect="'+escapeHtml(p.id)+'">Осмотреть этаж</button>')+(!p.isOwn&&!state.peace&&!p.peace?'<button class="inspect" data-intercept="'+escapeHtml(p.id)+'">Перехватить</button>':'')+'</div><div class="score">'+p.score+' ★</div></div>').join("")||'<div class="empty-note">Пока нет игроков.</div>';
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-$("leaderboard").addEventListener("click",e=>{const hit=e.target.closest("[data-intercept]");if(hit){intercept(hit.dataset.intercept);return;}const b=e.target.closest("[data-inspect]");if(!b)return;const p=remotePlayers.find(x=>String(x.id)===b.dataset.inspect)||botPlayers.find(x=>String(x.id)===b.dataset.inspect);if(!p)return;const decoded=decodeCloudLayout(p.layout);state.viewing={nick:p.username||("Директор "+String(p.id).slice(-4)),layout:decoded.layout,gridSize:decoded.gridSize};state.selected=null;go("floor");updateUI();resize();});
+$("leaderboard").addEventListener("click",e=>{const hit=e.target.closest("[data-intercept]");if(hit){intercept(hit.dataset.intercept);return;}const b=e.target.closest("[data-inspect]");if(!b)return;const p=remotePlayers.find(x=>String(x.id)===b.dataset.inspect)||botPlayers.find(x=>String(x.id)===b.dataset.inspect);if(!p)return;const decoded=decodeCloudLayout(p.layout,floorTier);state.viewing={nick:p.username||("Директор "+String(p.id).slice(-4)),layout:decoded.layout,gridSize:decoded.gridSize,floorTier:decoded.floorTier};state.selected=null;go("floor");updateUI();resize();});
 $("modeSwitch").addEventListener("click",()=>{state.peace=!state.peace;save();syncPlayer(true);updateUI();renderTop();haptic();toast(state.peace?"Включён мирный режим":"Вы вступили в гонку за Пентхаус");});
 const firms=[];
 function renderCompanies(){
@@ -381,7 +499,7 @@ $("companies").addEventListener("click",e=>{const b=e.target.closest("[data-inve
 const feedItems=["Nova Dynamics объявила о запуске нового продукта","GreenGrid Energy привлекла стратегического партнёра","Urban Core расширяет сеть офисных пространств","Cloud Harbor сообщил о росте клиентской базы","На бирже зафиксирован повышенный спрос на AI-сектор","Индекс корпоративной активности вырос на 1,8%"];
 function addFeed(){addEventFeed(feedItems[Math.floor(Math.random()*feedItems.length)]);}
 function dividends(){let paid=0;Object.entries(state.investments).forEach(([id,v])=>{const target=remotePlayers.find(p=>String(p.id)===id);if(target)paid+=Math.min(Number(v)||0,10000)*Math.max(.001,(Number(target.income)||0)/10000);});if(paid>0){state.balance+=paid;state.totalEarned+=paid;save();updateUI();toast("Расчётный дивиденд: +"+money(paid));}addFeed();}
-$("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],gridSize:8,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};gridSize=8;cameraZoom=1;cameraOffsetX=0;cameraOffsetY=0;lastTap=null;if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);cameraResetFrame=0;save();syncPlayer(true);updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
+$("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],floorTier:0,gridSize:5,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};floorTier=0;gridSize=5;cameraZoom=1;cameraOffsetX=0;cameraOffsetY=0;lastTap=null;if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);cameraResetFrame=0;save();syncPlayer(true);updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
 let last=performance.now(),incomeTimer=0;
 function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="desk");if(workers.length){const o=workers[Math.floor(Math.random()*workers.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}

@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B1120">
+<title>Корпоративный небоскрёб</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#0B1120;--panel:#151F32;--panel2:#1b2940;--line:#2a3a55;--gold:#F59E0B;--green:#10B981;--red:#ef4444;--text:#eef3fb;--muted:#8fa0b8}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}button:active{transform:scale(.98)}#app{height:100dvh;min-height:0;display:flex;flex-direction:column;max-width:760px;margin:auto;background:radial-gradient(ellipse at 50% -15%,#1c2c48 0,transparent 55%),var(--bg);padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+header{padding:13px 16px 10px;display:flex;justify-content:space-between;align-items:center;gap:10px}.brand{font-weight:900;letter-spacing:.4px;font-size:16px}.brand span{color:var(--gold)}.profile{font-size:12px;color:var(--muted);text-align:right}.profile b{color:var(--text);display:block;font-size:13px}
+main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 12px 12px;scrollbar-width:none}main::-webkit-scrollbar{display:none}.page{display:none}.page.active{display:block}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:4px 0 10px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:10px 9px;min-width:0}.stat small{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}.stat strong{font-size:clamp(14px,4vw,18px);white-space:nowrap}.gold{color:var(--gold)}.green{color:var(--green)}
+.room-wrap{position:relative;background:linear-gradient(145deg,#17243a,#101a2b);border:1px solid #2a3b55;border-radius:17px;overflow:hidden;min-height:270px;box-shadow:0 12px 35px #0005}.room-top{position:absolute;z-index:2;left:10px;right:10px;top:9px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}.room-tag{background:#0b1424d9;border:1px solid #344761;border-radius:9px;padding:6px 9px;font-size:10px;color:#b7c6da}.room-top button{pointer-events:auto;background:#253650;border:1px solid #47607e;padding:7px 10px;border-radius:9px;font-size:11px}.view-banner{display:none;background:#4b3513;color:#ffd68a;border:1px solid #9a6c20;border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:12px;justify-content:space-between;align-items:center;gap:8px}.view-banner.show{display:flex}.view-banner button{background:#704b12;padding:7px 10px;border-radius:8px;white-space:nowrap}
+canvas{display:block;width:100%;height:clamp(270px,43vh,390px);touch-action:pan-y}
+.legend{display:flex;justify-content:center;gap:12px;padding:8px 5px 2px;color:var(--muted);font-size:10px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:15px 2px 9px}.section-head h2{font-size:14px;margin:0}.section-head span{font-size:10px;color:var(--muted)}
+.shop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.item{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:10px;text-align:left;min-height:91px;display:flex;flex-direction:column;gap:4px}.item.selected{border-color:var(--gold);box-shadow:0 0 0 1px #f59e0b44}.item .ico{font-size:20px}.item b{font-size:12px}.item small{font-size:10px;color:var(--muted);line-height:1.3}.item strong{font-size:12px;color:var(--gold);margin-top:auto}.tools{display:flex;gap:8px;margin-top:9px}.tool-btn{flex:1;background:#22314a;border:1px solid #3a4e6d;border-radius:11px;padding:11px 8px;font-size:11px;font-weight:700}.tool-btn.active{background:#573c15;border-color:var(--gold);color:#ffd27a}
+.bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:7px 10px calc(7px + env(safe-area-inset-bottom));background:#101a2a;border-top:1px solid #26364e}.nav-btn{background:transparent;color:#7f90a9;border-radius:11px;padding:8px 3px 6px;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:4px}.nav-btn .ni{font-size:19px;line-height:1}.nav-btn.active{color:var(--gold);background:#243149}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:9px}.panel h3{font-size:13px;margin:0 0 9px}.muted{color:var(--muted)}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.player{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid #293850}.player:last-child{border:0}.rank{font-weight:900;color:var(--gold);font-size:13px}.avatar{width:30px;height:30px;border-radius:10px;background:#293b57;display:grid;place-items:center;font-size:14px}.player b{font-size:12px;display:block}.player small{font-size:10px;color:var(--muted)}.player .score{text-align:right;font-size:11px;color:var(--gold);font-weight:800}.inspect{display:block;background:#273954;border:1px solid #3b5272;border-radius:8px;padding:7px 9px;font-size:10px;margin-top:5px}
+.company{display:flex;align-items:center;gap:9px}.company .logo{width:36px;height:36px;border-radius:11px;background:#263953;display:grid;place-items:center;font-size:18px}.company-info{flex:1;min-width:0}.company-info b{font-size:12px;display:block}.company-info small{font-size:10px;color:var(--muted)}.invest{background:#24523f;color:#a4f3cf;border:1px solid #287d5b;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:800}.feed{font-size:11px;line-height:1.45;color:#b8c7d9;padding:7px 0;border-bottom:1px solid #293850}.feed:last-child{border:0}.feed time{color:#71839d;margin-right:6px}
+.switch{position:relative;width:46px;height:26px;border-radius:20px;background:#40516a;transition:.2s}.switch:after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:white;transition:.2s}.switch.on{background:#a86d0c}.switch.on:after{left:23px}.danger{background:#51232a;border:1px solid #8a3944;color:#ffb4bc;border-radius:10px;padding:11px 13px;font-size:12px;font-weight:700;width:100%}.primary{background:var(--gold);color:#211605;border-radius:10px;padding:10px 13px;font-weight:800;font-size:12px}
+.toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translate(-50%,15px);opacity:0;pointer-events:none;background:#23334c;border:1px solid #49617f;padding:10px 14px;border-radius:12px;font-size:12px;z-index:20;transition:.2s;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
+.empty-note{text-align:center;color:var(--muted);font-size:11px;padding:12px}
+@media(min-width:600px){.shop{grid-template-columns:repeat(4,minmax(0,1fr))}canvas{height:390px}.room-wrap{min-height:390px}}
+</style>
+</head>
+<body>
+<div id="app">
+<header><div class="brand">▰ КОРПОРАТИВНЫЙ <span>НЕБОСКРЁБ</span></div><div class="profile"><b id="playerName">Вы (Директор)</b>ВАШ ОФИС · ЭТАЖ 01</div></header>
+<main>
+<section class="page active" id="page-floor">
+<div class="stats">
+<div class="stat"><small>БАЛАНС</small><strong class="gold" id="balance">$2 500</strong></div>
+<div class="stat"><small>ДОХОД / СЕК</small><strong class="green" id="income">$0</strong></div>
+<div class="stat"><small>ПРЕСТИЖ</small><strong id="prestige">0 ★</strong></div>
+</div>
+<div class="view-banner" id="viewBanner"><span id="viewLabel">Вы осматриваете этаж</span><button id="returnBtn">Вернуться к себе</button></div>
+<div class="room-wrap">
+<div class="room-top"><span class="room-tag" id="roomLabel">ЭТАЖ 01 · 8 × 8</span><button id="clearSelection">Снять выбор</button></div>
+<canvas id="room"></canvas>
+</div>
+<div class="legend"><span><i class="dot" style="background:#10B981"></i>Доход</span><span><i class="dot" style="background:#F59E0B"></i>Престиж</span><span><i class="dot" style="background:#64748b"></i>Синергия</span></div>
+<div class="section-head"><h2>Строительство</h2><span>ВЫБЕРИТЕ ОБЪЕКТ</span></div>
+<div class="shop" id="shop">
+<button class="item" data-type="desk"><span class="ico">🧑‍💻</span><b>IT-стол с работником</b><small>Программист · +$25/сек</small><strong>$500</strong></button>
+<button class="item" data-type="coffee"><span class="ico">☕</span><b>Кофемашина</b><small>+25% к соседним IT-столам</small><strong>$800</strong></button>
+<button class="item" data-type="server"><span class="ico">▥</span><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
+<button class="item" data-type="boss"><span class="ico">♛</span><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button>
+</div>
+<div class="tools"><button class="tool-btn" id="rotateBtn">↻ Повернуть (90°)</button><button class="tool-btn" id="sellBtn">⌫ Режим продажи</button></div>
+</section>
+<section class="page" id="page-top">
+<div class="section-head"><h2>Рейтинг директоров</h2><span>ТОП · 15 ИГРОКОВ</span></div>
+<div class="panel" id="leaderboard"></div>
+</section>
+<section class="page" id="page-exchange">
+<div class="section-head"><h2>Биржа корпораций</h2><span>ДИВИДЕНДЫ · КАЖДЫЕ 10 СЕК</span></div>
+<div class="panel"><div class="row"><h3 style="margin:0">Рыночная лента</h3><span class="green" style="font-size:10px">● LIVE DEMO</span></div><div id="feed"></div></div>
+<div class="section-head"><h2>Инвестиционные возможности</h2><span>ВЛОЖИТЬ КАПИТАЛ</span></div>
+<div id="companies"></div>
+<div class="panel"><div class="row"><span class="muted" style="font-size:11px">Ваш инвестиционный портфель</span><b class="gold" id="portfolio">$0</b></div><small class="muted">Дивиденды начисляются автоматически каждые 10 секунд. Доходность демонстрационная.</small></div>
+</section>
+<section class="page" id="page-office">
+<div class="section-head"><h2>Кабинет директора</h2><span>УПРАВЛЕНИЕ</span></div>
+<div class="panel"><h3>Профиль</h3><div class="row"><div><b id="cabName">Директор</b><div class="muted" style="font-size:10px;margin-top:3px">Корпорация · Независимая</div></div><div style="font-size:24px">♛</div></div></div>
+<div class="panel"><h3>Статистика этажа</h3><div class="row" style="padding:7px 0"><span class="muted">Построено объектов</span><b id="objectCount">0</b></div><div class="row" style="padding:7px 0"><span class="muted">Общий доход в секунду</span><b class="green" id="cabIncome">$0</b></div><div class="row" style="padding:7px 0"><span class="muted">Престиж</span><b class="gold" id="cabPrestige">0 ★</b></div><div class="row" style="padding:7px 0"><span class="muted">Инвестиции</span><b id="cabInvest">$0</b></div></div>
+<div class="panel"><div class="row"><div><h3 style="margin:0 0 4px">Мирный режим</h3><small class="muted" id="modeText">Развитие без борьбы за Пентхаус</small></div><button class="switch" id="modeSwitch" aria-label="Переключить режим"></button></div></div>
+<div class="panel"><h3>Данные игры</h3><small class="muted">Планировка и прогресс хранятся локально в браузере на этом устройстве.</small><div style="height:10px"></div><button class="danger" id="resetBtn">Сбросить прогресс</button></div>
+</section>
+</main>
+<nav class="bottom-nav">
+<button class="nav-btn active" data-page="floor"><span class="ni">▦</span>Мой этаж</button>
+<button class="nav-btn" data-page="top"><span class="ni">♜</span>Топ</button>
+<button class="nav-btn" data-page="exchange"><span class="ni">⇄</span>Биржа</button>
+<button class="nav-btn" data-page="office"><span class="ni">♙</span>Кабинет</button>
+</nav>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+"use strict";
+const tg=window.Telegram&&window.Telegram.WebApp;
+if(tg){try{tg.ready();tg.expand();}catch(e){}}
+const $=id=>document.getElementById(id);
+const money=n=>"$"+Math.floor(n).toLocaleString("ru-RU");
+const haptic=()=>{try{if(tg&&tg.HapticFeedback)tg.HapticFeedback.impactOccurred("light");}catch(e){}};
+const player=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.first_name)||"Вы (Директор)";
+$("playerName").textContent=player;$("cabName").textContent=player;
+const TYPES={
+ desk:{name:"IT-стол",cost:500,base:25,icon:"desk"},
+ coffee:{name:"Кофемашина",cost:800,base:0,icon:"coffee"},
+ server:{name:"Серверная стойка",cost:2000,base:90,icon:"server"},
+ boss:{name:"Стол руководителя",cost:5000,base:150,prestige:50,icon:"boss"}
+};
+const KEY="corporate_skyscraper_v1";
+let state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};
+try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&typeof saved==="object")state={...state,...saved,viewing:null,selected:null,sellMode:false};}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned}));}catch(e){}};
+function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1900);}
+function incomeFor(layout){
+ let sum=0;
+ layout.forEach(o=>{const t=TYPES[o.type];if(t)sum+=t.base||0;});
+ layout.filter(o=>o.type==="desk").forEach(d=>{
+  let bonus=0;
+  layout.forEach(o=>{if(o===d)return;const dist=Math.abs(o.x-d.x)+Math.abs(o.y-d.y);if(dist<=1){if(o.type==="coffee")bonus+=.25;if(o.type==="server")bonus+=.15;}});
+  sum+=25*bonus;
+ });
+ return sum;
+}
+function prestigeFor(layout){return layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0),0)+state.prestige;}
+const currentLayout=()=>state.viewing?state.viewing.layout:state.layout;
+function updateUI(){
+ const inc=incomeFor(state.layout);
+ $("balance").textContent=money(state.balance);$("income").textContent=money(inc);$("prestige").textContent=prestigeFor(state.layout)+" ★";
+ $("objectCount").textContent=state.layout.length;$("cabIncome").textContent=money(inc);$("cabPrestige").textContent=prestigeFor(state.layout)+" ★";
+ $("cabInvest").textContent=money(Object.values(state.investments).reduce((a,b)=>a+b,0));
+ $("portfolio").textContent=money(Object.values(state.investments).reduce((a,b)=>a+b,0));
+ $("modeSwitch").classList.toggle("on",!state.peace);$("modeText").textContent=state.peace?"Развитие без борьбы за Пентхаус":"Вы участвуете в гонке за Пентхаус";
+ $("roomLabel").textContent=state.viewing?"ПРОСМОТР · "+state.viewing.nick:"ЭТАЖ 01 · 8 × 8";
+ $("viewBanner").classList.toggle("show",!!state.viewing);
+ if(state.viewing)$("viewLabel").textContent="Вы осматриваете этаж @"+state.viewing.nick;
+ $("shop").querySelectorAll(".item").forEach(b=>b.classList.toggle("selected",b.dataset.type===state.selected&&!state.viewing));
+ $("sellBtn").classList.toggle("active",state.sellMode);
+}
+const canvas=$("room"),ctx=canvas.getContext("2d");
+let W=0,H=0,dpr=1,cellW=0,cellH=0,originX=0,originY=0,pointer=null,floaters=[];
+function resize(){
+ const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;
+ canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+ cellW=Math.min((W-28)/8/2,38);cellH=cellW*.5;
+ originX=W/2;originY=Math.max(88,H*.31);
+ draw();
+}
+function iso(x,y){return {x:originX+(x-y)*cellW,y:originY+(x+y)*cellH};}
+function uniso(px,py){
+ const a=(px-originX)/cellW,b=(py-originY)/cellH;
+ return {x:(a+b)/2,y:(b-a)/2};
+}
+function diamond(x,y,fill,stroke){
+ const p=iso(x,y);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+cellW,p.y+cellH);ctx.lineTo(p.x,p.y+2*cellH);ctx.lineTo(p.x-cellW,p.y+cellH);ctx.closePath();
+ if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}
+}
+function poly(points,fill,stroke){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}}
+function box(x,y,w,d,z,top,left,right){
+ const p=iso(x,y),a=iso(x+w,y),b=iso(x+w,y+d),c=iso(x,y+d);
+ const dz=z;
+ poly([{x:c.x,y:c.y},{x:b.x,y:b.y},{x:b.x,y:b.y+dz},{x:c.x,y:c.y+dz}],left);
+ poly([{x:b.x,y:b.y},{x:a.x,y:a.y},{x:a.x,y:a.y+dz},{x:b.x,y:b.y+dz}],right);
+ poly([{x:p.x,y:p.y},{x:a.x,y:a.y},{x:b.x,y:b.y},{x:c.x,y:c.y}],top);
+}
+function drawDesk(o){
+ const p=iso(o.x+.5,o.y+.5),r=o.rot%2;
+ ctx.save();ctx.translate(p.x,p.y);
+ ctx.fillStyle="#0008";ctx.beginPath();ctx.ellipse(0,9,cellW*.72,cellH*.48,0,0,Math.PI*2);ctx.fill();
+ box(o.x+.15,o.y+.18,.7,.58,9,"#9b7040","#5d452f","#765536");
+ // monitor and stand
+ const mx=p.x,my=p.y-15;
+ ctx.fillStyle="#1d293a";ctx.fillRect(mx-10,my-14,20,14);
+ ctx.strokeStyle="#5c7794";ctx.strokeRect(mx-10,my-14,20,14);
+ ctx.fillStyle="#42d6b0";ctx.fillRect(mx-7,my-11,14,8);
+ ctx.fillStyle="#9aa9bb";ctx.fillRect(mx-1,my,2,5);
+ // worker silhouette
+ ctx.fillStyle="#d8a879";ctx.beginPath();ctx.arc(-2,3,5,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#365b87";ctx.beginPath();ctx.ellipse(-2,11,7,6,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#18263a";ctx.beginPath();ctx.arc(-2,1,5,Math.PI,Math.PI*2);ctx.fill();
+ ctx.restore();
+}
+function drawCoffee(o){
+ const p=iso(o.x+.5,o.y+.5);ctx.save();ctx.translate(p.x,p.y);
+ ctx.fillStyle="#0007";ctx.beginPath();ctx.ellipse(0,7,cellW*.48,cellH*.3,0,0,7);ctx.fill();
+ box(o.x+.24,o.y+.22,.52,.52,17,"#d5dce5","#77869b","#aab6c5");
+ ctx.fillStyle="#1a2637";ctx.fillRect(p.x-7,p.y-18,14,10);ctx.fillStyle="#c78a37";ctx.fillRect(p.x-5,p.y-16,10,5);
+ ctx.fillStyle="#d9e4f0";ctx.fillRect(p.x+7,p.y-13,4,6);ctx.restore();
+}
+function drawServer(o){
+ const p=iso(o.x+.5,o.y+.5);ctx.save();ctx.translate(p.x,p.y);
+ ctx.fillStyle="#0008";ctx.beginPath();ctx.ellipse(0,8,cellW*.55,cellH*.35,0,0,7);ctx.fill();
+ box(o.x+.2,o.y+.2,.6,.6,34,"#64748b","#27364c","#3c506c");
+ for(let i=0;i<3;i++){ctx.fillStyle="#0d1828";ctx.fillRect(-8,-27+i*8,16,6);ctx.fillStyle="#36d9b0";ctx.fillRect(5,-25+i*8,2,2);}
+ ctx.restore();
+}
+function drawBoss(o){
+ const p=iso(o.x+.5,o.y+.5);ctx.save();ctx.translate(p.x,p.y);
+ ctx.fillStyle="#0008";ctx.beginPath();ctx.ellipse(0,9,cellW*.75,cellH*.4,0,0,7);ctx.fill();
+ box(o.x+.08,o.y+.18,.84,.62,12,"#b58a43","#6c4d25","#89632e");
+ ctx.fillStyle="#f7c75e";ctx.fillRect(-12,-19,24,4);
+ ctx.fillStyle="#e7b46b";ctx.beginPath();ctx.arc(0,-5,6,0,7);ctx.fill();
+ ctx.fillStyle="#314e70";ctx.beginPath();ctx.ellipse(0,3,8,8,0,0,7);ctx.fill();ctx.restore();
+}
+function drawObject(o){if(o.type==="desk")drawDesk(o);if(o.type==="coffee")drawCoffee(o);if(o.type==="server")drawServer(o);if(o.type==="boss")drawBoss(o);}
+function synergyCells(o){
+ if(!o)return[];const a=[];
+ for(let x=0;x<8;x++)for(let y=0;y<8;y++)if(Math.abs(x-o.x)+Math.abs(y-o.y)===1)a.push({x,y});
+ return a;
+}
+function draw(){
+ if(!ctx||!W)return;
+ ctx.clearRect(0,0,W,H);
+ const floor=currentLayout();
+ // subtle room glow
+ const grd=ctx.createRadialGradient(W/2,H*.45,10,W/2,H*.45,W*.7);grd.addColorStop(0,"#1d3049");grd.addColorStop(1,"#101a2b");ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+ for(let s=0;s<15;s++){const y=18+s*17;ctx.strokeStyle="rgba(116,145,180,.035)";ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+ // tiles
+ for(let sum=0;sum<=14;sum++)for(let x=0;x<8;x++){let y=sum-x;if(y>=0&&y<8)diamond(x,y,(x+y)%2?"#23334a":"#263850","#40546e");}
+ // highlights for selected item
+ if(pointer&&state.selected&&!state.viewing){
+  const valid=pointer.x>=0&&pointer.x<8&&pointer.y>=0&&pointer.y<8&&!floor.some(o=>o.x===pointer.x&&o.y===pointer.y);
+  synergyCells(pointer).forEach(c=>diamond(c.x,c.y,"rgba(100,116,139,.22)","rgba(148,163,184,.32)"));
+  diamond(pointer.x,pointer.y,valid?"rgba(16,185,129,.34)":"rgba(239,68,68,.34)",valid?"#10B981":"#ef4444");
+ }
+ const sorted=[...floor].sort((a,b)=>(a.x+a.y)-(b.x+b.y)||a.x-b.x);
+ sorted.forEach(drawObject);
+ if(pointer&&state.selected&&!state.viewing&&pointer.x>=0&&pointer.x<8&&pointer.y>=0&&pointer.y<8){
+  const valid=!floor.some(o=>o.x===pointer.x&&o.y===pointer.y);
+  const ghost={type:state.selected,x:pointer.x,y:pointer.y,rot:state.rotation};
+  ctx.globalAlpha=.48;drawObject(ghost);ctx.globalAlpha=1;
+ }
+ floaters=floaters.filter(f=>performance.now()-f.t<1700);
+ floaters.forEach(f=>{const k=(performance.now()-f.t)/1700,p=iso(f.x+.5,f.y+.5);ctx.globalAlpha=1-k;ctx.fillStyle="#34e6a5";ctx.font="bold 13px sans-serif";ctx.textAlign="center";ctx.fillText("+"+money(f.amount),p.x,p.y-26-k*28);ctx.globalAlpha=1;});
+}
+function cellFromEvent(e){
+ const r=canvas.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+ const g=uniso(px,py);return{x:Math.floor(g.x),y:Math.floor(g.y)};
+}
+canvas.addEventListener("pointermove",e=>{if(state.viewing||!state.selected)return;pointer=cellFromEvent(e);draw();});
+canvas.addEventListener("pointerleave",()=>{pointer=null;draw();});
+canvas.addEventListener("pointerdown",e=>{
+ if(state.viewing)return;haptic();const c=cellFromEvent(e);
+ if(c.x<0||c.x>7||c.y<0||c.y>7)return;
+ const i=state.layout.findIndex(o=>o.x===c.x&&o.y===c.y);
+ if(state.sellMode){if(i>=0){const o=state.layout.splice(i,1)[0];state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
+ if(!state.selected){if(i>=0)toast(TYPES[state.layout[i].type].name);else toast("Выберите объект в магазине");return;}
+ if(i>=0){toast("Клетка занята");return;}
+ const t=TYPES[state.selected];if(state.balance<t.cost){toast("Недостаточно средств");return;}
+ state.balance-=t.cost;state.layout.push({type:state.selected,x:c.x,y:c.y,rot:state.rotation});state.prestige+=0;save();updateUI();haptic();toast(t.name+" установлен");floaters.push({x:c.x,y:c.y,amount:0,t:performance.now()});draw();
+});
+$("shop").addEventListener("click",e=>{const b=e.target.closest("[data-type]");if(!b||state.viewing)return;haptic();state.sellMode=false;state.selected=state.selected===b.dataset.type?null:b.dataset.type;pointer=null;updateUI();draw();});
+$("rotateBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.rotation=(state.rotation+1)%4;toast("Поворот: "+(state.rotation*90)+"°");});
+$("sellBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.sellMode=!state.sellMode;state.selected=null;updateUI();toast(state.sellMode?"Выберите объект для продажи":"Режим продажи выключен");draw();});
+$("clearSelection").addEventListener("click",()=>{state.selected=null;state.sellMode=false;pointer=null;updateUI();draw();});
+$("returnBtn").addEventListener("click",()=>{state.viewing=null;updateUI();draw();});
+function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(page==="floor")setTimeout(resize,30);haptic();}
+document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
+const rivalNames=["pixel_ceo","MiraCapital","northstar_88","bytefounder","KiraWorks","volkov_group","NexaPrime","urban_mind","AntonBuilds","silver_fox","data_monk","VegaOffice","maximillion","quiet_owl"];
+const rivalLayouts=[
+ [["desk",1,1],["desk",3,1],["coffee",2,2],["server",5,3],["boss",4,5]],
+ [["server",1,1],["desk",3,2],["desk",4,3],["coffee",2,4]],
+ [["desk",1,2],["desk",2,3],["desk",4,1],["boss",5,5]],
+ [["server",2,1],["server",4,1],["desk",2,3],["desk",4,3],["coffee",3,4]],
+ [["desk",1,1],["coffee",2,1],["desk",4,2],["boss",5,4]],
+ [["desk",1,3],["desk",2,4],["server",4,2],["boss",5,5]],
+ [["server",1,1],["desk",3,1],["desk",4,2],["desk",5,3]],
+ [["coffee",2,2],["desk",3,2],["desk",4,3],["boss",5,5]],
+ [["desk",1,1],["desk",2,2],["desk",3,3],["server",5,4]],
+ [["boss",4,4],["server",2,2],["desk",1,1],["coffee",3,2]],
+ [["server",1,1],["server",2,2],["desk",4,3],["desk",5,4]],
+ [["desk",1,2],["desk",3,2],["coffee",2,3],["boss",5,5]],
+ [["desk",1,1],["server",4,1],["desk",2,4],["desk",4,4]],
+ [["coffee",1,1],["desk",2,2],["desk",3,3],["server",5,5]]
+];
+function makeRivals(){return rivalNames.map((nick,i)=>({nick,score:1600-i*83+(i%3)*31,peace:i%3!==0,layout:rivalLayouts[i].map(a=>({type:a[0],x:a[1],y:a[2],rot:0}))}));}
+let rivals=makeRivals();
+function renderTop(){
+ const own={nick:player,score:prestigeFor(state.layout),peace:state.peace,layout:state.layout,isOwn:true};
+ const all=[...rivals,own].sort((a,b)=>b.score-a.score).slice(0,15);
+ $("leaderboard").innerHTML=all.map((p,i)=>'<div class="player"><div class="rank">#'+(i+1)+'</div><div><b>'+(p.isOwn?"★ "+escapeHtml(p.nick):"@"+escapeHtml(p.nick))+'</b><small>'+(p.peace?"Мирный":"В гонке за Пентхаус")+(p.isOwn?" · Вы":"")+'</small>'+(p.isOwn?"":'<button class="inspect" data-inspect="'+escapeHtml(p.nick)+'">Осмотреть этаж</button>')+'</div><div class="score">'+p.score+' ★</div></div>').join("");
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+$("leaderboard").addEventListener("click",e=>{const b=e.target.closest("[data-inspect]");if(!b)return;const r=rivals.find(x=>x.nick===b.dataset.inspect);if(!r)return;state.viewing={nick:r.nick,layout:r.layout};state.selected=null;go("floor");updateUI();draw();});
+$("modeSwitch").addEventListener("click",()=>{state.peace=!state.peace;save();updateUI();renderTop();haptic();toast(state.peace?"Включён мирный режим":"Вы вступили в гонку за Пентхаус");});
+const firms=[
+ {id:"nova",name:"Nova Dynamics",sector:"AI & автоматизация",icon:"✦",yield:.08,desc:"Технологический рост"},
+ {id:"green",name:"GreenGrid Energy",sector:"Энергетика",icon:"⌁",yield:.06,desc:"Устойчивая инфраструктура"},
+ {id:"urban",name:"Urban Core",sector:"Недвижимость",icon:"▦",yield:.05,desc:"Коммерческие площади"},
+ {id:"cloud",name:"Cloud Harbor",sector:"Облачные сервисы",icon:"☁",yield:.07,desc:"Цифровые платформы"}
+];
+function renderCompanies(){
+ $("companies").innerHTML=firms.map(f=>'<div class="panel"><div class="company"><div class="logo">'+f.icon+'</div><div class="company-info"><b>'+f.name+'</b><small>'+f.sector+' · '+(f.yield*100).toFixed(0)+'% за цикл</small></div><button class="invest" data-invest="'+f.id+'">Вложить $250</button></div><div class="muted" style="font-size:10px;margin-top:8px">'+f.desc+' · Вложено: '+money(state.investments[f.id]||0)+'</div></div>').join("");
+}
+$("companies").addEventListener("click",e=>{const b=e.target.closest("[data-invest]");if(!b)return;const id=b.dataset.invest;if(state.balance<250){toast("Недостаточно средств");return;}state.balance-=250;state.investments[id]=(state.investments[id]||0)+250;save();updateUI();renderCompanies();haptic();toast("Инвестиция $250 размещена");});
+const feedItems=["Nova Dynamics объявила о запуске нового продукта","GreenGrid Energy привлекла стратегического партнёра","Urban Core расширяет сеть офисных пространств","Cloud Harbor сообщил о росте клиентской базы","На бирже зафиксирован повышенный спрос на AI-сектор","Индекс корпоративной активности вырос на 1,8%"];
+function addFeed(){const f=$("feed"),d=new Date(),time=d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit",second:"2-digit"});const el=document.createElement("div");el.className="feed";el.innerHTML="<time>"+time+"</time>"+feedItems[Math.floor(Math.random()*feedItems.length)];f.prepend(el);while(f.children.length>7)f.lastElementChild.remove();}
+function dividends(){let paid=0;firms.forEach(f=>{const v=state.investments[f.id]||0;paid+=v*f.yield;});if(paid>0){state.balance+=paid;state.totalEarned+=paid;save();updateUI();toast("Дивиденды начислены: +"+money(paid));}addFeed();}
+$("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};save();updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
+let last=performance.now(),incomeTimer=0;
+function tick(now){
+ const dt=Math.min((now-last)/1000,.25);last=now;
+ if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));save();updateUI();}}}
+ draw();requestAnimationFrame(tick);
+}
+window.addEventListener("resize",resize);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+updateUI();renderTop();renderCompanies();addFeed();resize();requestAnimationFrame(tick);
+setInterval(dividends,10000);setInterval(addFeed,6500);
+})();
+</script>
+</body>
+</html>

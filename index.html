@@ -133,7 +133,7 @@ function incomeFor(layout){
 function basePrestigeFor(layout){let n=layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0)+Math.max(0,(Number(o.level)||1)-1)*5,0);layout.filter(o=>o.type==="boss").forEach(b=>layout.forEach(m=>{if(m.type==="meeting"&&Math.abs(m.x-b.x)+Math.abs(m.y-b.y)<=1)n+=25;}));return n;}function prestigeFor(layout){return basePrestigeFor(layout)+state.prestige;}
 const currentLayout=()=>state.viewing?state.viewing.layout:state.layout;
 function updateExpansionUI(){const next=EXPANSIONS.find(x=>x.size>gridSize),status=next?`Площадь ${gridSize}×${gridSize} · следующая ${next.size}×${next.size} за ${money(next.cost)} · +${next.prestige} престижа`:"Максимальная площадь (14×14)";$("shopExpansionStatus").textContent=status;$("officeExpansionStatus").textContent=status;["expandShopBtn","expandOfficeBtn"].forEach(id=>{const b=$(id);b.disabled=!next||state.balance<next.cost||!!state.viewing;b.textContent=!next?"Максимальная площадь (14×14)":`📐 Расширить этаж до ${next.size}×${next.size} — ${money(next.cost)}`;});}
-function buyExpansion(){const next=EXPANSIONS.find(x=>x.size>gridSize);if(!next){toast("Достигнута максимальная площадь");return;}if(state.balance<next.cost){toast("Недостаточно средств для расширения");return;}state.balance-=next.cost;state.prestige+=next.prestige;gridSize=next.size;state.gridSize=gridSize;cameraZoom=Math.max(.6,cameraZoom-.08);resize();save();syncPlayer(false);updateUI();haptic();toast(`Офис расширен до ${gridSize}×${gridSize} · +${next.prestige} престижа`);}
+function buyExpansion(){const next=EXPANSIONS.find(x=>x.size>gridSize);if(!next){toast("Достигнута максимальная площадь");return;}if(state.balance<next.cost){toast("Недостаточно средств для расширения");return;}state.balance-=next.cost;state.prestige+=next.prestige;gridSize=next.size;state.gridSize=gridSize;zoomAt(Math.max(.6,cameraZoom-.08),W/2,H/2);resize();save();syncPlayer(false);updateUI();haptic();toast(`Офис расширен до ${gridSize}×${gridSize} · +${next.prestige} престижа`);}
 function updateUI(){
  const inc=incomeFor(state.layout);
  $("balance").textContent=money(state.balance);$("income").textContent=money(inc);$("prestige").textContent=prestigeFor(state.layout)+" ★";
@@ -148,7 +148,7 @@ function updateUI(){
  $("sellBtn").classList.toggle("active",state.sellMode);
 }
 const canvas=$("room"),ctx=canvas.getContext("2d");
-let W=0,H=0,dpr=1,cellW=0,cellH=0,originX=0,originY=0,pointer=null,floaters=[],camX=0,camY=0,cameraZoom=1;const activePointers=new Map();let pinchState=null,suppressTap=false;
+let W=0,H=0,dpr=1,cellW=0,cellH=0,originX=0,originY=0,pointer=null,floaters=[],cameraOffsetX=0,cameraOffsetY=0,cameraZoom=1;const activePointers=new Map();let pinchState=null,suppressTap=false,lastTap=null,cameraResetFrame=0;
 function resize(){
  const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;
  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -156,9 +156,42 @@ function resize(){
  originX=W/2;originY=H/2-size*cellH+46;
  draw();
 }
-function iso(x,y){const bx=originX+(x-y)*cellW+camX,by=originY+(x+y)*cellH+camY;return {x:W/2+(bx-W/2)*cameraZoom,y:H/2+(by-H/2)*cameraZoom};}
-function screenToGrid(px,py){const bx=W/2+(px-W/2)/cameraZoom,by=H/2+(py-H/2)/cameraZoom,a=(bx-originX-camX)/cellW,b=(by-originY-camY)/cellH;return {x:(a+b)/2,y:(b-a)/2};}
-function zoomAt(nextZoom,x,y){const z=Math.max(.6,Math.min(2.2,nextZoom));if(Math.abs(z-cameraZoom)<.0001)return;camX+=(x-W/2)*(1/z-1/cameraZoom);camY+=(y-H/2)*(1/z-1/cameraZoom);cameraZoom=z;draw();}
+function iso(x,y){return {x:originX+(x-y)*cellW,y:originY+(x+y)*cellH};}
+function screenToGrid(screenX,screenY){
+ const worldX=(screenX-cameraOffsetX)/cameraZoom,worldY=(screenY-cameraOffsetY)/cameraZoom;
+ const a=(worldX-originX)/cellW,b=(worldY-originY)/cellH;
+ return {x:(a+b)/2,y:(b-a)/2};
+}
+function zoomAt(nextZoom,x,y){
+ const oldZoom=cameraZoom,z=Math.max(.6,Math.min(2.2,nextZoom));
+ if(Math.abs(z-oldZoom)<.0001)return;
+ cameraOffsetX=x-(x-cameraOffsetX)*(z/oldZoom);
+ cameraOffsetY=y-(y-cameraOffsetY)*(z/oldZoom);
+ cameraZoom=z;draw();
+}
+function animateCameraHome(){
+ if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);
+ const start={x:cameraOffsetX,y:cameraOffsetY,z:cameraZoom},begin=performance.now(),duration=320;
+ const step=now=>{
+  const t=Math.min(1,(now-begin)/duration),ease=1-Math.pow(1-t,3);
+  cameraOffsetX=start.x*(1-ease);cameraOffsetY=start.y*(1-ease);cameraZoom=start.z+(1-start.z)*ease;draw();
+  if(t<1)cameraResetFrame=requestAnimationFrame(step);else{cameraOffsetX=0;cameraOffsetY=0;cameraZoom=1;cameraResetFrame=0;draw();}
+ };
+ cameraResetFrame=requestAnimationFrame(step);
+}
+function isEmptyCanvasTap(e){
+ if(state.selected||state.sellMode)return false;
+ const c=cellFromEvent(e),layout=currentLayout();
+ return c.x>=0&&c.x<currentGridSize()&&c.y>=0&&c.y<currentGridSize()&&!layout.some(o=>o.x===c.x&&o.y===c.y);
+}
+function detectDoubleTap(e){
+ if(!isEmptyCanvasTap(e)){lastTap=null;return false;}
+ const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,now=performance.now();
+ if(lastTap&&now-lastTap.time<340&&Math.hypot(x-lastTap.x,y-lastTap.y)<32){
+  lastTap=null;animateCameraHome();return true;
+ }
+ lastTap={time:now,x,y};return false;
+}
 function diamond(x,y,fill,stroke){
  const p=iso(x,y);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+cellW,p.y+cellH);ctx.lineTo(p.x,p.y+2*cellH);ctx.lineTo(p.x-cellW,p.y+cellH);ctx.closePath();
  if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}
@@ -226,6 +259,7 @@ function draw(){
  // subtle room glow
  const grd=ctx.createRadialGradient(W/2,H*.45,10,W/2,H*.45,W*.7);grd.addColorStop(0,"#1d3049");grd.addColorStop(1,"#101a2b");ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
  for(let s=0;s<15;s++){const y=18+s*17;ctx.strokeStyle="rgba(116,145,180,.035)";ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+ ctx.save();ctx.translate(cameraOffsetX,cameraOffsetY);ctx.scale(cameraZoom,cameraZoom);
  // tiles
  for(let sum=0;sum<=2*(currentGridSize()-1);sum++)for(let x=0;x<currentGridSize();x++){let y=sum-x;if(y>=0&&y<currentGridSize())diamond(x,y,(x+y)%2?"#23334a":"#263850","#40546e");}
  drawBackWalls();
@@ -245,6 +279,7 @@ function draw(){
  }
  floaters=floaters.filter(f=>performance.now()-f.t<1700);
  floaters.forEach(f=>{const k=(performance.now()-f.t)/1700,p=iso(f.x+.5,f.y+.5);ctx.globalAlpha=1-k;ctx.fillStyle="#34e6a5";ctx.font="bold 13px sans-serif";ctx.textAlign="center";ctx.fillText("+"+money(f.amount),p.x,p.y-26-k*28);ctx.globalAlpha=1;});
+ ctx.restore();
 }
 function cellFromEvent(e){
  const r=canvas.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
@@ -276,13 +311,14 @@ canvas.addEventListener("pointermove",e=>{
  if(activePointers.size===1){
   if(!point.dragged&&Math.hypot(x-point.startX,y-point.startY)>5){point.dragged=true;suppressTap=true;pointer=null;}
   if(point.dragged){
-   camX+=dx/cameraZoom;camY+=dy/cameraZoom;draw();
+   cameraOffsetX+=dx;cameraOffsetY+=dy;draw();
   }else if(!state.viewing&&state.selected){pointer=cellFromEvent(e);draw();}
  }
  if(activePointers.size>=2&&pinchState){
   const pts=[...activePointers.values()].slice(0,2),px=pts[1].x-pts[0].x,py=pts[1].y-pts[0].y,dist=Math.max(1,Math.hypot(px,py)),center={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};
-  camX+=(center.x-pinchState.center.x)/cameraZoom;camY+=(center.y-pinchState.center.y)/cameraZoom;
-  zoomAt(pinchState.zoom*dist/pinchState.distance,center.x,center.y);pinchState.center=center;pointer=null;
+  cameraOffsetX+=center.x-pinchState.center.x;cameraOffsetY+=center.y-pinchState.center.y;
+  zoomAt(cameraZoom*dist/pinchState.distance,center.x,center.y);
+  pinchState.center=center;pinchState.distance=dist;pointer=null;
  }
 });
 function finishPointer(e,cancelled=false){
@@ -290,7 +326,7 @@ function finishPointer(e,cancelled=false){
  const wasSingle=activePointers.size===1,wasDrag=point.dragged;
  activePointers.delete(e.pointerId);
  if(activePointers.size===0){
-  if(!cancelled&&!suppressTap&&!wasDrag)handleRoomTap(e);
+  if(!cancelled&&!suppressTap&&!wasDrag&&!detectDoubleTap(e))handleRoomTap(e);
   suppressTap=false;pinchState=null;
  }else if(activePointers.size<2)pinchState=null;
 }
@@ -345,7 +381,7 @@ $("companies").addEventListener("click",e=>{const b=e.target.closest("[data-inve
 const feedItems=["Nova Dynamics объявила о запуске нового продукта","GreenGrid Energy привлекла стратегического партнёра","Urban Core расширяет сеть офисных пространств","Cloud Harbor сообщил о росте клиентской базы","На бирже зафиксирован повышенный спрос на AI-сектор","Индекс корпоративной активности вырос на 1,8%"];
 function addFeed(){addEventFeed(feedItems[Math.floor(Math.random()*feedItems.length)]);}
 function dividends(){let paid=0;Object.entries(state.investments).forEach(([id,v])=>{const target=remotePlayers.find(p=>String(p.id)===id);if(target)paid+=Math.min(Number(v)||0,10000)*Math.max(.001,(Number(target.income)||0)/10000);});if(paid>0){state.balance+=paid;state.totalEarned+=paid;save();updateUI();toast("Расчётный дивиденд: +"+money(paid));}addFeed();}
-$("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],gridSize:8,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};gridSize=8;cameraZoom=1;camX=0;camY=0;save();syncPlayer(true);updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
+$("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],gridSize:8,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};gridSize=8;cameraZoom=1;cameraOffsetX=0;cameraOffsetY=0;lastTap=null;if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);cameraResetFrame=0;save();syncPlayer(true);updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
 let last=performance.now(),incomeTimer=0;
 function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="desk");if(workers.length){const o=workers[Math.floor(Math.random()*workers.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}

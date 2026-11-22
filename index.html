@@ -260,15 +260,20 @@ const rivalLayouts=[
  [["desk",1,1],["server",4,1],["desk",2,4],["desk",4,4]],
  [["coffee",1,1],["desk",2,2],["desk",3,3],["server",5,5]]
 ];
-function makeRivals(){return rivalNames.map((nick,i)=>({nick,score:1600-i*83+(i%3)*31,peace:i%3!==0,layout:rivalLayouts[i].map(a=>({type:a[0],x:a[1],y:a[2],rot:0}))}));}
-let rivals=makeRivals();
+let remotePlayers=[];
+async function refreshLeaderboard(){
+ if(!db)return;
+ try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").order("prestige",{ascending:false}).limit(50);if(error)throw error;remotePlayers=data||[];}catch(e){console.warn("Leaderboard unavailable",e);}
+ renderTop();renderCompanies();
+}
 function renderTop(){
- const own={nick:player,score:prestigeFor(state.layout),peace:state.peace,layout:state.layout,isOwn:true};
- const all=[...rivals,own].sort((a,b)=>b.score-a.score).slice(0,15);
- $("leaderboard").innerHTML=all.map((p,i)=>'<div class="player"><div class="rank">#'+(i+1)+'</div><div><b>'+(p.isOwn?"★ "+escapeHtml(p.nick):"@"+escapeHtml(p.nick))+'</b><small>'+(p.peace?"Мирный":"В гонке за Пентхаус")+(p.isOwn?" · Вы":"")+'</small>'+(p.isOwn?"":'<button class="inspect" data-inspect="'+escapeHtml(p.nick)+'">Осмотреть этаж</button>')+'</div><div class="score">'+p.score+' ★</div></div>').join("");
+ const all=remotePlayers.map(p=>({id:String(p.id),nick:p.username||("Директор "+String(p.id).slice(-4)),score:Number(p.prestige)||0,income:Number(p.income)||0,peace:p.mode!=="compete",layout:Array.isArray(p.layout)?p.layout:[],isOwn:String(p.id)===playerId}));
+ if(!all.some(p=>p.isOwn))all.push({id:playerId,nick:player,score:prestigeFor(state.layout),income:incomeFor(state.layout),peace:state.peace,layout:state.layout,isOwn:true});
+ all.sort((a,b)=>b.score-a.score);
+ $("leaderboard").innerHTML=all.slice(0,50).map((p,i)=>'<div class="player"><div class="rank">#'+(i+1)+'</div><div><b>'+(p.isOwn?"★ ":"")+escapeHtml(p.nick)+'</b><small>'+(p.peace?"Мирный":"В гонке за Пентхаус")+' · '+money(p.income)+'/сек</small>'+(p.isOwn?'':'<button class="inspect" data-inspect="'+escapeHtml(p.id)+'">Осмотреть этаж</button>')+'</div><div class="score">'+p.score+' ★</div></div>').join("")||'<div class="empty-note">Пока нет игроков.</div>';
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-$("leaderboard").addEventListener("click",e=>{const b=e.target.closest("[data-inspect]");if(!b)return;const r=rivals.find(x=>x.nick===b.dataset.inspect);if(!r)return;state.viewing={nick:r.nick,layout:r.layout};state.selected=null;go("floor");updateUI();draw();});
+$("leaderboard").addEventListener("click",e=>{const b=e.target.closest("[data-inspect]");if(!b)return;const p=remotePlayers.find(x=>String(x.id)===b.dataset.inspect);if(!p)return;state.viewing={nick:p.username||("Директор "+String(p.id).slice(-4)),layout:Array.isArray(p.layout)?p.layout:[]};state.selected=null;go("floor");updateUI();draw();});
 $("modeSwitch").addEventListener("click",()=>{state.peace=!state.peace;save();updateUI();renderTop();haptic();toast(state.peace?"Включён мирный режим":"Вы вступили в гонку за Пентхаус");});
 const firms=[
  {id:"nova",name:"Nova Dynamics",sector:"AI & автоматизация",icon:"✦",yield:.08,desc:"Технологический рост"},

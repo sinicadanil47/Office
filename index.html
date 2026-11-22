@@ -118,7 +118,7 @@ function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.
 function cloudPayload(){return {id:playerId,username:player,balance:Math.floor(state.balance),income:incomeFor(state.layout),prestige:prestigeFor(state.layout),mode:state.peace?"peace":"compete",layout:cloudLayout(),updated_at:new Date().toISOString()};}
 async function syncPlayer(showError=false){localSave();if(!db)return false;try{const {error}=await db.from("players").upsert(cloudPayload(),{onConflict:"id"});if(error)throw error;cloudReady=true;return true;}catch(err){cloudReady=false;console.warn("Supabase save failed:",err);if(showError)toast("Нет связи — прогресс сохранён локально");return false;}}
 function save(){localSave();clearTimeout(saveTimer);saveTimer=setTimeout(()=>syncPlayer(false),400);}
-async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);const decoded=decodeCloudLayout(data.layout);state.layout=decoded.layout;gridSize=decoded.gridSize;state.gridSize=gridSize;state.prestige=Math.max(0,(Number(data.prestige)||0)-basePrestigeFor(state.layout));state.peace=data.mode!=="compete";}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:[{type:"__meta",gridSize:8}]},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();draw();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
+async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);const decoded=decodeCloudLayout(data.layout);state.layout=decoded.layout;gridSize=decoded.gridSize;state.gridSize=gridSize;state.prestige=Math.max(0,(Number(data.prestige)||0)-basePrestigeFor(state.layout));state.peace=data.mode!=="compete";}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:[{type:"__meta",gridSize:8}]},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();resize();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
 function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1900);}
 function incomeFor(layout){
  let sum=0;
@@ -152,8 +152,8 @@ let W=0,H=0,dpr=1,cellW=0,cellH=0,originX=0,originY=0,pointer=null,floaters=[],c
 function resize(){
  const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;
  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
- cellW=Math.min((W-28)/(2*gridSize),38);cellH=cellW*.5;
- originX=W/2;originY=H/2-gridSize*cellH+46;
+ const size=currentGridSize();cellW=Math.min((W-28)/(2*size),38);cellH=cellW*.5;
+ originX=W/2;originY=H/2-size*cellH+46;
  draw();
 }
 function iso(x,y){const bx=originX+(x-y)*cellW+camX,by=originY+(x+y)*cellH+camY;return {x:W/2+(bx-W/2)*cameraZoom,y:H/2+(by-H/2)*cameraZoom};}
@@ -238,7 +238,7 @@ function draw(){
  const sorted=[...floor].sort((a,b)=>(a.x+a.y)-(b.x+b.y)||a.x-b.x);
  sorted.forEach(drawObject);
  if(activeVip&&!state.viewing&&Date.now()<activeVip.expires){const p=iso(activeVip.x+.5,activeVip.y+.5),q=1+Math.sin(performance.now()/120)*.12;ctx.save();ctx.translate(p.x,p.y-39);ctx.scale(q,q);ctx.fillStyle="#fbbf24";ctx.shadowColor="#f59e0b";ctx.shadowBlur=18;ctx.beginPath();ctx.arc(0,0,12,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle="#392307";ctx.font="bold 14px sans-serif";ctx.textAlign="center";ctx.fillText("⚡",0,5);ctx.restore();}
- if(pointer&&state.selected&&!state.viewing&&pointer.x>=0&&pointer.x<8&&pointer.y>=0&&pointer.y<8){
+ if(pointer&&state.selected&&!state.viewing&&pointer.x>=0&&pointer.x<currentGridSize()&&pointer.y>=0&&pointer.y<currentGridSize()){
   const valid=!floor.some(o=>o.x===pointer.x&&o.y===pointer.y);
   const ghost={type:state.selected,x:pointer.x,y:pointer.y,rot:state.rotation};
   ctx.globalAlpha=.48;drawObject(ghost);ctx.globalAlpha=1;
@@ -259,7 +259,7 @@ function handleRoomTap(e){
  if(i>=0){showUpgradeCard(i);return;}toast("Выберите действие или объект в магазине");
 }
 canvas.addEventListener("pointerdown",e=>{const r=canvas.getBoundingClientRect();activePointers.set(e.pointerId,{x:e.clientX-r.left,y:e.clientY-r.top});canvas.setPointerCapture?.(e.pointerId);if(activePointers.size===2){suppressTap=true;const pts=[...activePointers.values()],dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y;pinchState={distance:Math.max(1,Math.hypot(dx,dy)),zoom:cameraZoom,center:{x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2}};}else if(activePointers.size>2)suppressTap=true;});
-canvas.addEventListener("pointermove",e=>{if(!activePointers.has(e.pointerId))return;const r=canvas.getBoundingClientRect();activePointers.set(e.pointerId,{x:e.clientX-r.left,y:e.clientY-r.top});if(activePointers.size>=2&&pinchState){const pts=[...activePointers.values()].slice(0,2),dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y,dist=Math.max(1,Math.hypot(dx,dy)),center={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};camX+=(center.x-pinchState.center.x)/cameraZoom;camY+=(center.y-pinchState.center.y)/cameraZoom;zoomAt(pinchState.zoom*dist/pinchState.distance,center.x,center.y);pinchState.center=center;pointer=null;}});
+canvas.addEventListener("pointermove",e=>{if(!activePointers.has(e.pointerId))return;const r=canvas.getBoundingClientRect();activePointers.set(e.pointerId,{x:e.clientX-r.left,y:e.clientY-r.top});if(activePointers.size===1&&!state.viewing&&state.selected){pointer=cellFromEvent(e);draw();}if(activePointers.size>=2&&pinchState){const pts=[...activePointers.values()].slice(0,2),dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y,dist=Math.max(1,Math.hypot(dx,dy)),center={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};camX+=(center.x-pinchState.center.x)/cameraZoom;camY+=(center.y-pinchState.center.y)/cameraZoom;zoomAt(pinchState.zoom*dist/pinchState.distance,center.x,center.y);pinchState.center=center;pointer=null;}});
 function finishPointer(e){if(!activePointers.has(e.pointerId))return;activePointers.delete(e.pointerId);if(activePointers.size===0){if(!suppressTap)handleRoomTap(e);suppressTap=false;pinchState=null;}else if(activePointers.size<2)pinchState=null;}
 canvas.addEventListener("pointerup",finishPointer);canvas.addEventListener("pointercancel",finishPointer);
 canvas.addEventListener("wheel",e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(cameraZoom*Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
@@ -268,7 +268,7 @@ $("shop").addEventListener("click",e=>{const b=e.target.closest("[data-type]");i
 $("rotateBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.rotation=(state.rotation+1)%4;save();toast("Поворот: "+(state.rotation*90)+"°");});
 $("sellBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.sellMode=!state.sellMode;state.selected=null;updateUI();toast(state.sellMode?"Выберите объект для продажи":"Режим продажи выключен");draw();});
 $("clearSelection").addEventListener("click",()=>{state.selected=null;state.sellMode=false;pointer=null;updateUI();draw();});
-$("returnBtn").addEventListener("click",()=>{state.viewing=null;go("floor");updateUI();draw();});
+$("returnBtn").addEventListener("click",()=>{state.viewing=null;go("floor");updateUI();resize();});
 function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));$("floorActions").style.display=page==="floor"?"flex":"none";if(page==="floor")closeShop();haptic();}
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 
@@ -300,7 +300,7 @@ function renderTop(){
  $("leaderboard").innerHTML=all.slice(0,50).map((p,i)=>'<div class="player"><div class="rank">#'+(i+1)+'</div><div><b>'+(p.isOwn?"★ ":"")+escapeHtml(p.nick)+'</b><small>'+(p.peace?"Мирный":"В гонке за Пентхаус")+' · '+money(p.income)+'/сек</small>'+(p.isOwn?'':'<button class="inspect" data-inspect="'+escapeHtml(p.id)+'">Осмотреть этаж</button>')+(!p.isOwn&&!state.peace&&!p.peace?'<button class="inspect" data-intercept="'+escapeHtml(p.id)+'">Перехватить</button>':'')+'</div><div class="score">'+p.score+' ★</div></div>').join("")||'<div class="empty-note">Пока нет игроков.</div>';
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-$("leaderboard").addEventListener("click",e=>{const hit=e.target.closest("[data-intercept]");if(hit){intercept(hit.dataset.intercept);return;}const b=e.target.closest("[data-inspect]");if(!b)return;const p=remotePlayers.find(x=>String(x.id)===b.dataset.inspect)||botPlayers.find(x=>String(x.id)===b.dataset.inspect);if(!p)return;const decoded=decodeCloudLayout(p.layout);state.viewing={nick:p.username||("Директор "+String(p.id).slice(-4)),layout:decoded.layout,gridSize:decoded.gridSize};state.selected=null;go("floor");updateUI();draw();});
+$("leaderboard").addEventListener("click",e=>{const hit=e.target.closest("[data-intercept]");if(hit){intercept(hit.dataset.intercept);return;}const b=e.target.closest("[data-inspect]");if(!b)return;const p=remotePlayers.find(x=>String(x.id)===b.dataset.inspect)||botPlayers.find(x=>String(x.id)===b.dataset.inspect);if(!p)return;const decoded=decodeCloudLayout(p.layout);state.viewing={nick:p.username||("Директор "+String(p.id).slice(-4)),layout:decoded.layout,gridSize:decoded.gridSize};state.selected=null;go("floor");updateUI();resize();});
 $("modeSwitch").addEventListener("click",()=>{state.peace=!state.peace;save();syncPlayer(true);updateUI();renderTop();haptic();toast(state.peace?"Включён мирный режим":"Вы вступили в гонку за Пентхаус");});
 const firms=[];
 function renderCompanies(){

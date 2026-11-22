@@ -256,7 +256,7 @@ $("clearSelection").addEventListener("click",()=>{state.selected=null;state.sell
 $("returnBtn").addEventListener("click",()=>{state.viewing=null;updateUI();draw();});
 function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(page==="floor")setTimeout(resize,30);haptic();}
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
-let remotePlayers=[];
+
 async function refreshLeaderboard(){
  if(!db)return;
  try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").order("prestige",{ascending:false}).limit(50);if(error)throw error;remotePlayers=data||[];}catch(e){console.warn("Leaderboard unavailable",e);}

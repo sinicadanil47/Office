@@ -741,7 +741,9 @@ function addInteriorDecor(parent,n,tier,wallH){
    back(x,wallH-.18,z,.34,.12,.34,trim);
   }
   side(.12,0,n-.14,.28,wallH,.28,M(0x737b80,.45,.22));
-  addWindowLightStrip(parent,n*.34,2.75,1.05,4.3,0xffc38d);\n  addWindowLightStrip(parent,n*.72,2.75,.92,4.0,0xffc38d);\n  addWindowLightStrip(parent,.52,2.65,.9,4.2,0xffc38d);
+  addWindowLightStrip(parent,n*.34,2.75,1.05,4.3,0xffc38d);
+  addWindowLightStrip(parent,n*.72,2.75,.92,4.0,0xffc38d);
+  addWindowLightStrip(parent,.52,2.65,.9,4.2,0xffc38d);
  }else if(tier===3){
   // IT tower: full-height glass bays, slim metal mullions and cyan perimeter lighting.
   const glass=M(0x164655,.24,.45,.22),rail=M(0x63828b,.35,.65),light=M(0x38d7cb,.25,.3,.9);
@@ -1303,7 +1305,9 @@ function handleRoomTap(e){
  if(state.sellMode){if(i>=0){const o=state.layout.splice(i,1)[0];state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
  if(moveMode){if(i>=0){beginMovePreview(i);}else toast("Сначала выберите установленный объект");return;}
  if(state.selected){if(i>=0){toast("Клетка занята");return;}const movingEmployee=state.layout.some(o=>{if(o.type!=="desk")return false;const rt=employeeMotion.get(o);return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===c.x&&Math.floor(rt.pos.y)===c.y;});if(movingEmployee){toast("Сотрудник проходит по этой клетке");return;}const t=TYPES[state.selected];if(!devFreeBuild&&state.balance<t.cost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=t.cost;state.layout.push({type:state.selected,x:c.x,y:c.y,rot:state.rotation});save();state.selected=null;closeShop();updateUI();haptic();toast(t.name+" установлен");draw();return;}
- if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(state.layout[i]);if(rt&&(rt.state==="sleep"||rt.state==="walk"||rt.state==="coffee")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}\n if(currentGridSize()>=11){quickBuildCell={x:c.x,y:c.y};$("shop").classList.add("open");toast("Выберите объект — предпросмотр откроется в клетке "+(c.x+1)+", "+(c.y+1));return;}\n toast("Выберите действие или объект в магазине");
+ if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(state.layout[i]);if(rt&&(rt.state==="sleep"||rt.state==="walk"||rt.state==="coffee")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}
+ if(currentGridSize()>=11){quickBuildCell={x:c.x,y:c.y};$("shop").classList.add("open");toast("Выберите объект — предпросмотр откроется в клетке "+(c.x+1)+", "+(c.y+1));return;}
+ toast("Выберите действие или объект в магазине");
 }
 canvas.addEventListener("touchmove",e=>{e.preventDefault();},{passive:false});
 canvas.addEventListener("pointerdown",e=>{
@@ -1381,7 +1385,8 @@ function beginBuildPreview(type){
  const center=(gridSize-1)/2,candidates=[];
  for(let y=0;y<gridSize;y++)for(let x=0;x<gridSize;x++)if(!buildCellBlocked(x,y))candidates.push({x,y,d:(x-center)**2+(y-center)**2});
  candidates.sort((a,b)=>a.d-b.d);
- const preferred=quickBuildCell;quickBuildCell=null;\n const cell=preferred&&preferred.x>=0&&preferred.y>=0&&preferred.x<gridSize&&preferred.y<gridSize&&!buildCellBlocked(preferred.x,preferred.y)?preferred:(candidates[0]||{x:Math.floor(center),y:Math.floor(center)});
+ const preferred=quickBuildCell;quickBuildCell=null;
+ const cell=preferred&&preferred.x>=0&&preferred.y>=0&&preferred.x<gridSize&&preferred.y<gridSize&&!buildCellBlocked(preferred.x,preferred.y)?preferred:(candidates[0]||{x:Math.floor(center),y:Math.floor(center)});
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);}
  threePreviewGroup=new THREE.Group();threeRoot.add(threePreviewGroup);
  const p={type,x:cell.x,y:cell.y,rot:0,valid:false,ghost:null,frame:null,outline:null};buildPreviewState=p;

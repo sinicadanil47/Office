@@ -60,7 +60,19 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 </style>
 <style>
 /* Three.js full 3D floor renderer */
-#sceneBackdrop{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,#111820 0%,#202a34 55%,#101820 100%);transition:background 900ms ease}
+#sceneBackdrop{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:linear-gradient(180deg,#111820 0%,#202a34 55%,#101820 100%);transition:background 900ms ease}
+#sceneBackdrop::before,#sceneBackdrop::after{content:"";position:absolute;pointer-events:none;inset:0;transition:opacity 900ms ease}
+#sceneBackdrop[data-tier="0"]{background:radial-gradient(ellipse at 50% 66%,rgba(173,111,57,.19),transparent 43%),linear-gradient(180deg,#11171d 0%,#20272e 54%,#0b1016 100%)}
+#sceneBackdrop[data-tier="1"]{background:radial-gradient(ellipse at 52% 78%,rgba(224,190,145,.17),transparent 43%),linear-gradient(180deg,#526f83 0%,#819aa7 48%,#394c5c 100%)}
+#sceneBackdrop[data-tier="1"]::before{inset:auto 0 0;height:15%;opacity:.45;background:linear-gradient(0deg,rgba(28,46,51,.65),transparent)}
+#sceneBackdrop[data-tier="2"]{background:radial-gradient(ellipse at 50% 92%,rgba(224,143,83,.32),transparent 42%),linear-gradient(180deg,#111c3b 0%,#39415d 54%,#b87961 100%)}
+#sceneBackdrop[data-tier="2"]::before{inset:auto 0 0;height:17%;opacity:.36;background:repeating-linear-gradient(90deg,transparent 0 4.5%,rgba(18,29,47,.82) 4.5% 7%,transparent 7% 9.5%);mask-image:linear-gradient(0deg,#000,transparent)}
+#sceneBackdrop[data-tier="3"]{background:radial-gradient(ellipse at 50% 70%,rgba(28,194,185,.13),transparent 44%),linear-gradient(180deg,#070d27 0%,#121d40 60%,#202d4a 100%)}
+#sceneBackdrop[data-tier="3"]::before{inset:auto 0 0;height:13%;opacity:.62;background:repeating-linear-gradient(90deg,#080f26 0 3.5%,#142342 3.5% 5.5%,#080f26 5.5% 8%);mask-image:linear-gradient(0deg,#000,transparent)}
+#sceneBackdrop[data-tier="3"]::after{background:radial-gradient(ellipse at 0% 55%,rgba(29,218,207,.12),transparent 36%),radial-gradient(ellipse at 100% 55%,rgba(29,218,207,.1),transparent 36%)}
+#sceneBackdrop[data-tier="4"]{background:radial-gradient(ellipse at 50% 91%,rgba(220,164,99,.34),transparent 35%),radial-gradient(ellipse at 50% 100%,rgba(170,180,201,.13),transparent 48%),linear-gradient(180deg,#070b1d 0%,#121a32 62%,#493747 100%)}
+#sceneBackdrop[data-tier="4"]::before{opacity:.8;background-image:radial-gradient(1px 1px at 12% 17%,#fff4d7 98%,transparent),radial-gradient(1px 1px at 28% 34%,#d9e7ff 98%,transparent),radial-gradient(1.5px 1.5px at 43% 12%,#fff0c8 98%,transparent),radial-gradient(1px 1px at 61% 26%,#e0eaff 98%,transparent),radial-gradient(1px 1px at 79% 15%,#fff0d0 98%,transparent),radial-gradient(1px 1px at 91% 39%,#dce9ff 98%,transparent);background-size:100% 100%}
+#sceneBackdrop::after{opacity:0}
 #threeRoom{position:fixed;inset:0;width:100vw;height:100dvh;z-index:1;display:block;pointer-events:none}
 #room{position:fixed;inset:0;z-index:2;background:transparent!important}
 </style>
@@ -425,103 +437,15 @@ function addCityBackdrop(g,n,tier){
  }
 }
 function buildFloorEnvironment(tier,n){
- if(threeEnvironmentGroup){threeScene.remove(threeEnvironmentGroup);disposeThreeTree(threeEnvironmentGroup);}
- const g=new THREE.Group();threeEnvironmentGroup=g;threeScene.add(g);
- const center=n/2,outer=n+6;
- if(tier===0){
-  // Subterranean service level: concrete retaining walls, pillars, ducts and a low ceiling.
-  const concrete=0x343b43,edge=0x58616a,pipe=0x87949a;
-  envBox(g,center,-.35,-3.4,outer,6.2,.55,concrete);
-  envBox(g,-3.4,-.35,center,.55,6.2,outer,concrete);
-  envBox(g,n+3.4,-.35,center,.55,6.2,outer,concrete);
-  envBox(g,center,-.35,n+3.4,outer,6.2,.55,concrete);
-  for(let x=-2.7;x<=n+2.7;x+=3.8){
-   envBox(g,x,-.1,-2.8,.38,5.5,.48,edge);
-   envBox(g,x,5.1,center,.34,.34,outer,edge);
-  }
-  for(let z=-2.8;z<=n+2.8;z+=3.8)envBox(g,-2.8,-.1,z,.48,5.5,.38,edge);
-  for(let i=0;i<3;i++){
-   const y=4.65-i*.42;
-   const pipeMesh=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,outer-.5,12),new THREE.MeshStandardMaterial({color:i===1?0x9b694b:pipe,metalness:.68,roughness:.36}));
-   pipeMesh.rotation.x=Math.PI/2;pipeMesh.position.set(center,y,-1.9+i*.42);g.add(pipeMesh);
-  }
-  for(let i=0;i<5;i++){
-   const x=-1.6+i*2.1;
-   envBox(g,x,.15,-3.05,.48,2.4,.08,0x1d252c);
-   envBox(g,x,2.45,-3.05,.55,.13,.12,0xc17b3c,0x9a4a17);
-  }
-  for(let i=0;i<4;i++){
-   const x=-2+i*(n+4)/3;
-   envBox(g,x,1.2,n+3.1,.14,2.8,.14,0x4a535b);
-   envBox(g,x,2.5,n+3.02,.42,.08,.12,0xd28a3c,0x9c501a);
-  }
-  // A lit maintenance doorway and ventilation grilles make the space read as a real basement.
-  envBox(g,center,0,-3.08,1.8,2.9,.12,0x171e25);
-  envBox(g,center,0,-3.16,1.45,2.55,.06,0x29343c);
-  for(let r=0;r<8;r++)envBox(g,center-.52,.32+r*.27,-3.205,1.04,.035,.025,0x69747b);
-  envBox(g,center+2.4,3.9,-3.03,1.4,.72,.1,0x252d34);
-  for(let i=0;i<7;i++)envBox(g,center+1.82+i*.19,3.95,-3.1,.045,.58,.04,0x79838a);
- }
- if(tier===1){
-  // Open coworking campus: low pavilions, landscaped planters and a bright courtyard.
-  envBox(g,center,-.3,-5.5,n+18,.28,.22,0x9a9d8b);
-  for(let i=0;i<7;i++){
-   const x=-4+i*3.5;
-   envBox(g,x,-.1,-7,2.8,2.2,1.15,0xc6c2b2);
-   envBox(g,x,1.2,-7.62,3,.18,.12,0xe6d5b5);
-   for(let r=0;r<2;r++)for(let c=0;c<3;c++)envBox(g,x-.8+c*.8,.35+r*.68,-7.59,.46,.42,.035,0x87b7c7);
-  }
-  for(let i=0;i<9;i++)addEnvTree(g,-3+i*2.5,n+2.5+(i%2)*.6,.95+(i%3)*.12);
-  for(let i=0;i<5;i++)addEnvCloud(g,center-8+i*4,6+(i%2)*.7,-11-i*.3,1.35,0xf0f1ec,.82);
-  envSphere(g,n+4,8,-8,1.15,0xffe2a7,.92,[1,1,.2]);
-  for(let i=0;i<5;i++)envBox(g,-2+i*3.5,-.05,n+4,.95,.5,.95,0x687d58);
- }
- if(tier===2||tier===3){
-  addCityBackdrop(g,n,tier);
-  if(tier===2){
-   // The business centre sits above a warm, hazy city at sunset.
-   envSphere(g,n+2,9,-9,1.35,0xffc27e,.95,[1,1,.22]);
-   for(let i=0;i<5;i++)addEnvCloud(g,-3+i*4,5.6+(i%2)*.7,-12,.9,0xf0b995,.38);
-  }else{
-   // Distant tower tops and neon crowns surround the IT skyscraper at night.
-   for(let i=0;i<8;i++){
-    const x=-4+i*2.7,z=-7-(i%3)*1.3,h=8+(i*7)%10;
-    envBox(g,x,h-.25,z,1.2,.5,.7,0x20d7d0,0x087e83);
-    envBox(g,x,0,z,.045,h,.045,0x1e536b,0x073849);
-   }
-  }
- }
- if(tier===4){
-  // Penthouse rooftop: parapet, glass balustrade, rooftop fixtures and cloud sea below.
-  const rail=0x8794a8;
-  envBox(g,center,-.15,-2.7,n+5,.12,.12,rail);
-  envBox(g,center,-.15,n+2.7,n+5,.12,.12,rail);
-  envBox(g,-2.7,-.15,center,.12,.12,n+5,rail);
-  envBox(g,n+2.7,-.15,center,.12,.12,n+5,rail);
-  for(let x=-2.7;x<=n+2.7;x+=1.5){
-   envBox(g,x,.05,-2.7,.045,1.15,.045,0x8d9cad);
-   envBox(g,x,.05,n+2.7,.045,1.15,.045,0x8d9cad);
-  }
-  for(let z=-2.7;z<=n+2.7;z+=1.5){
-   envBox(g,-2.7,.05,z,.045,1.15,.045,0x8d9cad);
-   envBox(g,n+2.7,.05,z,.045,1.15,.045,0x8d9cad);
-  }
-  addCityBackdrop(g,n,3);
-  for(let i=0;i<19;i++){
-   const x=-7+i*1.35,z=-2.5-(i%4)*2.3;
-   addEnvCloud(g,x,-1.5-(i%3)*.22,z,1.35+(i%2)*.3,0xd5dce8,.38);
-  }
-  for(let i=0;i<15;i++)addEnvCloud(g,-5+i*1.8,-1.7,-5+(i%3)*3.6,1.1,0xcbd5e3,.25);
-  const starPositions=[];
-  for(let i=0;i<260;i++){const x=-18+((i*53)%520)/10,y=6+((i*29)%160)/10,z=-16-(i%7)*2;starPositions.push(x,y,z);}
-  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(starPositions,3));
-  g.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xffe2b4,size:.11,transparent:true,opacity:.9,sizeAttenuation:false})));
- }
- return g;
+ // Background scenery is deliberately CSS-only. The WebGL scene contains no
+ // free-standing scenery meshes, so nothing can ever overlap the playable room.
+ if(threeEnvironmentGroup){threeScene.remove(threeEnvironmentGroup);disposeThreeTree(threeEnvironmentGroup);threeEnvironmentGroup=null;}
+ threeEnvironmentGroup=new THREE.Group();threeEnvironmentTier=tier;
+ return threeEnvironmentGroup;
 }
 function setThreeAtmosphere(tier,n=currentGridSize()){
  const p=FLOOR_ATMOSPHERES[Math.max(0,Math.min(4,tier))],now=performance.now();
- threeBackdrop.style.background=p.bg;
+ threeBackdrop.dataset.tier=String(Math.max(0,Math.min(4,tier)));
  const current=threeAtmosphereTransition?.to||{fog:threeScene.fog.color.clone(),near:threeScene.fog.near,far:threeScene.fog.far,ambient:threeAmbientLight.color.clone(),ambientI:threeAmbientLight.intensity,key:keyLight.color.clone(),keyI:keyLight.intensity,fill:fillLight.color.clone(),fillI:fillLight.intensity};
  threeAtmosphereTransition={from:{fog:threeScene.fog.color.clone(),near:threeScene.fog.near,far:threeScene.fog.far,ambient:threeAmbientLight.color.clone(),ambientI:threeAmbientLight.intensity,key:keyLight.color.clone(),keyI:keyLight.intensity,fill:fillLight.color.clone(),fillI:fillLight.intensity},to:{fog:new THREE.Color(p.fog),near:p.near,far:p.far,ambient:new THREE.Color(p.ambient),ambientI:p.ambientI,key:new THREE.Color(p.key),keyI:p.keyI,fill:new THREE.Color(p.fill),fillI:p.fillI},start:now,duration:1050};
  threeScene.fog=new THREE.Fog(threeScene.fog.color,threeScene.fog.near,threeScene.fog.far);
@@ -536,15 +460,28 @@ function updateThreeAtmosphere(now){
  if(k>=1)threeAtmosphereTransition=null;
 }
 function disposeThreeTree(root){if(!root)return;root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});}});}
-function addRoom3D(){if(threeFloorGroup){threeRoot.remove(threeFloorGroup);disposeThreeTree(threeFloorGroup);}threeFloorGroup=new THREE.Group();threeRoot.add(threeFloorGroup);const n=currentGridSize(),tier=currentFloorTier(),colors=[0x42484d,0x98714d,0x263c5b,0x15383e,0x29272d],floorMat=mat(colors[tier],.88),edge=mat(tier===4?0xc59a4b:0x53677a,.55,.25),wallMat=mat([0x34383d,0xd0d4d6,0x172a42,0x102c31,0x1c1a20][tier],.86,0,tier===0?{}:{transparent:true,opacity:tier===1?.28:.12,depthWrite:false});
-const floor=new THREE.Mesh(new THREE.BoxGeometry(n,.16,n),floorMat);floor.position.set(n/2,-.09,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
-const gridMat=mat(tier===4?0x806638:0x687d91,.9,.05,{transparent:true,opacity:.32});const grid=new THREE.GridHelper(n,n,tier===4?0xc49a51:0x7a8da0,0x64778b);grid.position.set(n/2,.002,n/2);grid.material.transparent=true;grid.material.opacity=.26;threeFloorGroup.add(grid);
-boxMesh(threeFloorGroup,n/2,-.2,n/2,n+.18,.12,n+.18,edge);
-const wallH=tier===0?2.2:3.1;const backA=boxMesh(threeFloorGroup,n/2,0,-.1,n,wallH,.18,wallMat);const backB=boxMesh(threeFloorGroup,-.1,0,n/2,.18,wallH,n,wallMat);
-if(tier>=2){const glass=mat(tier===4?0x243b4b:0x21475c,.22,.3,{transparent:true,opacity:.38,emissive:tier===4?0x38250d:0x092e45,emissiveIntensity:.28});for(let i=0;i<n;i+=Math.max(2,Math.floor(n/4))){boxMesh(threeFloorGroup,i+.5,.65,-.195,.025,wallH*.72,.025,edge);boxMesh(threeFloorGroup,-.195,.65,i+.5,.025,wallH*.72,.025,edge);}boxMesh(threeFloorGroup,n/2,wallH*.5,-.205,n-.15,wallH*.78,.025,glass);boxMesh(threeFloorGroup,-.205,wallH*.5,n/2,.025,wallH*.78,n-.15,glass);}
-if(tier===1){for(let i=0;i<3;i++){const x=.6+i*(n-1)/2;boxMesh(threeFloorGroup,x,1.25,-.205,Math.min(1.7,n/3),1.7,.025,mat(0x86b9d2,.25,.1,{transparent:true,opacity:.55}));makePlant(threeFloorGroup,.35+i*.5,.45,.7);}}
-if(tier===0){const pipe=mat(0x8d969a,.35,.72);cylMesh(threeFloorGroup,.28,wallH-.25,-.18,.055,.055,n-.5,pipe);boxMesh(threeFloorGroup,n*.48,.55,-.2,.8,.48,.04,mat(0xe4b06b,.4,.1,{emissive:0x8b4c19,emissiveIntensity:.4}));}
-if(tier===3||tier===4){const glow=mat(tier===4?0xf0c56e:0x27d8cf,.3,.15,{emissive:tier===4?0x9a5c16:0x087f7a,emissiveIntensity:1.1});boxMesh(threeFloorGroup,n/2,.08,-.24,n,.055,.05,glow);boxMesh(threeFloorGroup,-.24,.08,n/2,.05,.055,n,glow);}
+function addRoom3D(){
+ if(threeFloorGroup){threeRoot.remove(threeFloorGroup);disposeThreeTree(threeFloorGroup);}
+ threeFloorGroup=new THREE.Group();threeRoot.add(threeFloorGroup);
+ const n=currentGridSize(),tier=currentFloorTier();
+ const colors=[0x42484d,0x98714d,0x263c5b,0x15383e,0x29272d];
+ const floorMat=mat(colors[tier],.88),edge=mat(tier===4?0xc59a4b:tier===3?0x287f83:0x53677a,.55,.25);
+ const wallColors=[0x34383d,0xc2cbd0,0x172a42,0x102c31,0x1c1a20];
+ const wallMat=mat(wallColors[tier],.86,0);
+ const floor=new THREE.Mesh(new THREE.BoxGeometry(n,.16,n),floorMat);
+ floor.position.set(n/2,-.09,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
+ const grid=new THREE.GridHelper(n,n,tier===4?0xc49a51:tier===3?0x287f83:0x7a8da0,0x64778b);
+ grid.position.set(n/2,.002,n/2);grid.material.transparent=true;grid.material.opacity=.2;threeFloorGroup.add(grid);
+ boxMesh(threeFloorGroup,n/2,-.2,n/2,n+.18,.12,n+.18,edge);
+ // These are the only room walls: the two rear sides of the isometric room.
+ const wallH=tier===0?2.2:3.1;
+ boxMesh(threeFloorGroup,n/2,0,-.1,n,wallH,.18,wallMat);
+ boxMesh(threeFloorGroup,-.1,0,n/2,.18,wallH,n,wallMat);
+ if(tier===3||tier===4){
+  const glow=mat(tier===4?0xc69a55:0x27bdb6,.3,.15,{emissive:tier===4?0x72501c:0x075b59,emissiveIntensity:.55});
+  boxMesh(threeFloorGroup,n/2,.08,-.24,n,.035,.035,glow);
+  boxMesh(threeFloorGroup,-.24,.08,n/2,.035,.035,n,glow);
+ }
 }
 function rebuildThreeScene(){const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"boss":g=createBoss(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;}if(g){g.userData.object=o;if(o.type==="desk"){const worker=createWorker3D(threeFurnitureGroup,o);threeWorkerGroups.set(o,worker);}}});}
 function updateThreeCamera(){if(!threeCamera)return;const n=currentGridSize(),span=n+5,aspect=Math.max(.5,threeWidth/Math.max(1,threeHeight));threeCamera.left=-span*aspect*.5;threeCamera.right=span*aspect*.5;threeCamera.top=span*.5;threeCamera.bottom=-span*.5;threeCamera.zoom=cameraZoom;const center=new THREE.Vector3(n/2+cameraOffsetX*.018+threePanX,0,n/2+cameraOffsetY*.018+threePanZ),d=span*1.75;threeCamera.position.copy(center).add(new THREE.Vector3(d,d,d));threeCamera.lookAt(center);threeCamera.updateProjectionMatrix();}

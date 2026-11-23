@@ -353,16 +353,20 @@ const basementTextureCache={};
 function loadBasementTexture(key,files){
  const tex=new THREE.Texture();tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;basementTextureCache[key]=tex;
  let attempt=0;
- const next=()=>{if(attempt>=files.length){console.error("Basement texture failed to load:",key,files);return;}const file=files[attempt++],url=new URL(file,document.baseURI).href;basementTextureLoader.load(url,loaded=>{tex.copy(loaded);tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.needsUpdate=true;console.info("Basement texture loaded:",key,url,loaded.image?.width,loaded.image?.height);applyBasementTextures();},undefined,error=>{console.error("Basement texture request failed:",url,error);next();});};
+ const next=()=>{if(attempt>=files.length){console.error("Basement texture failed to load:",key,files);return;}const file=files[attempt++],url=/^https?:/.test(file)?file:new URL(file,document.baseURI).href;basementTextureLoader.load(url,loaded=>{tex.copy(loaded);tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.needsUpdate=true;console.info("Basement texture loaded:",key,url,loaded.image?.width,loaded.image?.height);applyBasementTextures();},undefined,error=>{console.error("Basement texture request failed:",url,error);next();});};
  next();return tex;
 }
-const basementFloorTex=loadBasementTexture("floor",["textures/basement_floor.PNG","textures/basement_floor.png"]);
-const basementWallLeftTex=loadBasementTexture("wallLeft",["textures/basement_wall_left.PNG","textures/basement_wall_left.png"]);
-const basementWallRightTex=loadBasementTexture("wallRight",["textures/basement_wall_right.PNG","textures/basement_wall_right.png"]);
+const basementFloorTex=loadBasementTexture("floor",["textures/basement_floor.PNG","textures/basement_floor.png","https://raw.githubusercontent.com/sinicadanil47/Office/main/textures/basement_floor.PNG"]);
+const basementWallLeftTex=loadBasementTexture("wallLeft",["textures/basement_wall_right.PNG","textures/basement_wall_right.png","https://raw.githubusercontent.com/sinicadanil47/Office/main/textures/basement_wall_right.PNG"]);
+const basementWallRightTex=loadBasementTexture("wallRight",["textures/basement_wall_left.PNG","textures/basement_wall_left.png","https://raw.githubusercontent.com/sinicadanil47/Office/main/textures/basement_wall_left.PNG"]);
 function applyBasementTextures(){
  if(currentFloorTier()!==0||!threeFloorGroup)return;
  const floor=threeFloorGroup.userData.basementFloor;
- if(floor&&basementFloorTex?.image){floor.material.map=basementFloorTex;floor.material.color.set(0xffffff);floor.material.bumpMap=null;floor.material.roughnessMap=null;floor.material.normalMap=null;floor.material.roughness=.82;floor.material.metalness=.02;floor.material.needsUpdate=true;}
+ if(floor&&basementFloorTex?.image){
+  basementFloorTex.colorSpace=THREE.SRGBColorSpace;basementFloorTex.wrapS=basementFloorTex.wrapT=THREE.ClampToEdgeWrapping;basementFloorTex.needsUpdate=true;
+  floor.material=new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0,side:THREE.DoubleSide});
+  floor.material.needsUpdate=true;floor.visible=true;floor.renderOrder=1;
+ }
  const walls=threeFloorGroup.userData.basementWalls;
  if(walls){if(basementWallLeftTex?.image){walls.left.material.map=basementWallLeftTex;walls.left.visible=true;}if(basementWallRightTex?.image){walls.right.material.map=basementWallRightTex;walls.right.visible=true;}[walls.left,walls.right].forEach(m=>{m.material.color.set(0xffffff);m.material.needsUpdate=true;});}
 }

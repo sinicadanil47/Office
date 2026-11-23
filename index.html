@@ -626,7 +626,7 @@ function renderThreeScene(){
    const idx=Math.min(rt.index||0,rt.path.length-2),a=rt.path[idx],b=rt.path[idx+1],dx=b.x-a.x,dz=b.y-a.y;
    if(Math.abs(dx)+Math.abs(dz)>.001){targetYaw=Math.atan2(dx,dz);rt.lastWalkYaw=targetYaw;}
    else if(Number.isFinite(rt.lastWalkYaw))targetYaw=rt.lastWalkYaw;
-  }else if(state==="sit"&&Number.isFinite(rt?.lastWalkYaw))targetYaw=rt.lastWalkYaw;
+  }else if(state==="sit")targetYaw=Math.PI+deskAngle;
   const yawDelta=Math.atan2(Math.sin(targetYaw-g.rotation.y),Math.cos(targetYaw-g.rotation.y));
   g.rotation.y+=yawDelta*(1-Math.exp(-frameDt*(walking?8:5)));
   const stride=now*9;

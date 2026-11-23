@@ -269,6 +269,7 @@ function updateUI(){
  $("sellBtn").classList.toggle("active",state.sellMode);
 }
 const canvas=$("room");let ctx=canvas.getContext("2d");
+const employeeMotion=new WeakMap();
 let W=0,H=0,dpr=1,cellW=0,cellH=0,originX=0,originY=0,pointer=null,floaters=[],cameraOffsetX=0,cameraOffsetY=0,cameraZoom=1;const activePointers=new Map();let pinchState=null,suppressTap=false,lastTap=null,cameraResetFrame=0;
 function resize(){
  const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;
@@ -326,10 +327,10 @@ function box(x,y,w,d,z,top,left,right){
  poly([{x:p.x,y:p.y},{x:a.x,y:a.y},{x:b.x,y:b.y},{x:c.x,y:c.y}],top);
 }
 
-function drawWorker(x,y,state,bob=0){
+function drawWorker(x,y,state,bob=0,showChair=true){
  ctx.save();ctx.translate(x,y+bob);ctx.fillStyle="rgba(0,0,0,.25)";ctx.beginPath();ctx.ellipse(0,9,8,3,0,0,Math.PI*2);ctx.fill();
- poly([{x:-8,y:1},{x:-6,y:-10},{x:6,y:-10},{x:8,y:1},{x:5,y:4},{x:-5,y:4}],"#263d57","#18283c");
- ctx.strokeStyle="#8296aa";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,3);ctx.lineTo(0,10);ctx.moveTo(-5,10);ctx.lineTo(5,10);ctx.stroke();
+ if(showChair){poly([{x:-8,y:1},{x:-6,y:-10},{x:6,y:-10},{x:8,y:1},{x:5,y:4},{x:-5,y:4}],"#263d57","#18283c");
+ ctx.strokeStyle="#8296aa";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,3);ctx.lineTo(0,10);ctx.moveTo(-5,10);ctx.lineTo(5,10);ctx.stroke();}
  const sleeping=state==="sleep",walking=state==="walk";ctx.fillStyle=sleeping?"#52677d":"#327da2";ctx.beginPath();ctx.roundRect(-6,-12,12,15,3);ctx.fill();
  ctx.strokeStyle="#d7a47e";ctx.lineWidth=3;ctx.lineCap="round";ctx.beginPath();
  if(sleeping){ctx.moveTo(-4,-9);ctx.lineTo(-8,-5);ctx.lineTo(-4,-2);ctx.moveTo(4,-9);ctx.lineTo(7,-5);}
@@ -340,7 +341,9 @@ function drawWorker(x,y,state,bob=0){
  if(state==="work"){ctx.fillStyle="#68d8ed";ctx.beginPath();ctx.arc(2,-17,1,0,7);ctx.fill();}ctx.restore();
 }
 function drawDesk(o){
- const t=performance.now()/1000,cycle=(t+(o.x*2+o.y)*.17)%18,state=o.workerState||o.mood||(cycle<12?"work":cycle<15?"sleep":"walk"),bob=state==="work"?Math.sin(t*5+o.x)*.9:state==="sleep"?Math.sin(t*1.2)*.25:Math.sin(t*3)*1.4;
+ const t=performance.now()/1000,cycle=(t+(o.x*2+o.y)*.17)%18,rt=employeeMotion.get(o);
+ const state=rt?rt.state:(o.workerState||o.mood||(cycle<12?"work":cycle<15?"sleep":"walk"));
+ const bob=state==="work"?Math.sin(t*5+o.x)*.9:state==="sleep"?Math.sin(t*1.2)*.25:Math.sin(t*3)*1.4;
  box(o.x+.16,o.y+.19,.68,.56,13,"#9a6840","#573b2d","#70472f");box(o.x+.1,o.y+.13,.8,.62,5,"#d6a36b","#805334","#a16d43");
  const m=iso(o.x+.5,o.y+.34);
  poly([{x:m.x-13,y:m.y-31+bob},{x:m.x+12,y:m.y-31+bob},{x:m.x+12,y:m.y-14+bob},{x:m.x-13,y:m.y-14+bob}],"#0b1727","#718ba2");
@@ -349,7 +352,11 @@ function drawDesk(o){
  box(o.x+.46,o.y+.39,.08,.05,8,"#aebdca","#586c7e","#71869a");const k=iso(o.x+.51,o.y+.65);
  poly([{x:k.x-11,y:k.y-3},{x:k.x+7,y:k.y-3},{x:k.x+11,y:k.y+2},{x:k.x-7,y:k.y+2}],"#273b4e","#8da3b6");
  ctx.fillStyle="#d9e7ee";for(let i=0;i<5;i++)ctx.fillRect(k.x-6+i*3,k.y-1,1.2,1);
- const ch=iso(o.x+.5,o.y+.91);drawWorker(ch.x-1,ch.y-3,state,bob);
+ const ch=iso(o.x+.5,o.y+.91);
+ if(!o.skipWorker){
+  const wp=rt?rt.pos:{x:o.x+.5,y:o.y+.91},screen=iso(wp.x,wp.y);
+  drawWorker(screen.x-1,screen.y-3,state,bob,!rt||rt.state!=="walk");
+ }
 }
 function drawCoffee(o){
  box(o.x+.2,o.y+.29,.6,.48,12,"#815536","#493326","#65432e");box(o.x+.13,o.y+.24,.74,.53,5,"#d4c5ad","#77634e","#a18a6c");
@@ -382,6 +389,77 @@ function drawBoss(o){
  const p=iso(o.x+.5,o.y+.46);poly([{x:p.x-10,y:p.y-7},{x:p.x+5,y:p.y-7},{x:p.x+9,y:p.y-3},{x:p.x-6,y:p.y-3}],"#e9e0d1","#fff1d5");
  ctx.save();ctx.strokeStyle="#d8bd86";ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(p.x+15,p.y-9);ctx.lineTo(p.x+19,p.y-20);ctx.lineTo(p.x+25,p.y-24);ctx.stroke();ctx.shadowColor="#ffd37a";ctx.shadowBlur=13;ctx.fillStyle="#f7d58c";ctx.beginPath();ctx.moveTo(p.x+19,p.y-25);ctx.lineTo(p.x+30,p.y-23);ctx.lineTo(p.x+26,p.y-18);ctx.lineTo(p.x+18,p.y-20);ctx.closePath();ctx.fill();ctx.restore();
  box(o.x+.37,o.y+.77,.26,.13,10,"#27384b","#172538","#203047");
+}
+
+// Employee pathfinding is scoped to the active floor. Furniture cells are hard obstacles.
+function employeeKey(o){return Math.round(o.x)+":"+Math.round(o.y);}
+function validFloorCell(x,y,n=currentGridSize()){return Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&y>=0&&x<n&&y<n;}
+function freeEmployeeCell(x,y,layout,desk,n=currentGridSize()){
+ if(!validFloorCell(x,y,n))return false;
+ return !layout.some(o=>o!==desk&&o.x===x&&o.y===y);
+}
+function findEmployeePath(start,goal,layout,desk,n=currentGridSize()){
+ const key=(x,y)=>x+","+y,queue=[{x:start.x,y:start.y}],prev=new Map([[key(start.x,start.y),null]]);
+ for(let qi=0;qi<queue.length;qi++){
+  const c=queue[qi];if(c.x===goal.x&&c.y===goal.y)break;
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+   const x=c.x+dx,y=c.y+dy,k=key(x,y);
+   if(prev.has(k)||!freeEmployeeCell(x,y,layout,desk,n))continue;
+   prev.set(k,key(c.x,c.y));queue.push({x,y});
+  }
+ }
+ const goalKey=key(goal.x,goal.y);if(!prev.has(goalKey))return null;
+ const path=[];let k=goalKey;while(k){const [x,y]=k.split(",").map(Number);path.push({x,y});k=prev.get(k);}
+ return path.reverse();
+}
+function chooseEmployeeWalk(desk,layout,n=currentGridSize()){
+ const home={x:desk.x,y:desk.y},reachable=[];
+ for(let x=0;x<n;x++)for(let y=0;y<n;y++){
+  if(!freeEmployeeCell(x,y,layout,desk,n))continue;
+  const path=findEmployeePath(home,{x,y},layout,desk,n);
+  if(path&&path.length>2)reachable.push({target:{x,y},path});
+ }
+ if(!reachable.length)return null;
+ return reachable[Math.floor(Math.random()*reachable.length)];
+}
+function startEmployeeWalk(desk,layout,n=currentGridSize()){
+ const choice=chooseEmployeeWalk(desk,layout,n);if(!choice)return false;
+ employeeMotion.set(desk,{state:"walk",pos:{x:desk.x+.5,y:desk.y+.91},path:choice.path,index:0,progress:0,returning:false,pause:0});
+ return true;
+}
+function updateEmployeeMotion(dt,layout,n=currentGridSize()){
+ const now=performance.now();
+ layout.filter(o=>o.type==="desk").forEach(desk=>{
+  let rt=employeeMotion.get(desk);
+  if(!rt){rt={state:"work",pos:{x:desk.x+.5,y:desk.y+.91},timer:6+Math.random()*5,path:null,index:0,progress:0,returning:false,pause:0};employeeMotion.set(desk,rt);}
+  if(rt.state==="sleep"){rt.timer-=dt;if(rt.timer<=0){rt.state="work";rt.timer=4+Math.random()*4;}return;}
+  if(rt.state==="work"){rt.timer-=dt;if(rt.timer<=0){if(startEmployeeWalk(desk,layout,n)){rt=employeeMotion.get(desk);rt.state="walk";}else{rt.timer=5;}}return;}
+  if(rt.state!=="walk"||!rt.path)return;
+  if(rt.pause>0){rt.pause-=dt;if(rt.pause<=0&& !rt.returning){rt.path=rt.path.slice().reverse();rt.index=0;rt.progress=0;rt.returning=true;}return;}
+  if(rt.index>=rt.path.length-1){
+   if(!rt.returning){rt.pause=1.2;return;}
+   rt.state="work";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.path=null;rt.timer=6+Math.random()*5;return;
+  }
+  const a=rt.path[rt.index],b=rt.path[rt.index+1];
+  if(!freeEmployeeCell(b.x,b.y,layout,desk,n)){ // An obstacle may have been built during the walk: recalculate a safe route home.
+   const home={x:desk.x,y:desk.y},route=findEmployeePath({x:Math.round(rt.pos.x-.5),y:Math.round(rt.pos.y-.5)},home,layout,desk,n);
+   if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;}else{rt.state="work";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.path=null;}
+   return;
+  }
+  rt.progress=Math.min(1,rt.progress+dt*1.15);
+  rt.pos={x:a.x+.5+(b.x-a.x)*rt.progress,y:a.y+.5+(b.y-a.y)*rt.progress};
+  if(rt.progress>=1){rt.index++;rt.progress=0;}
+ });
+}
+function wakeEmployee(desk){
+ let rt=employeeMotion.get(desk);
+ if(!rt){rt={state:"work",pos:{x:desk.x+.5,y:desk.y+.91},timer:8,path:null,index:0,progress:0,returning:false,pause:0};employeeMotion.set(desk,rt);}
+ rt.state="work";rt.path=null;rt.index=0;rt.progress=0;rt.returning=false;rt.pause=0;rt.pos={x:desk.x+.5,y:desk.y+.91};rt.timer=8;
+ toast("Сотрудник вернулся к работе");draw();
+}
+function drawEmployeeOnFloor(desk){
+ const rt=employeeMotion.get(desk);if(!rt)return;
+ const p=iso(rt.pos.x,rt.pos.y);drawWorker(p.x-1,p.y-3,rt.state,rt.state==="walk"?Math.sin(performance.now()/90)*1.2:0,rt.state!=="walk");
 }
 function drawFurnitureShape(o){if(o.type==="desk")drawDesk(o);else if(o.type==="coffee")drawCoffee(o);else if(o.type==="server")drawServer(o);else if(o.type==="boss")drawBoss(o);else if(o.type==="meeting")drawMeeting(o);else if(o.type==="security")drawSecurity(o);}
 function drawObject(o){
@@ -454,8 +532,13 @@ function draw(){
   synergyCells(pointer).forEach(c=>diamond(c.x,c.y,"rgba(100,116,139,.22)","rgba(148,163,184,.32)"));
   diamond(pointer.x,pointer.y,valid?"rgba(16,185,129,.34)":"rgba(239,68,68,.34)",valid?"#10B981":"#ef4444");
  }
- const sorted=[...floor].sort((a,b)=>{const da=a.x+a.y,db=b.x+b.y;return da-db||a.x-b.x||a.y-b.y;});
- sorted.forEach(drawObject);
+ const renderQueue=[];
+ floor.forEach(o=>{
+  renderQueue.push({depth:o.x+o.y+0.001,kind:"object",object:o});
+  if(o.type==="desk")renderQueue.push({depth:o.x+o.y+0.002,kind:"employee",object:o});
+ });
+ renderQueue.sort((a,b)=>a.depth-b.depth||a.object.x-b.object.x||a.object.y-b.object.y||(a.kind==="object"?-1:1));
+ renderQueue.forEach(item=>{if(item.kind==="employee")drawEmployeeOnFloor(item.object);else if(item.object.type==="desk")drawObject({...item.object,skipWorker:true});else drawObject(item.object);});
  if(activeVip&&!state.viewing&&Date.now()<activeVip.expires){const p=iso(activeVip.x+.5,activeVip.y+.5),q=1+Math.sin(performance.now()/120)*.12;ctx.save();ctx.translate(p.x,p.y-39);ctx.scale(q,q);ctx.fillStyle="#fbbf24";ctx.shadowColor="#f59e0b";ctx.shadowBlur=18;ctx.beginPath();ctx.arc(0,0,12,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle="#392307";ctx.font="bold 14px sans-serif";ctx.textAlign="center";ctx.fillText("⚡",0,5);ctx.restore();}
  if(pointer&&state.selected&&!state.viewing&&pointer.x>=0&&pointer.x<currentGridSize()&&pointer.y>=0&&pointer.y<currentGridSize()){
   const valid=!floor.some(o=>o.x===pointer.x&&o.y===pointer.y);
@@ -476,7 +559,7 @@ function handleRoomTap(e){
  if(activeVip&&Date.now()<activeVip.expires&&i>=0&&state.layout[i].x===activeVip.x&&state.layout[i].y===activeVip.y){closeVipDeal();return;}
  if(state.sellMode){if(i>=0){const o=state.layout.splice(i,1)[0];state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
  if(state.selected){if(i>=0){toast("Клетка занята");return;}const t=TYPES[state.selected];if(!devFreeBuild&&state.balance<t.cost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=t.cost;state.layout.push({type:state.selected,x:c.x,y:c.y,rot:state.rotation});save();state.selected=null;closeShop();updateUI();haptic();toast(t.name+" установлен");draw();return;}
- if(i>=0){showUpgradeCard(i);return;}toast("Выберите действие или объект в магазине");
+ if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(state.layout[i]);if(rt&&(rt.state==="sleep"||rt.state==="walk")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}toast("Выберите действие или объект в магазине");
 }
 canvas.addEventListener("touchmove",e=>{e.preventDefault();},{passive:false});
 canvas.addEventListener("pointerdown",e=>{
@@ -589,7 +672,7 @@ let last=performance.now(),incomeTimer=0;
 function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="desk");if(workers.length){const o=workers[Math.floor(Math.random()*workers.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
 function tick(now){spawnVip();
- const dt=Math.min((now-last)/1000,.25);last=now;
+ const dt=Math.min((now-last)/1000,.25);last=now;if(!state.viewing)updateEmployeeMotion(dt,state.layout,gridSize);
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  draw();requestAnimationFrame(tick);
 }

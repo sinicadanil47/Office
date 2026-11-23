@@ -351,10 +351,10 @@ const mat=(color,roughness=.72,metalness=0,extra={})=>new THREE.MeshStandardMate
 const basementTextureLoader=new THREE.TextureLoader();
 const basementTextureCache={};
 function loadBasementTexture(key,files){
- if(basementTextureCache[key])return basementTextureCache[key];
+ const tex=new THREE.Texture();tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;basementTextureCache[key]=tex;
  let attempt=0;
- const next=()=>{if(attempt>=files.length){console.warn("Basement texture unavailable:",key,files);return;}const file=files[attempt++];basementTextureLoader.load(file,t=>{t.colorSpace=THREE.SRGBColorSpace;t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.generateMipmaps=true;t.needsUpdate=true;basementTextureCache[key]=t;applyBasementTextures();},undefined,()=>next());};
- next();return null;
+ const next=()=>{if(attempt>=files.length){console.warn("Basement texture unavailable:",key,files);return;}const file=files[attempt++];basementTextureLoader.load(file,loaded=>{tex.copy(loaded);tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.needsUpdate=true;applyBasementTextures();},undefined,()=>next());};
+ next();return tex;
 }
 const basementFloorTex=loadBasementTexture("floor",["6ad454-3-draft.png","6ad454-3-draft.jpg","basement_floor.png","basement_floor.jpg"]);
 const basementWallLeftTex=loadBasementTexture("wallLeft",["input_74c949_4.png","input_74c949_4.jpg","basement_wall_left.png","basement_wall_left.jpg"]);

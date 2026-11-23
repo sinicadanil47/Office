@@ -365,18 +365,18 @@ function createDesk(parent,o){
  // Full-size keyboard, keycaps use InstancedMesh to keep desk detail inexpensive.
  const keyboard=new THREE.Group();g.add(keyboard);
  const kbBase=mat(0x1b2938,.52,.28),keyMat=mat(0x8294a5,.56,.12),keyAccent=mat(lv>=3?0x36c9cf:0x526d83,.45,.2,{emissive:lv>=3?0x075c65:0x000000,emissiveIntensity:.45});
- boxMesh(keyboard,0,.555,.155,.31,.025,.105,kbBase);
+ boxMesh(keyboard,0,.525,.155,.31,.025,.105,kbBase);
  const keyGeo=new THREE.BoxGeometry(.019,.012,.014),keys=new THREE.InstancedMesh(keyGeo,keyMat,44),dummy=new THREE.Object3D();
  let k=0;
  for(let row=0;row<4;row++)for(let col=0;col<11;col++){
-  dummy.position.set(-.135+col*.027,.574,.119+row*.022);dummy.scale.set(1,1,1);dummy.updateMatrix();keys.setMatrixAt(k++,dummy.matrix);
+  dummy.position.set(-.135+col*.027,.544,.119+row*.022);dummy.scale.set(1,1,1);dummy.updateMatrix();keys.setMatrixAt(k++,dummy.matrix);
  }
  keys.instanceMatrix.needsUpdate=true;keyboard.add(keys);
- boxMesh(keyboard,0,.574,.205,.09,.012,.014,keyAccent);
+ boxMesh(keyboard,0,.544,.205,.09,.012,.014,keyAccent);
  const pad=mat(0x253d50,.85,.05),mouseMat=mat(0xb3c0ca,.34,.22);
- boxMesh(g,.235,.55,.16,.105,.012,.12,pad);
- const mouse=sphereMesh(g,.235,.575,.155,.045,mouseMat,[.72,.36,1.18]);
- boxMesh(g,.235,.587,.125,.006,.008,.028,mat(0x526777,.35,.3));
+ boxMesh(g,.235,.525,.16,.105,.012,.12,pad);
+ const mouse=sphereMesh(g,.235,.555,.155,.045,mouseMat,[.72,.36,1.18]);
+ boxMesh(g,.235,.567,.125,.006,.008,.028,mat(0x526777,.35,.3));
  if(lv>=2){boxMesh(g,-.29,.12,-.12,.15,.26,.19,mat(0x263746));for(let i=0;i<3;i++)sphereMesh(g,-.33+i*.035,.25,-.018,.012,mat(0x42e6d0));makePlant(g,.34,-.13,.55);}
  if(lv>=3)boxMesh(g,0,.47,.24,.68,.018,.025,mat(0x35d5e8,.3,.1,{emissive:0x0b8ca9,emissiveIntensity:1.2}));
  if(lv>=4)for(let i=0;i<3;i++)cylMesh(g,.28+i*.045,.56,.13,.018,.018,.07,mat(0xb6c6d1));
@@ -450,9 +450,9 @@ function createWorker3D(parent,desk){
   const shoulderCap=new THREE.Mesh(new THREE.SphereGeometry(1,14,12),jacket);shoulderCap.scale.set(.085,.085,.085);shoulder.add(shoulderCap);
   limb(shoulder,new THREE.Vector3(0,0,0),new THREE.Vector3(side*.018,-.18,.12),.065,.052,jacket);
   const elbow=new THREE.Group();elbow.position.set(side*.018,-.18,.12);shoulder.add(elbow);
-  limb(elbow,new THREE.Vector3(0,0,0),new THREE.Vector3(-side*.012,-.23,.19),.052,.038,shirt);
-  const cuff=new THREE.Mesh(new THREE.CylinderGeometry(.039,.043,.035,12),white);cuff.position.set(-side*.012,-.205,.168);cuff.rotation.x=-.55;elbow.add(cuff);
-  const hand=new THREE.Group();hand.position.set(-side*.012,-.23,.19);elbow.add(hand);
+  limb(elbow,new THREE.Vector3(0,0,0),new THREE.Vector3(-side*.012,-.30,.19),.052,.038,shirt);
+  const cuff=new THREE.Mesh(new THREE.CylinderGeometry(.039,.043,.035,12),white);cuff.position.set(-side*.012,-.27,.168);cuff.rotation.x=-.55;elbow.add(cuff);
+  const hand=new THREE.Group();hand.position.set(-side*.012,-.30,.19);elbow.add(hand);
   const palm=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),skin);palm.scale.set(.046,.025,.062);palm.position.set(0,-.005,.025);hand.add(palm);
   for(let f=0;f<3;f++){const finger=new THREE.Mesh(new THREE.CapsuleGeometry(.008,.035,3,6),skin);finger.position.set((f-1)*.018,-.012,.068);finger.rotation.x=-.22;hand.add(finger);}
   arms.push({shoulder,elbow,hand,side});

@@ -542,11 +542,13 @@ function drawObject(o){
 }
 function renderFurniturePreview(el,type,size,level=1){
  if(!el)return;const old={ctx,cellW,cellH,originX,originY},dpr=Math.min(window.devicePixelRatio||1,2),w=size||64,h=size||64;
- el.width=Math.round(w*dpr);el.height=Math.round(h*dpr);el.style.width=w+"px";el.style.height=h+"px";
- const pctx=el.getContext("2d");pctx.setTransform(dpr,0,0,dpr,0,0);pctx.clearRect(0,0,w,h);
- ctx=pctx;cellW=31;cellH=15.5;originX=w/2;originY=h*.63;
- ctx.save();ctx.scale(Math.min(1,w/72),Math.min(1,h/72));if(type==="desk"&&OFFICE_ATLAS_READY.desks)drawDeskAtlas(level,w/2,h*.48,w*.92,h*.9);else drawFurnitureShape({type:type==="ceo"?"boss":type,x:0,y:0,rot:0,level,workerState:"work"});ctx.restore();
- ctx=old.ctx;cellW=old.cellW;cellH=old.cellH;originX=old.originX;originY=old.originY;
+ try{
+  el.width=Math.round(w*dpr);el.height=Math.round(h*dpr);el.style.width=w+"px";el.style.height=h+"px";
+  const pctx=el.getContext("2d");pctx.setTransform(dpr,0,0,dpr,0,0);pctx.clearRect(0,0,w,h);
+  ctx=pctx;cellW=31;cellH=15.5;originX=w/2;originY=h*.63;
+  ctx.save();try{ctx.scale(Math.min(1,w/72),Math.min(1,h/72));if(type==="desk"&&OFFICE_ATLAS_READY.desks)drawDeskAtlas(level,w/2,h*.48,w*.92,h*.9);else drawFurnitureShape({type:type==="ceo"?"boss":type,x:0,y:0,rot:0,level,workerState:"work"});}finally{ctx.restore();}
+ }catch(previewError){console.warn("Office preview render error:",type,previewError);}
+ finally{ctx=old.ctx||canvas.getContext("2d");cellW=old.cellW;cellH=old.cellH;originX=old.originX;originY=old.originY;}
 }
 function renderAllFurniturePreviews(){
  document.querySelectorAll("#shop canvas.sprite-preview[data-sprite]").forEach(el=>renderFurniturePreview(el,el.dataset.sprite,56,1));
@@ -584,7 +586,9 @@ function drawBackWalls(){const tier=currentFloorTier(),n=currentGridSize(),wh=ti
  }else if(tier===1){wall(a,b,"#c8cdd0","#e4e6e7");wall(a,c,"#b7c0c5","#dce0e2");for(let i=0;i<2;i++){let t=(i+.5)/2;sky(a.x+(b.x-a.x)*t,(a.y+b.y)/2-wh*.55,Math.abs(b.x-a.x)/2.55,wh*.62,i?"sunset":"day");sky(a.x+(c.x-a.x)*t,(a.y+c.y)/2-wh*.55,Math.abs(c.x-a.x)/2.55,wh*.62,i?"sunset":"day");}ctx.strokeStyle="#79563a";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(a.x,a.y-3);ctx.lineTo(b.x,b.y-3);ctx.moveTo(a.x,a.y-6);ctx.lineTo(c.x,c.y-6);ctx.stroke();drawTierPlants(a.x+cellW*.35,a.y-7);drawTierPlants(c.x+cellW*.35,c.y-7);
  }else{let fill=tier===4?"#18191e":"#142337",edge=tier===4?"#b9914d":tier===3?"#267b7b":"#355b7c";wall(a,b,fill,edge);wall(a,c,fill,edge);let count=tier===4?1:3,k=tier===4?"sunset":"night";for(let i=0;i<count;i++){let t=(i+.5)/count;sky(a.x+(b.x-a.x)*t,(a.y+b.y)/2-wh*.51,Math.abs(b.x-a.x)/count*.92,wh*.92,k);sky(a.x+(c.x-a.x)*t,(a.y+c.y)/2-wh*.51,Math.abs(c.x-a.x)/count*.92,wh*.92,k);}ctx.save();ctx.shadowColor=tier===4?"#e5b65e":tier===3?"#26d7c8":"#3a9ee8";ctx.shadowBlur=15;ctx.strokeStyle=tier===4?"rgba(227,180,91,.8)":tier===3?"rgba(44,218,205,.65)":"rgba(65,155,237,.55)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.x,a.y-1);ctx.lineTo(b.x,b.y-1);ctx.moveTo(a.x,a.y-1);ctx.lineTo(c.x,c.y-1);ctx.stroke();ctx.restore();if(tier===4){let g=ctx.createRadialGradient(W*.5,H*.42,8,W*.5,H*.42,W*.72);g.addColorStop(0,"rgba(243,190,102,.02)");g.addColorStop(1,"rgba(243,190,102,.2)");ctx.fillStyle=g;ctx.fillRect(-W,-H,3*W,3*H);}}}
 function draw(){
- if(!ctx||!W)return;
+ if(!W||!H)return;
+ // Always bind the main room context; preview canvases temporarily use a separate context.
+ ctx=canvas.getContext("2d");if(!ctx)return;ctx.setTransform(dpr,0,0,dpr,0,0);
  try{
  ctx.clearRect(0,0,W,H);
  const floor=currentLayout();
@@ -622,9 +626,9 @@ function draw(){
  ctx.restore();
  }catch(renderError){
   console.error("Office floor render error:",renderError);
-  // Keep the room visible even if an individual decorative renderer fails.
+  // Recover the actual room canvas even if a preview renderer left ctx pointing elsewhere.
   try{
-   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+   ctx=canvas.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
    const n=currentGridSize(),cw=Math.max(10,Math.min((W-28)/(2*n),38)),ch=cw*.5,ox=W/2,oy=H/2-n*ch+46;
    const point=(x,y)=>({x:ox+(x-y)*cw,y:oy+(x+y)*ch});
    ctx.save();ctx.fillStyle="#0e1a2b";ctx.fillRect(0,0,W,H);

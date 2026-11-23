@@ -940,7 +940,7 @@ function screenToGrid(screenX,screenY){
  return {x:(a+b)/2,y:(b-a)/2};
 }
 function zoomAt(nextZoom,x,y){
- const oldZoom=cameraZoom,z=Math.max(.6,Math.min(2.2,nextZoom));
+ const oldZoom=cameraZoom,z=Math.max(.28,Math.min(2.2,nextZoom));
  if(Math.abs(z-oldZoom)<.0001)return;
  cameraOffsetX=x-(x-cameraOffsetX)*(z/oldZoom);
  cameraOffsetY=y-(y-cameraOffsetY)*(z/oldZoom);

@@ -881,6 +881,8 @@ function addRoom3D(){
   vx.castShadow=hz.castShadow=false;vx.receiveShadow=hz.receiveShadow=false;
  }
  threeFloorGroup.add(tileGrid);
+ }
+ if(tier!==0){
  // Fascia seams, corner plates and exposed fasteners make the cutaway slab read as a real floor plate.
  const fascia=mat(tier===4?0x272733:tier===3?0x14232b:0x424b50,.42,.62);
  const seam=mat(tier===4?0xd5b779:tier===3?0x37cfc8:0x89959a,.34,.72,tier>=3?{emissive:tier===3?0x087c79:0x60451f,emissiveIntensity:.45}:{});

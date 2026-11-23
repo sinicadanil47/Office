@@ -364,18 +364,8 @@ function applyBasementTextures(){
  const floor=threeFloorGroup.userData.basementFloor;
  if(floor&&basementFloorTex?.image){
   basementFloorTex.colorSpace=THREE.SRGBColorSpace;basementFloorTex.wrapS=basementFloorTex.wrapT=THREE.ClampToEdgeWrapping;basementFloorTex.needsUpdate=true;
-  // Apply the floor image to every face of the solid slab (top, bottom and all four side walls).
-  if(!Array.isArray(floor.material)||floor.material[0]?.map!==basementFloorTex){
-   floor.material=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0,side:THREE.DoubleSide}));
-   floor.material.forEach(m=>{m.needsUpdate=true;});
-  }
-  if(!threeFloorGroup.userData.basementFloorOverlay){
-   const overlayMat=new THREE.MeshBasicMaterial({map:basementFloorTex,color:0xffffff,side:THREE.DoubleSide,toneMapped:false,transparent:false,depthTest:true,depthWrite:false});
-   const overlay=new THREE.Mesh(new THREE.PlaneGeometry(currentGridSize(),currentGridSize()),overlayMat);
-   overlay.rotation.x=-Math.PI/2;overlay.position.set(currentGridSize()/2,.026,currentGridSize()/2);overlay.renderOrder=5;overlay.frustumCulled=false;overlay.visible=true;threeFloorGroup.add(overlay);threeFloorGroup.userData.basementFloorOverlay=overlay;
-  }else{
-   const overlay=threeFloorGroup.userData.basementFloorOverlay;overlay.material.map=basementFloorTex;overlay.material.color.set(0xffffff);overlay.material.needsUpdate=true;overlay.position.y=.026;overlay.visible=true;
-  }
+  const mats=Array.isArray(floor.material)?floor.material:[floor.material];
+  mats.forEach(m=>{m.map=basementFloorTex;m.color.set(0xffffff);m.roughness=.9;m.metalness=0;m.needsUpdate=true;});
   floor.visible=true;
  }
  const walls=threeFloorGroup.userData.basementWalls;
@@ -625,7 +615,7 @@ function updateThreeAtmosphere(now){
  fillLight.color.copy(a.fill).lerp(b.fill,e);fillLight.intensity=a.fillI+(b.fillI-a.fillI)*e;threeHemisphereLight.intensity=.38+(b.ambientI-.6)*.13;
  if(k>=1)threeAtmosphereTransition=null;
 }
-function disposeThreeTree(root){if(!root)return;root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});}});}
+function disposeThreeTree(root){if(!root)return;root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>{if(m.map&&!Object.values(basementTextureCache||{}).includes(m.map))m.map.dispose();m.dispose();});}});}
 function makeInteriorFloorMaterial(tier,n){
  const c=document.createElement("canvas");c.width=c.height=512;const g=c.getContext("2d");
  const bump=document.createElement("canvas");bump.width=bump.height=512;const bg=bump.getContext("2d");
@@ -882,20 +872,20 @@ function addRoom3D(){
  const n=currentGridSize(),tier=currentFloorTier();
  const edgeColors=[0x69747a,0xb18a61,0x7b858b,0x277c80,0xc69d60];
  const sideMat=mat(edgeColors[tier],.46,.35),under=mat(tier===4?0x171722:tier===3?0x101b24:0x333b40,.72,.18);
- // Thick cutaway slab: stepped lower fascia, inset chamfer-like shoulder and a clean top rim.
- boxMesh(threeFloorGroup,n/2,-.62,n/2,n+.58,.14,n+.58,under);
- boxMesh(threeFloorGroup,n/2,-.49,n/2,n+.44,.49,n+.44,sideMat);
- boxMesh(threeFloorGroup,n/2,-.105,n/2,n+.30,.13,n+.30,under);
- const floor=new THREE.Mesh(new THREE.BoxGeometry(n,.035,n),makeInteriorFloorMaterial(tier,n));
- floor.position.set(n/2,-.0175,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
+ // Rebuilt floor slab: exact grid footprint, top flush with wall bases, texture on all six faces.
+ const slabDepth=.28;
+ const floorMaterials=tier===0?Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0})):makeInteriorFloorMaterial(tier,n);
+ const floor=new THREE.Mesh(new THREE.BoxGeometry(n,slabDepth,n),floorMaterials);
+ floor.position.set(n/2,-slabDepth/2,n/2);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
  if(tier===0){threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();}
+ // Furniture coordinates and floor geometry share the same 0..N cell grid.
  {
  // Fine tile joints are aligned exactly to the playable grid (one world unit per cell).
  const tileGrid=new THREE.Group();
- const gridMat=tier===0?new THREE.MeshBasicMaterial({color:0xd5dce4,transparent:true,opacity:.88,depthWrite:false,toneMapped:false}):mat(tier===4?0xc8a66e:tier===3?0x83c9c4:0x5d686c,.82,.12,{transparent:true,opacity:.48,depthWrite:false});
+ const gridMat=tier===0?new THREE.MeshBasicMaterial({color:0xd5dce4,transparent:true,opacity:.42,depthWrite:false,toneMapped:false}):mat(tier===4?0xc8a66e:tier===3?0x83c9c4:0x5d686c,.82,.12,{transparent:true,opacity:.48,depthWrite:false});
  for(let k=0;k<=n;k++){
   const thickness=tier===0?.022:(k===0||k===n?.022:.012);
-  const y=tier===0?.028:.001,h=tier===0?.018:.008;
+  const y=tier===0?.006:.001,h=tier===0?.012:.008;
   const vx=boxMesh(tileGrid,k,y,n/2,thickness,h,n,gridMat);
   const hz=boxMesh(tileGrid,n/2,y,k,n,h,thickness,gridMat);
   vx.castShadow=hz.castShadow=false;vx.receiveShadow=hz.receiveShadow=false;

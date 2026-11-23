@@ -364,6 +364,11 @@ function applyBasementTextures(){
  const floor=threeFloorGroup.userData.basementFloor;
  if(floor&&basementFloorTex?.image){
   basementFloorTex.colorSpace=THREE.SRGBColorSpace;basementFloorTex.wrapS=basementFloorTex.wrapT=THREE.ClampToEdgeWrapping;basementFloorTex.needsUpdate=true;
+  // Apply the floor image to every face of the solid slab (top, bottom and all four side walls).
+  if(!Array.isArray(floor.material)||floor.material[0]?.map!==basementFloorTex){
+   floor.material=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0,side:THREE.DoubleSide}));
+   floor.material.forEach(m=>{m.needsUpdate=true;});
+  }
   if(!threeFloorGroup.userData.basementFloorOverlay){
    const overlayMat=new THREE.MeshBasicMaterial({map:basementFloorTex,color:0xffffff,side:THREE.DoubleSide,toneMapped:false,transparent:false,depthTest:true,depthWrite:false});
    const overlay=new THREE.Mesh(new THREE.PlaneGeometry(currentGridSize(),currentGridSize()),overlayMat);

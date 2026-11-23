@@ -751,7 +751,7 @@ $("rotateBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();st
 $("sellBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.sellMode=!state.sellMode;state.selected=null;updateUI();toast(state.sellMode?"Выберите объект для продажи":"Режим продажи выключен");draw();});
 $("clearSelection").addEventListener("click",()=>{state.selected=null;state.sellMode=false;pointer=null;updateUI();draw();});
 $("returnBtn").addEventListener("click",()=>{state.viewing=null;go("floor");updateUI();resize();});
-function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));$("floorActions").style.display=page==="floor"?"flex":"none";floorPageActive=page==="floor";if(page==="floor"){closeShop();draw();}haptic();}
+function go(page){if(page!=="floor"&&buildPreviewState)clearBuildPreview();document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));$("floorActions").style.display=page==="floor"&&!buildPreviewState?"flex":"none";floorPageActive=page==="floor";if(page==="floor"){closeShop();draw();}haptic();}
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 
 function closeShop(){$("shop").classList.remove("open");$("installBar").classList.remove("show");}
@@ -763,7 +763,7 @@ function updateBuildPreviewVisual(){
  const p=buildPreviewState,valid=p.x>=0&&p.y>=0&&p.x<gridSize&&p.y<gridSize&&!buildCellBlocked(p.x,p.y)&&(devFreeBuild||state.balance>=TYPES[p.type].cost);
  p.valid=valid;
  if(p.ghost){p.ghost.position.set(p.x+.5,0,p.y+.5);p.ghost.rotation.y=p.rot*Math.PI/2;p.ghost.traverse(o=>{if(!o.isMesh||!o.material)return;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m.userData.previewBaseColor)m.userData.previewBaseColor=m.color.clone();m.color.copy(m.userData.previewBaseColor).lerp(new THREE.Color(valid?0x43e6c1:0xff4d61),.48);});});}
- if(p.frame){p.frame.position.set(p.x+.5,.018,p.y+.5);p.frame.material.color.setHex(valid?0x35e3bb:0xff4358);p.frame.material.opacity=valid?.34:.42;}
+ if(p.frame){p.frame.position.set(p.x+.5,.018,p.y+.5);p.frame.material.color.setHex(valid?0x35e3bb:0xff4358);p.frame.material.opacity=valid?.34:.42;}if(p.outline)p.outline.material.color.setHex(valid?0x8effe5:0xff8290);
  const cost=devFreeBuild?"БЕСПЛАТНО":money(TYPES[p.type].cost);
  $("buildPreviewInfo").textContent=TYPES[p.type].name+" · "+cost+" · клетка "+(p.x+1)+", "+(p.y+1)+(valid?" · доступно":" · недоступно");
  $("previewAccept").disabled=!valid;
@@ -771,7 +771,7 @@ function updateBuildPreviewVisual(){
 function setBuildPreviewCell(x,y){if(!buildPreviewState)return;buildPreviewState.x=x;buildPreviewState.y=y;updateBuildPreviewVisual();draw();}
 function clearBuildPreview(){
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);threePreviewGroup=null;}
- buildPreviewState=null;$("buildPreviewBar").classList.remove("show");$("installBar").classList.remove("show");state.selected=null;pointer=null;draw();
+ buildPreviewState=null;$("buildPreviewBar").classList.remove("show");$("installBar").classList.remove("show");$("floorActions").style.display=floorPageActive&&!state.viewing?"flex":"none";state.selected=null;pointer=null;draw();
 }
 function beginBuildPreview(type){
  if(!TYPES[type]||state.viewing)return;
@@ -782,14 +782,14 @@ function beginBuildPreview(type){
  const cell=candidates[0]||{x:Math.floor(center),y:Math.floor(center)};
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);}
  threePreviewGroup=new THREE.Group();threeRoot.add(threePreviewGroup);
- const p={type,x:cell.x,y:cell.y,rot:0,valid:false,ghost:null,frame:null};buildPreviewState=p;
+ const p={type,x:cell.x,y:cell.y,rot:0,valid:false,ghost:null,frame:null,outline:null};buildPreviewState=p;
  const obj={type,x:p.x,y:p.y,rot:0,level:1};const makers={desk:createDesk,coffee:createCoffee,server:createServer,boss:createBoss,meeting:createMeeting,security:createSecurity};
  p.ghost=makers[type](threePreviewGroup,obj);
  p.ghost.traverse(o=>{if(!o.isMesh||!o.material)return;const src=Array.isArray(o.material)?o.material:[o.material];o.material=src.map(m=>{const c=m.clone();c.transparent=true;c.opacity=.55;c.depthWrite=false;c.userData.previewBaseColor=c.color.clone();return c;});if(!Array.isArray(o.material))o.material=o.material[0];});
  const fm=new THREE.MeshBasicMaterial({color:0x35e3bb,transparent:true,opacity:.34,side:THREE.DoubleSide,depthWrite:false});
  const plane=new THREE.Mesh(new THREE.PlaneGeometry(.94,.94),fm);plane.rotation.x=-Math.PI/2;plane.position.set(p.x+.5,.018,p.y+.5);threePreviewGroup.add(plane);
- const outline=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(.94,.94)),new THREE.LineBasicMaterial({color:0x8effe5,transparent:true,opacity:.95}));outline.rotation.x=-Math.PI/2;outline.position.set(p.x+.5,.025,p.y+.5);threePreviewGroup.add(outline);p.frame=plane;
- $("buildPreviewBar").classList.add("show");updateBuildPreviewVisual();draw();
+ const outline=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(.94,.94)),new THREE.LineBasicMaterial({color:0x8effe5,transparent:true,opacity:.95}));outline.rotation.x=-Math.PI/2;outline.position.set(p.x+.5,.025,p.y+.5);threePreviewGroup.add(outline);p.frame=plane;p.outline=outline;
+ $("buildPreviewBar").classList.add("show");$("floorActions").style.display="none";updateBuildPreviewVisual();draw();
 }
 function confirmBuildPreview(){
  const p=buildPreviewState;if(!p)return;

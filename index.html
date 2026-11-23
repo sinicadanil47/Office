@@ -364,11 +364,19 @@ function applyBasementTextures(){
  const floor=threeFloorGroup.userData.basementFloor;
  if(floor&&basementFloorTex?.image){
   basementFloorTex.colorSpace=THREE.SRGBColorSpace;basementFloorTex.wrapS=basementFloorTex.wrapT=THREE.ClampToEdgeWrapping;basementFloorTex.needsUpdate=true;
-  floor.material=new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0,side:THREE.DoubleSide});
-  floor.material.needsUpdate=true;floor.visible=true;floor.renderOrder=1;
+  if(!threeFloorGroup.userData.basementFloorOverlay){
+   const overlay=new THREE.Mesh(new THREE.PlaneGeometry(currentGridSize(),currentGridSize()),new THREE.MeshBasicMaterial({map:basementFloorTex,side:THREE.DoubleSide,toneMapped:false}));
+   overlay.rotation.x=-Math.PI/2;overlay.position.set(currentGridSize()/2,.0005,currentGridSize()/2);overlay.renderOrder=2;overlay.frustumCulled=false;threeFloorGroup.add(overlay);threeFloorGroup.userData.basementFloorOverlay=overlay;
+  }else{
+   const overlay=threeFloorGroup.userData.basementFloorOverlay;overlay.material.map=basementFloorTex;overlay.material.needsUpdate=true;overlay.visible=true;
+  }
+  floor.visible=true;
  }
  const walls=threeFloorGroup.userData.basementWalls;
- if(walls){if(basementWallLeftTex?.image){walls.left.material.map=basementWallLeftTex;walls.left.visible=true;}if(basementWallRightTex?.image){walls.right.material.map=basementWallRightTex;walls.right.visible=true;}[walls.left,walls.right].forEach(m=>{m.material.color.set(0xffffff);m.material.needsUpdate=true;});}
+ if(walls){
+  if(basementWallLeftTex?.image){walls.left.material.forEach(m=>{m.map=basementWallLeftTex;m.color.set(0xffffff);m.needsUpdate=true;});walls.left.visible=true;}
+  if(basementWallRightTex?.image){walls.right.material.forEach(m=>{m.map=basementWallRightTex;m.color.set(0xffffff);m.needsUpdate=true;});walls.right.visible=true;}
+ }
 }
 
 const boxMesh=(parent,x,y,z,w,h,d,material,r=.035)=>{const geo=new THREE.BoxGeometry(w,h,d,1,1,1),m=new THREE.Mesh(geo,material);m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
@@ -919,13 +927,11 @@ function addRoom3D(){
  const wallMat=tier===4?mat(0x9eb6c9,.25,.18,{transparent:true,opacity:.12,depthWrite:false}):mat(wallColors[tier],tier===2?.48:.84,tier===2?.08:0);
  // Exactly two rear walls. Their fronts remain fully open for the isometric cutaway view.
  if(tier===0){
-  // Solid wall backing is restored; texture planes sit just inside the room-facing surface.
-  boxMesh(threeFloorGroup,n/2,0,-.105,n+.06,wallH,.22,wallMat);
-  boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
-  const leftMat=new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex,roughness:.92,metalness:.02});
-  const rightMat=new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex,roughness:.92,metalness:.02});
-  const leftWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),leftMat);leftWall.position.set(n/2,wallH/2,.012);leftWall.receiveShadow=true;leftWall.visible=!!basementWallLeftTex.image;threeFloorGroup.add(leftWall);
-  const rightWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),rightMat);rightWall.rotation.y=Math.PI/2;rightWall.position.set(.012,wallH/2,n/2);rightWall.receiveShadow=true;rightWall.visible=!!basementWallRightTex.image;threeFloorGroup.add(rightWall);
+  // Textured solid wall boxes: the same wall image wraps the front, rear, side returns and top edge.
+  const leftWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex,roughness:.92,metalness:.02}));
+  const rightWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex,roughness:.92,metalness:.02}));
+  const leftWall=new THREE.Mesh(new THREE.BoxGeometry(n,wallH,.22),leftWallMat);leftWall.position.set(n/2,wallH/2,-.105);leftWall.castShadow=true;leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
+  const rightWall=new THREE.Mesh(new THREE.BoxGeometry(.22,wallH,n),rightWallMat);rightWall.position.set(-.105,wallH/2,n/2);rightWall.castShadow=true;rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
   threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall};
   const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(.12,2.15,n*.72);threeFloorGroup.add(lampGlow);
   const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(n/2,1.05,.12);threeFloorGroup.add(windowGlow);

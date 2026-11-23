@@ -618,66 +618,117 @@ function addBackWindow(parent,x,y,z,w,h,theme){
  boxMesh(parent,x,y-.045,z+.055,w+.08,.045,.075,bar);
 }
 function addInteriorDecor(parent,n,tier,wallH){
- const themes=[
-  {wall:0x343b42,trim:0x69727a,frame:0x202b32,glass:0x526c78,glow:0x1b3540,glowI:.35,bar:0x9a773f,accent:0xe0ad42},
-  {wall:0xe3e4df,trim:0xb7a58b,frame:0x667d86,glass:0x9ed4e5,glow:0x5ba9c6,glowI:.3,bar:0xf1e4cd,accent:0x6d947b},
-  {wall:0x4c4650,trim:0xb18b65,frame:0x392f34,glass:0xf1b989,glow:0xd47d54,glowI:.3,bar:0xd6b17a,accent:0xe4bd7b},
-  {wall:0x10252f,trim:0x24616a,frame:0x071923,glass:0x1d6374,glow:0x27d9cf,glowI:.8,bar:0x32aeb0,accent:0x41e1d0},
-  {wall:0x211f29,trim:0xc3a36c,frame:0x151721,glass:0x879eb1,glow:0xd2a66a,glowI:.32,bar:0xe2c58d,accent:0xe6c17c}
- ],t=themes[tier],wall=mat(t.wall,.9),trim=mat(t.trim,.55,.18),accent=mat(t.accent,.38,.3,{emissive:tier===3?t.accent:0x000000,emissiveIntensity:tier===3?.65:0});
- // Continuous skirting, corner uprights and a clean architectural top rail.
- boxMesh(parent,n/2,.02,.025,n,.12,.07,trim);
- boxMesh(parent,.025,.02,n/2,.07,.12,n,trim);
- boxMesh(parent,n/2,wallH-.18,-.015,n,.16,.12,trim);
- boxMesh(parent,-.015,wallH-.18,n/2,.12,.16,n,trim);
- for(let k=1;k<4;k++){
-  const x=n*k/4;
-  boxMesh(parent,x,.14,.012,.035,wallH-.38,.045,tier===3?accent:trim);
-  boxMesh(parent,.012,.14,x,.045,wallH-.38,.035,tier===3?accent:trim);
+ const palettes=[
+  {wall:0x303941,trim:0x77838a,dark:0x18232b,metal:0x82919a,accent:0xd5a447,glow:0xffbd55},
+  {wall:0xdfe5e1,trim:0xb7a58c,dark:0x566c70,metal:0x879a9a,accent:0x789b85,glow:0xffe4ad},
+  {wall:0x393c49,trim:0xb18b65,dark:0x242631,metal:0x9c8b79,accent:0xd9b77f,glow:0xffb879},
+  {wall:0x101f2c,trim:0x28616b,dark:0x07131e,metal:0x47747b,accent:0x36d5c8,glow:0x43f2e3},
+  {wall:0x201f2b,trim:0xc3a36c,dark:0x111522,metal:0x8d8c99,accent:0xe5c78e,glow:0xffdca0}
+ ],p=palettes[tier],m=(c,r=.65,me=0,e=0)=>mat(c,r,me,e?{emissive:c,emissiveIntensity:e}:{}),trim=m(p.trim,.42,.32),dark=m(p.dark,.78,.12),accent=m(p.accent,.38,.3,tier===3?.55:0),glow=m(p.glow,.3,.12,tier===3?.9:.22);
+ const backZ=.012,leftX=.012;
+ // A continuous, layered architectural frame makes both visible walls read as one room.
+ boxMesh(parent,n/2,.015,.025,n,.10,.10,trim);
+ boxMesh(parent,.025,.015,n/2,.10,.10,n,trim);
+ boxMesh(parent,n/2,wallH-.20,.018,n,.12,.12,trim);
+ boxMesh(parent,.018,wallH-.20,n/2,.12,.12,n,trim);
+ boxMesh(parent,n/2,.13,.045,n-.18,.035,.045,dark);
+ boxMesh(parent,.045,.13,n/2,.045,.035,n-.18,dark);
+ // Repeated wall bays: recessed dark fields, slim uprights and a subtle top reveal.
+ const bays=Math.max(2,Math.min(6,Math.floor(n/2.15)));
+ for(let i=0;i<bays;i++){
+  const x=(i+.5)*n/bays,w=n/bays-.12;
+  if(tier===0||tier===2||tier===4){
+   boxMesh(parent,x,.34,backZ,w,wallH-.72,.035,dark);
+   boxMesh(parent,x,.38,.039,w-.07,wallH-.86,.018,m(tier===0?0x39454d:tier===2?0x47434a:0x292936,.82));
+   boxMesh(parent,x,.34,.065,.025,wallH-.72,.025,trim);
+   boxMesh(parent,x+w/2-.02,.34,.065,.025,wallH-.72,.025,trim);
+  }else{
+   boxMesh(parent,x,.32,backZ,w,wallH-.68,.028,m(tier===1?0xe9eee9:0x142e3a,.8));
+  }
  }
  if(tier===0){
-  // Industrial basement: ventilation, exposed conduit and safety markings.
-  for(let i=0;i<3;i++){
-   const yy=.55+i*.52;
-   lineMesh(parent,new THREE.Vector3(.18,yy,-.005),new THREE.Vector3(n-.18,yy,-.005),.018,mat(i===1?0x687982:0x48545c,.72,.25));
+  // Service level: a continuous utility trunk, ventilation grilles and hazard-lit access panels.
+  boxMesh(parent,n/2,wallH-.62,.075,n-.5,.16,.12,dark);
+  for(let i=0;i<Math.max(5,Math.floor(n*1.25));i++){
+   const x=.3+i*(n-.6)/(Math.max(5,Math.floor(n*1.25))-1);
+   boxMesh(parent,x,wallH-.62,.145,.045,.09,.018,mat(0x87939a,.6,.45));
   }
-  for(let i=0;i<Math.floor(n/2);i++){
-   const x=.55+i*2;
-   boxMesh(parent,x,.2,.045,.34,.22,.025,mat(0x202a30));
-   for(let q=0;q<4;q++)boxMesh(parent,x-.12+q*.08,.25,.064,.035,.12,.012,mat(0x87939a));
+  for(let i=0;i<3;i++)lineMesh(parent,new THREE.Vector3(.22,.62+i*.48,.045),new THREE.Vector3(n-.22,.62+i*.48,.045),.018,mat(i===1?0x87939a:0x53616b,.55,.5));
+  for(let i=0;i<Math.max(3,Math.floor(n/2));i++){
+   const x=.65+i*1.85;
+   boxMesh(parent,x,.42,.08,.72,.48,.06,dark);
+   boxMesh(parent,x,.49,.12,.54,.24,.018,mat(0x263e49,.4,.35));
+   for(let q=0;q<3;q++)boxMesh(parent,x-.17+q*.17,.53,.145,.035,.035,.012,mat(q===1?0xe0ad42:0x78939d,.35,.3,q===1?.5:0));
   }
-  for(let i=0;i<8;i++)boxMesh(parent,.25+i*.16,.025,.34,.09,.012,.05,mat(i%2?0x272e34:0xe0ae42));
+  for(let i=0;i<10;i++)boxMesh(parent,.22+i*.16,.02,.35,.085,.018,.055,mat(i%2?0x222a30:0xe0ad42,.7,.1));
  }else if(tier===1){
-  // Bright coworking: broad daylight windows and warm timber wall inserts.
-  const count=Math.max(2,Math.min(4,Math.floor(n/2)));
-  for(let i=0;i<count;i++){const x=(i+1)*n/(count+1);addBackWindow(parent,x,1.05,-.012,Math.min(1.05,n/(count+1)*.72),1.42,t);}
-  for(let i=0;i<5;i++)boxMesh(parent,.35+i*.34,.35,.055,.12,1.05,.035,mat(0xb58c60));
-  boxMesh(parent,n/2,.48,.08,Math.min(1.4,n*.28),.48,.045,mat(0xf4ead9));
- }else if(tier===2){
-  // Executive floor: sunset glazing, walnut panels and brass details.
-  const count=Math.max(2,Math.min(4,Math.floor(n/2)));
-  for(let i=0;i<count;i++){const x=(i+1)*n/(count+1);addBackWindow(parent,x,1.0,-.012,Math.min(1.18,n/(count+1)*.78),1.58,t);}
-  for(let i=0;i<Math.floor(n*1.2);i++){const x=.22+i*.82;boxMesh(parent,x,.22,.055,.035,wallH-.55,.035,mat(0x795d4b));}
-  boxMesh(parent,n/2,.48,.085,Math.min(1.2,n*.24),.42,.035,mat(0x9a765a));
- }else if(tier===3){
-  // IT floor: luminous data panels, rack indicators and cyan cable channels.
-  for(let i=0;i<Math.max(3,Math.floor(n/1.7));i++){
-   const x=.55+i*(n-1.1)/Math.max(2,Math.floor(n/1.7)-1);
-   boxMesh(parent,x,.72,-.012,.52,.9,.045,mat(0x091923));
-   boxMesh(parent,x,.82,.018,.43,.66,.018,mat(i%2?0x16414d:0x183b4b,.3,.25,{emissive:i%2?0x0b6972:0x123d64,emissiveIntensity:.75}));
-   for(let q=0;q<3;q++)boxMesh(parent,x-.14+q*.14,.32,.04,.055,.025,.025,accent);
+  // Coworking: bright glazed bays, warm acoustic slats and planted wall accents.
+  const count=Math.max(2,Math.min(4,Math.floor(n/2.5)));
+  for(let i=0;i<count;i++){
+   const x=(i+1)*n/(count+1),w=Math.min(1.45,n/(count+1)*.76);
+   addBackWindow(parent,x,1.02,-.012,w,1.58,{frame:0x657b7e,glass:0x9fd5e2,glow:0x6ebbd4,glowI:.24,bar:0xe6ddca});
+   boxMesh(parent,x,.94,.065,w+.12,.09,.09,trim);
   }
-  boxMesh(parent,n/2,.16,.065,n-.5,.035,.045,accent);
-  boxMesh(parent,.065,.16,n/2,.045,.035,n-.5,accent);
+  const slatX=.34;
+  for(let i=0;i<7;i++)boxMesh(parent,slatX+i*.16,.32,.105,.055,1.02,.045,mat(0xb58d64,.62));
+  boxMesh(parent,n/2,.40,.09,Math.min(1.55,n*.25),.48,.055,mat(0xf4f0e7,.85));
+  boxMesh(parent,n/2,.72,.125,Math.min(1.25,n*.19),.035,.018,accent);
+  // A matching low feature panel on the return wall.
+  boxMesh(parent,.09,.38,n*.72,.055,.62,Math.min(1.45,n*.25),mat(0xcbd8d1,.8));
+ }else if(tier===2){
+  // Executive suite: tall bronze-framed glazing, walnut reveals and a restrained feature wall.
+  const count=Math.max(2,Math.min(4,Math.floor(n/2.6)));
+  for(let i=0;i<count;i++){
+   const x=(i+1)*n/(count+1),w=Math.min(1.55,n/(count+1)*.78);
+   addBackWindow(parent,x,1.0,-.012,w,1.72,{frame:0x292c38,glass:0xe9b38a,glow:0xc8794f,glowI:.3,bar:0xb89468});
+   boxMesh(parent,x,.94,.07,w+.13,.09,.10,trim);
+  }
+  for(let i=0;i<Math.max(4,Math.floor(n*1.05));i++){
+   const x=.3+i*(n-.6)/(Math.max(4,Math.floor(n*1.05))-1);
+   boxMesh(parent,x,.32,.10,.045,wallH-.72,.055,mat(0x806348,.52,.22));
+  }
+  boxMesh(parent,n/2,.38,.13,Math.min(1.55,n*.26),.56,.07,dark);
+  boxMesh(parent,n/2,.67,.175,Math.min(1.1,n*.18),.035,.018,accent);
+  for(let i=0;i<3;i++)boxMesh(parent,n/2-.22+i*.22,.48,.18,.045,.19,.025,mat(0xb89468,.38,.4));
+ }else if(tier===3){
+  // IT studio: dark acoustic wall, modular status displays and a continuous cyan light rail.
+  boxMesh(parent,n/2,wallH-.48,.075,n-.45,.24,.12,dark);
+  for(let i=0;i<Math.max(3,Math.floor(n/1.7));i++){
+   const x=.55+i*(n-1.1)/Math.max(2,Math.floor(n/1.7)-1),w=Math.min(.78,(n-1.1)/Math.max(3,Math.floor(n/1.7)));
+   boxMesh(parent,x,.78,.085,w,1.02,.075,dark);
+   boxMesh(parent,x,.82,.13,w-.10,.78,.025,mat(i%2?0x123846:0x17313f,.28,.35,i%2?.32:.18));
+   boxMesh(parent,x,1.25,.15,w-.16,.018,.018,glow);
+   for(let q=0;q<4;q++)boxMesh(parent,x-w*.28+q*w*.18,.43,.16,.045,.045,.02,mat(q===0?0x38e2ce:0x527887,.3,.25,q===0?.75:0));
+  }
+  boxMesh(parent,n/2,.20,.10,n-.55,.035,.05,glow);
+  boxMesh(parent,.10,.20,n/2,.05,.035,n-.55,glow);
+  for(let i=0;i<Math.max(3,Math.floor(n/2));i++){
+   const z=.7+i*1.8;
+   boxMesh(parent,.08,.48,z,.05,.72,.78,dark);
+   for(let q=0;q<3;q++)boxMesh(parent,.115,.35+q*.17,z-.22,.018,.035,.07,mat(q===1?0x38e2ce:0x3b6875,.35,.2,q===1?.6:0));
+  }
  }else{
-  // Penthouse: panoramic glazing, marble-like floor and warm brass framing.
-  const count=Math.max(2,Math.min(4,Math.floor(n/2)));
-  for(let i=0;i<count;i++){const x=(i+1)*n/(count+1);addBackWindow(parent,x,.72,-.012,Math.min(1.35,n/(count+1)*.82),1.9,t);}
-  for(let i=0;i<4;i++)boxMesh(parent,.4+i*(n-.8)/3,.18,.065,.035,wallH-.38,.045,accent);
-  boxMesh(parent,n/2,.28,.09,n-.6,.035,.045,accent);
-  // A restrained framed feature panel gives the room a finished focal wall.
-  boxMesh(parent,n/2,2.72,.035,Math.min(1.45,n*.28),.08,.06,mat(0x9b815f));
+  // Penthouse: panoramic skyline, elegant brass mullions and a sculpted feature panel.
+  const count=Math.max(2,Math.min(4,Math.floor(n/2.6)));
+  for(let i=0;i<count;i++){
+   const x=(i+1)*n/(count+1),w=Math.min(1.72,n/(count+1)*.82);
+   addBackWindow(parent,x,.68,-.012,w,2.02,{frame:0x171b29,glass:0x899caf,glow:0xd2a66a,glowI:.34,bar:0xc7a46e});
+   boxMesh(parent,x,.62,.07,w+.14,.09,.10,trim);
+  }
+  for(let i=0;i<4;i++)boxMesh(parent,.38+i*(n-.76)/3,.32,.105,.035,wallH-.7,.06,accent);
+  boxMesh(parent,n/2,.40,.14,Math.min(1.65,n*.28),.62,.075,dark);
+  boxMesh(parent,n/2,.72,.185,Math.min(1.18,n*.20),.035,.018,accent);
+  // Warm wall sconces, kept high and tight to the wall.
+  for(let i=0;i<Math.max(2,Math.floor(n/4));i++){
+   const x=(i+1)*n/(Math.max(2,Math.floor(n/4))+1);
+   boxMesh(parent,x,2.62,.10,.10,.26,.08,trim);
+   boxMesh(parent,x,2.67,.15,.07,.12,.025,glow);
+  }
  }
+ // Ceiling-edge coves and compact wall lights add depth without occupying floor cells.
+ const cove=m(tier===3?0x1c7779:tier===4?0x9b7947:0x87949a,.45,.35,tier>=3?.35:0);
+ boxMesh(parent,n/2,wallH-.34,.09,n-.35,.025,.045,cove);
+ boxMesh(parent,.09,wallH-.34,n/2,.045,.025,n-.35,cove);
 }
 function addRoom3D(){
  if(threeFloorGroup){threeRoot.remove(threeFloorGroup);disposeThreeTree(threeFloorGroup);}

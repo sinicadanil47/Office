@@ -200,8 +200,6 @@ function loadFurnitureSprite(key){
  img.src=SPRITE_ASSETS[key]||spriteData(key);
 }
 Object.keys(SPRITE_SVG).forEach(loadFurnitureSprite);
-preloadOfficeAtlas("employee");preloadOfficeAtlas("desks");
-
 /* Attached 2.5D sprite atlases. Images are optional at runtime: procedural fallbacks
    remain active until the PNG assets are present in /assets. */
 const OFFICE_ATLAS_URLS={
@@ -249,6 +247,8 @@ function drawDeskAtlas(level,x,y,w,h){
  const frame=atlasFrame("desks",0,Math.max(0,Math.min(3,level-1)));
  return drawAtlasContain(frame,x,y,w,h,0);
 }
+// Start loading only after both atlas constants have been initialized.
+preloadOfficeAtlas("employee");preloadOfficeAtlas("desks");
 // Shop previews use the same Canvas furniture renderers as the floor.
 
 const KEY="corporate_skyscraper_v1";

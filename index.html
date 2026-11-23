@@ -589,62 +589,39 @@ function updateThreeAtmosphere(now){
 }
 function disposeThreeTree(root){if(!root)return;root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});}});}
 function makeInteriorFloorMaterial(tier,n){
- const c=document.createElement("canvas");c.width=c.height=512;
- const g=c.getContext("2d");
+ const c=document.createElement("canvas");c.width=c.height=512;const g=c.getContext("2d");
+ const bump=document.createElement("canvas");bump.width=bump.height=512;const bg=bump.getContext("2d");
+ const rough=document.createElement("canvas");rough.width=rough.height=512;const rg=rough.getContext("2d");
  const palettes=[
-  {base:"#858d91",joint:"#59646a",edge:"#b2b9ba",rough:.9,metal:0},
-  {base:"#98704c",joint:"#76563d",edge:"#c09668",rough:.78,metal:0},
-  {base:"#c5cbcc",joint:"#92999e",edge:"#eef0ed",rough:.27,metal:.08},
-  {base:"#46545b",joint:"#1e2b32",edge:"#62777b",rough:.48,metal:.2},
-  {base:"#514d59",joint:"#282632",edge:"#c1a16d",rough:.29,metal:.16}
- ],p=palettes[tier];
- g.fillStyle=p.base;g.fillRect(0,0,512,512);
- // Fine procedural grain keeps the material tactile without turning the floor into a loud grid.
- let seed=9271+tier*137;const rand=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;};
- for(let i=0;i<3600;i++){
-  const v=rand(),alpha=.018+rand()*.045;
-  g.fillStyle=v>.5?"rgba(255,255,255,"+alpha+")":"rgba(0,0,0,"+alpha+")";
-  const x=rand()*512,y=rand()*512,w=1+rand()*5,h=1+rand()*3;g.fillRect(x,y,w,h);
- }
+  {base:"#92999b",rough:.88,metal:.04},{base:"#b78350",rough:.66,metal:.02},{base:"#d3d7d6",rough:.24,metal:.1},{base:"#394951",rough:.34,metal:.28},{base:"#34343e",rough:.22,metal:.22}
+ ],p=palettes[tier];let seed=9271+tier*137;const rand=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;};
+ g.fillStyle=p.base;g.fillRect(0,0,512,512);bg.fillStyle="#858585";bg.fillRect(0,0,512,512);rg.fillStyle="#bcbcbc";rg.fillRect(0,0,512,512);
+ for(let i=0;i<4600;i++){const v=rand(),alpha=.018+rand()*.052,x=rand()*512,y=rand()*512,w=1+rand()*5,h=1+rand()*3;g.fillStyle=v>.5?"rgba(255,255,255,"+alpha+")":"rgba(0,0,0,"+alpha+")";g.fillRect(x,y,w,h);const shade=Math.round(105+rand()*100);bg.fillStyle="rgba("+shade+","+shade+","+shade+",.18)";bg.fillRect(x,y,w,h);rg.fillStyle="rgba("+Math.round(145+rand()*90)+",0,0,.20)";rg.fillRect(x,y,w,h);}
  if(tier===0){
-  // Cast concrete slabs with a restrained aggregate and recessed expansion joints.
-  g.strokeStyle="rgba(37,47,52,.45)";g.lineWidth=7;g.strokeRect(3,3,506,506);
-  g.strokeStyle="rgba(223,229,228,.25)";g.lineWidth=2;g.strokeRect(10,10,492,492);
+  g.strokeStyle="rgba(48,58,63,.68)";g.lineWidth=5;for(let q=0;q<=512;q+=128){g.beginPath();g.moveTo(q,0);g.lineTo(q,512);g.moveTo(0,q);g.lineTo(512,q);g.stroke();}
+  g.strokeStyle="rgba(229,233,230,.4)";g.lineWidth=1.5;for(let q=4;q<=512;q+=128){g.beginPath();g.moveTo(q,0);g.lineTo(q,512);g.moveTo(0,q);g.lineTo(512,q);g.stroke();}
+  for(let i=0;i<18;i++){let x=rand()*512,y=rand()*512;g.beginPath();g.moveTo(x,y);for(let k=0;k<4;k++){x+=rand()*18-9;y+=rand()*18-9;g.lineTo(x,y);}g.strokeStyle="rgba(43,49,51,.35)";g.lineWidth=1+rand();g.stroke();}
+  bg.strokeStyle="#555";bg.lineWidth=5;for(let q=0;q<=512;q+=128){bg.beginPath();bg.moveTo(q,0);bg.lineTo(q,512);bg.moveTo(0,q);bg.lineTo(512,q);bg.stroke();}
  }else if(tier===1){
-  // Warm oak parquet, short staggered boards and visible but quiet grain.
-  const rows=8,rowH=64;
-  for(let r=0;r<rows;r++){
-   const offset=r%2?128:0;
-   for(let x=-128;x<640;x+=256){
-    const xx=x+offset;
-    g.fillStyle=r%2?"rgba(225,185,135,.11)":"rgba(47,28,15,.08)";g.fillRect(xx+3,r*rowH+3,250,rowH-6);
-    g.strokeStyle="rgba(58,37,23,.38)";g.lineWidth=3;g.strokeRect(xx+1,r*rowH+1,254,rowH-2);
-    g.strokeStyle="rgba(235,202,159,.18)";g.lineWidth=1;
-    for(let k=0;k<4;k++){const yy=r*rowH+12+k*12;g.beginPath();g.moveTo(xx+15,yy);g.bezierCurveTo(xx+80,yy-4,xx+150,yy+4,xx+238,yy);g.stroke();}
-   }
-  }
+  for(let row=0;row<8;row++){const off=row%2?128:0;for(let x=-128;x<640;x+=256){const xx=x+off;g.fillStyle=row%2?"rgba(245,205,151,.16)":"rgba(68,39,20,.09)";g.fillRect(xx+2,row*64+2,252,60);g.strokeStyle="rgba(71,44,27,.52)";g.lineWidth=3;g.strokeRect(xx+1,row*64+1,254,62);for(let k=0;k<7;k++){const yy=row*64+8+k*8;g.beginPath();g.moveTo(xx+12,yy);g.bezierCurveTo(xx+75,yy-5,xx+166,yy+5,xx+244,yy);g.strokeStyle="rgba(70,42,24,.17)";g.lineWidth=1;g.stroke();}bg.fillStyle="#6c6c6c";bg.fillRect(xx+1,row*64+1,254,62);bg.strokeStyle="#343434";bg.lineWidth=3;bg.strokeRect(xx+1,row*64+1,254,62);}}
  }else if(tier===2){
-  // Large polished porcelain slabs with narrow grout and soft mineral veining.
-  g.strokeStyle="rgba(55,63,68,.48)";g.lineWidth=4;
-  for(let q=0;q<=512;q+=128){g.beginPath();g.moveTo(q,0);g.lineTo(q,512);g.moveTo(0,q);g.lineTo(512,q);g.stroke();}
-  g.strokeStyle="rgba(255,255,255,.28)";g.lineWidth=1;
-  for(let i=0;i<16;i++){const x=rand()*512,y=rand()*512;g.beginPath();g.moveTo(x,y);g.lineTo(x+35+rand()*65,y-12+rand()*24);g.stroke();}
+  g.strokeStyle="rgba(91,103,108,.42)";g.lineWidth=4;for(let q=0;q<=512;q+=128){g.beginPath();g.moveTo(q,0);g.lineTo(q,512);g.moveTo(0,q);g.lineTo(512,q);g.stroke();}
+  for(let i=0;i<24;i++){const x=rand()*512,y=rand()*512;g.beginPath();g.moveTo(x,y);g.bezierCurveTo(x+28,y-28,x+58,y+22,x+105,y-8);g.strokeStyle="rgba(116,130,133,.20)";g.lineWidth=1+rand()*2;g.stroke();}
+  g.strokeStyle="rgba(188,151,104,.38)";g.lineWidth=2;g.strokeRect(14,14,484,484);g.strokeRect(21,21,470,470);bg.strokeStyle="#4c4c4c";bg.lineWidth=4;for(let q=0;q<=512;q+=128){bg.beginPath();bg.moveTo(q,0);bg.lineTo(q,512);bg.moveTo(0,q);bg.lineTo(512,q);bg.stroke();}
  }else if(tier===3){
-  // Graphite technical floor, micro-joints and a subtle cyan circuit trace.
-  g.strokeStyle="rgba(9,18,23,.65)";g.lineWidth=7;g.strokeRect(3,3,506,506);
-  g.strokeStyle="rgba(67,221,209,.34)";g.lineWidth=3;g.strokeRect(12,12,488,488);
-  g.strokeStyle="rgba(84,203,194,.16)";g.lineWidth=2;for(let q=72;q<512;q+=112){g.beginPath();g.moveTo(q,28);g.lineTo(q,484);g.stroke();}
+  g.strokeStyle="rgba(8,18,24,.82)";g.lineWidth=7;for(let q=0;q<=512;q+=128){g.beginPath();g.moveTo(q,0);g.lineTo(q,512);g.moveTo(0,q);g.lineTo(512,q);g.stroke();}
+  g.strokeStyle="rgba(67,226,215,.52)";g.lineWidth=2;for(let q=12;q<=512;q+=128){g.beginPath();g.moveTo(q,0);g.lineTo(q,512);g.moveTo(0,q);g.lineTo(512,q);g.stroke();}
+  g.strokeStyle="rgba(82,211,205,.25)";g.lineWidth=2;for(let i=0;i<8;i++){const y=rand()*512,x=rand()*512;g.beginPath();g.moveTo(x,y);g.lineTo(x+24,y);g.lineTo(x+24,y+18);g.lineTo(x+65,y+18);g.stroke();}
+  bg.strokeStyle="#333";bg.lineWidth=7;for(let q=0;q<=512;q+=128){bg.beginPath();bg.moveTo(q,0);bg.lineTo(q,512);bg.moveTo(0,q);bg.lineTo(512,q);bg.stroke();}
  }else{
-  // Dark marble with fine gold mineral veins, not a repeating wood pattern.
-  g.strokeStyle="rgba(226,190,125,.46)";g.lineWidth=3;
-  for(let i=0;i<12;i++){const x=rand()*512,y=rand()*512;g.beginPath();g.moveTo(x,y);g.bezierCurveTo(x+35,y-35,x+65,y+28,x+125,y-12);g.stroke();}
-  g.strokeStyle="rgba(255,255,255,.13)";g.lineWidth=1.5;
-  for(let i=0;i<18;i++){const x=rand()*512,y=rand()*512;g.beginPath();g.moveTo(x,y);g.lineTo(x+80,y+12);g.stroke();}
+  for(let i=0;i<26;i++){const x=rand()*512,y=rand()*512;g.beginPath();g.moveTo(x,y);g.bezierCurveTo(x+35,y-35,x+65,y+28,x+125,y-12);g.strokeStyle=i%3===0?"rgba(211,184,133,.62)":"rgba(210,220,225,.24)";g.lineWidth=i%3===0?2.5:1.3;g.stroke();}
+  g.strokeStyle="rgba(215,181,111,.75)";g.lineWidth=4;g.strokeRect(8,8,496,496);g.strokeStyle="rgba(245,218,165,.42)";g.lineWidth=1.5;g.strokeRect(17,17,478,478);bg.strokeStyle="#505050";bg.lineWidth=5;bg.strokeRect(8,8,496,496);
  }
- const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
- const repeat=tier===2?Math.max(1,n/1.5):Math.max(1,n);tex.repeat.set(repeat,repeat);
- tex.anisotropy=Math.min(8,threeRenderer.capabilities.getMaxAnisotropy());
- return new THREE.MeshStandardMaterial({color:0xffffff,map:tex,roughness:p.rough,metalness:p.metal});
+ g.strokeStyle=tier===4?"rgba(220,185,119,.8)":tier===3?"rgba(76,220,211,.48)":"rgba(255,255,255,.25)";g.lineWidth=2;g.strokeRect(3,3,506,506);
+ bg.strokeStyle="#454545";bg.lineWidth=3;bg.strokeRect(3,3,506,506);rg.strokeStyle="#777";rg.lineWidth=5;rg.strokeRect(3,3,506,506);
+ const tex=new THREE.CanvasTexture(c),bumpTex=new THREE.CanvasTexture(bump),roughTex=new THREE.CanvasTexture(rough);
+ [tex,bumpTex,roughTex].forEach(t=>{t.colorSpace=t===tex?THREE.SRGBColorSpace:THREE.NoColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(n,n);t.anisotropy=Math.min(8,threeRenderer.capabilities.getMaxAnisotropy());});
+ return new THREE.MeshStandardMaterial({color:0xffffff,map:tex,bumpMap:bumpTex,bumpScale:tier===0?.035:tier===1?.025:.018,roughnessMap:roughTex,roughness:p.rough,metalness:p.metal});
 }
 function addArchitecturalWindow(parent,axis,center,y,w,h,theme){
  const frame=mat(theme.frame,.42,.35),glass=mat(theme.glass,.2,.28,{color:theme.glass,emissive:theme.glow,emissiveIntensity:theme.glowI,transparent:true,opacity:theme.opacity??.88,depthWrite:false}),bar=mat(theme.bar,.38,.42);
@@ -682,6 +659,28 @@ function addWindowLightStrip(parent,x,z,w,d,color=0xffd49b){
  const plane=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m);plane.rotation.x=-Math.PI/2;plane.position.set(x,.012,z);parent.add(plane);
  const light=new THREE.DirectionalLight(color,.34);light.position.set(x,3.4,-.35);light.target.position.set(x,.0,z+.9);light.castShadow=false;parent.add(light);parent.add(light.target);
 }
+function addWindowBackdrop(parent,axis,center,y,w,h,tier){
+ const c=document.createElement("canvas");c.width=512;c.height=256;const g=c.getContext("2d"),palettes=[["#39434b","#9a7950"],["#2c6f9b","#d9c3a0"],["#263b65","#f3a16e"],["#07152e","#273d70"],["#080d23","#a77b68"]];
+ const grad=g.createLinearGradient(0,0,0,256);grad.addColorStop(0,palettes[tier][0]);grad.addColorStop(1,palettes[tier][1]);g.fillStyle=grad;g.fillRect(0,0,512,256);
+ if(tier<=1){g.fillStyle="rgba(255,205,145,.25)";g.beginPath();g.arc(390,72,38,0,Math.PI*2);g.fill();}
+ if(tier>=3){for(let i=0;i<140;i++){const x=(i*83)%512,yy=(i*47)%155;g.fillStyle="rgba(255,255,255,"+(.25+(i%5)*.1)+")";g.fillRect(x,yy,1.5,1.5);}}
+ if(tier>=2){for(let i=0;i<34;i++){const x=i*17+(i%3)*4,bh=28+(i*31)%100;g.fillStyle=tier===4?"rgba(30,35,58,.92)":"rgba(8,18,40,.9)";g.fillRect(x,256-bh,12,bh);for(let yy=260-bh;yy<250;yy+=12){g.fillStyle=tier===4?"rgba(242,193,119,.8)":"rgba(68,206,232,.65)";g.fillRect(x+3,yy,2,3);}}}
+ if(tier===4){g.fillStyle="rgba(228,178,116,.22)";g.fillRect(0,188,512,68);g.strokeStyle="rgba(242,198,133,.65)";g.lineWidth=2;g.beginPath();g.moveTo(0,190);g.lineTo(512,190);g.stroke();}
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const m=new THREE.MeshBasicMaterial({map:tex,depthWrite:false,transparent:true,opacity:.96,side:THREE.DoubleSide});
+ const plane=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);if(axis==="back")plane.position.set(center,y+.02,.025);else{plane.rotation.y=Math.PI/2;plane.position.set(.025,y+.02,center);}plane.renderOrder=1;parent.add(plane);
+}
+function addWallSconce(parent,x,y,z,axis,color=0xffc98b){
+ const plate=mat(0x303944,.45,.55),glow=mat(color,.28,.1,{emissive:color,emissiveIntensity:1.25});
+ if(axis==="back"){boxMesh(parent,x,y,z,.16,.26,.055,plate);sphereMesh(parent,x,y-.02,z+.055,.085,glow,[.75,1.3,.35]);}
+ else{boxMesh(parent,z,y,x,.055,.26,.16,plate);sphereMesh(parent,z+.055,y-.02,x,.085,glow,[.35,1.3,.75]);}
+ const light=new THREE.PointLight(color,.2,3.2,2);light.position.set(axis==="back"?x:.14,y,axis==="back"?z+.22:x);parent.add(light);
+}
+function addPremiumPalm(parent,x,z,scale=1){
+ const pot=mat(0x171820,.28,.72),gold=mat(0xc9a35e,.3,.78),leaf=mat(0x246c4e,.54,.05),leaf2=mat(0x3b9868,.48,.04);
+ cylMesh(parent,x,.02,z,.22*scale,.25*scale,.32*scale,pot,20);cylMesh(parent,x,.29*scale,z,.25*scale,.25*scale,.045*scale,gold,20);
+ lineMesh(parent,new THREE.Vector3(x,.34*scale,z),new THREE.Vector3(x,.98*scale,z),.035*scale,gold);
+ for(let i=0;i<9;i++){const a=i*Math.PI*2/9,dx=Math.cos(a),dz=Math.sin(a),tip=new THREE.Vector3(x+dx*.58*scale,.85*scale+Math.sin(i*1.7)*.15*scale,z+dz*.58*scale),base=new THREE.Vector3(x,.83*scale,z);const leafMesh=sphereMesh(parent,(base.x+tip.x)/2,(base.y+tip.y)/2,(base.z+tip.z)/2,.16*scale,i%2?leaf:leaf2,[.34,1.9,.48]);leafMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tip.clone().sub(base).normalize());}
+}
 function addInteriorDecor(parent,n,tier,wallH){
  const palettes=[
   {wall:0x555d62,trim:0x879197,dark:0x30383d,metal:0x9ba5a9,accent:0xd4a64f,glass:0x647d89},
@@ -707,7 +706,7 @@ function addInteriorDecor(parent,n,tier,wallH){
    side(.078,.06+row*.15,x,.012,.012,.018,mortar);
   }
   addArchitecturalWindow(parent,"back",n/2,wallH-.73,Math.min(2.35,n*.48),.34,{frame:0x252e34,glass:0x8da9b5,glow:0x9bbac7,glowI:.28,bar:0x707c80});
-  addSoftSunPatch(parent,n/2,n*.32,1.35,2.5,0xa9c9d8);
+  addWindowBackdrop(parent,"back",n/2,wallH-.73,Math.min(2.35,n*.48),.34,0);\n  addWindowLightStrip(parent,n/2,1.7,1.0,3.0,0xffc17a);
   // Pipework follows the rear-wall faces; it never projects into the room.
   for(let i=0;i<3;i++)lineMesh(parent,new THREE.Vector3(.22,.62+i*.43,.085),new THREE.Vector3(n-.22,.62+i*.43,.085),.027,M(i===1?0x8c9698:0x53616a,.48,.72));
   lineMesh(parent,new THREE.Vector3(.085,.46,.3),new THREE.Vector3(.085,.46,n-.25),.024,M(0x69777c,.48,.7));
@@ -719,7 +718,7 @@ function addInteriorDecor(parent,n,tier,wallH){
   // Warm coworking: two generous daylight windows, timber slats and pale wall fields.
   for(let i=0;i<2;i++){
    const x=n*(i+1)/3,w=Math.min(2.15,n*.31);
-   addArchitecturalWindow(parent,"back",x,1.02,w,1.72,{frame:0x536b6b,glass:0xa9dce8,glow:0xffe1b0,glowI:.24,bar:0xe4d5bd});
+   addArchitecturalWindow(parent,"back",x,1.02,w,1.72,{frame:0x536b6b,glass:0xa9dce8,glow:0xffe1b0,glowI:.24,bar:0xe4d5bd});\n   addWindowBackdrop(parent,"back",x,1.02,w,1.72,1);
    back(x,.94,.105,w+.16,.10,.12,trim);
    addWindowLightStrip(parent,x,2.35,.95,3.65,0xffe2b7);
   }
@@ -731,9 +730,9 @@ function addInteriorDecor(parent,n,tier,wallH){
  }else if(tier===2){
   // Business centre: polished stone, dark panoramic frames and monumental corner piers.
   const windowTheme={frame:0x252d38,glass:0xeab58d,glow:0xffbd80,glowI:.28,bar:0xb68d66};
-  addArchitecturalWindow(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,windowTheme);
-  addArchitecturalWindow(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,windowTheme);
-  addArchitecturalWindow(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,windowTheme);
+  addArchitecturalWindow(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,windowTheme);\n  addWindowBackdrop(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,2);
+  addArchitecturalWindow(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,windowTheme);\n  addWindowBackdrop(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,2);
+  addArchitecturalWindow(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,windowTheme);\n  addWindowBackdrop(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,2);
   // Deep stone-clad piers at both exposed rear corners.
   for(const [x,z] of [[.14,.12],[n-.14,.12]]){
    back(x,0,z,.28,wallH,.28,M(0x737b80,.45,.22));
@@ -750,7 +749,7 @@ function addInteriorDecor(parent,n,tier,wallH){
   for(let i=0;i<5;i++){
    const x=(i+.5)*n/5,w=n/5-.10;
    back(x,0.28,.07,w,wallH-.52,.045,dark);
-   back(x,0.32,.105,w-.08,wallH-.62,.018,glass);
+   back(x,0.32,.105,w-.08,wallH-.62,.018,glass);\n   addWindowBackdrop(parent,"back",x,.32,w-.08,wallH-.62,3);
    back(x,0.32,.13,.035,wallH-.62,.035,rail);
    for(let q=0;q<3;q++)back(x-w*.28+q*w*.18,.38,.145,.025,.035,.02,light);
   }
@@ -765,7 +764,7 @@ function addInteriorDecor(parent,n,tier,wallH){
   // Penthouse: transparent panoramic guard-glazing, gold posts and a premium stone reveal.
   const glass=mat(0x9eb6c9,.16,.22,{transparent:true,opacity:.22,depthWrite:false,side:THREE.DoubleSide});
   const gold=M(0xd8b778,.3,.72),darkFrame=M(0x252432,.48,.35);
-  back(n/2,.72,.055,n-.35,wallH-.72,.035,glass);
+  back(n/2,.72,.055,n-.35,wallH-.72,.035,glass);\n  addWindowBackdrop(parent,"back",n/2,.72,n-.45,wallH-.72,4);
   side(.055,.72,n/2,.035,wallH-.72,n-.35,glass);
   const posts=Math.max(4,Math.floor(n/2));
   for(let i=0;i<=posts;i++){

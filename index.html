@@ -364,7 +364,7 @@ function applyBasementTextures(){
  const floor=threeFloorGroup.userData.basementFloor;
  if(floor&&basementFloorTex){floor.material.map=basementFloorTex;floor.material.color.set(0xffffff);floor.material.roughness=.7;floor.material.metalness=.1;floor.material.needsUpdate=true;}
  const walls=threeFloorGroup.userData.basementWalls;
- if(walls){if(basementWallLeftTex)walls.left.material.map=basementWallLeftTex;if(basementWallRightTex)walls.right.material.map=basementWallRightTex;[walls.left,walls.right].forEach(m=>{m.material.color.set(0xffffff);m.material.needsUpdate=true;});}
+ if(walls){if(basementWallLeftTex?.image){walls.left.material.map=basementWallLeftTex;walls.left.visible=true;}if(basementWallRightTex?.image){walls.right.material.map=basementWallRightTex;walls.right.visible=true;}[walls.left,walls.right].forEach(m=>{m.material.color.set(0xffffff);m.material.needsUpdate=true;});}
 }
 
 const boxMesh=(parent,x,y,z,w,h,d,material,r=.035)=>{const geo=new THREE.BoxGeometry(w,h,d,1,1,1),m=new THREE.Mesh(geo,material);m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
@@ -915,8 +915,8 @@ function addRoom3D(){
   boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
   const leftMat=new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex||null,roughness:.86,metalness:.04});
   const rightMat=new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex||null,roughness:.86,metalness:.04});
-  const leftWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),leftMat);leftWall.position.set(n/2,wallH/2,-.222);leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
-  const rightWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),rightMat);rightWall.rotation.y=Math.PI/2;rightWall.position.set(-.222,wallH/2,n/2);rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
+  const leftWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),leftMat);leftWall.position.set(n/2,wallH/2,-.222);leftWall.receiveShadow=true;leftWall.visible=!!basementWallLeftTex.image;threeFloorGroup.add(leftWall);
+  const rightWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),rightMat);rightWall.rotation.y=Math.PI/2;rightWall.position.set(-.222,wallH/2,n/2);rightWall.receiveShadow=true;rightWall.visible=!!basementWallRightTex.image;threeFloorGroup.add(rightWall);
   threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall};
   const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(n-.65,2.05,n*.55);threeFloorGroup.add(lampGlow);
   const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(.75,.48,.12);threeFloorGroup.add(windowGlow);

@@ -390,7 +390,7 @@ function createDesk(parent,o){
  B(g,0,.48,0,.88,.075,.56,wood);B(g,0,.438,0,.9,.022,.575,edge);
  for(const x of [-.365,.365])for(const z of [-.205,.205]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.022,.032,.42,8),metal);leg.position.set(x,.21,z);g.add(leg);B(g,x,.025,z,.075,.035,.075,rubber);}
  // Monitor generations: bulky CRT -> early LCD -> thin LED -> premium ultrawide.
- const mon=new THREE.Group();g.add(mon);mon.position.set(0,.535,-.17);
+ const mon=new THREE.Group();g.add(mon);mon.position.set(0,.70,-.17);
  const w=lv===4?.43:lv>=3?.39:.34,h=lv===1?.29:lv===2?.25:lv===3?.27:.29,d=lv===1?.19:lv===2?.075:lv===3?.045:.035;
  const shell=M([0x38434a,0x202e3b,0x172936,0x101d2b][lv-1],.38,lv>=3?.48:.25),glass=M(lv===1?0x163247:0x071827,.18,.1,{emissive:cyan,emissiveIntensity:lv===1?.16:lv===4?.58:.35});
  B(mon,0,h/2,0,w,h,d,shell);B(mon,0,h/2,d/2+.006,w-.025,h-.026,.009,glass);

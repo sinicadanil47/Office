@@ -934,10 +934,15 @@ function addRoom3D(){
  // Exactly two rear walls. Their fronts remain fully open for the isometric cutaway view.
  if(tier===0){
   // Textured solid wall boxes: the same wall image wraps the front, rear, side returns and top edge.
+  const wallThickness=.24,wallOverlap=wallThickness/2;
   const leftWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex,roughness:.92,metalness:.02}));
   const rightWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex,roughness:.92,metalness:.02}));
-  const leftWall=new THREE.Mesh(new THREE.BoxGeometry(n,wallH,.22),leftWallMat);leftWall.position.set(n/2,wallH/2,-.105);leftWall.castShadow=true;leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
-  const rightWall=new THREE.Mesh(new THREE.BoxGeometry(.22,wallH,n),rightWallMat);rightWall.position.set(-.105,wallH/2,n/2);rightWall.castShadow=true;rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
+  // Both inner wall faces meet exactly on the floor's x=0 / z=0 edges.
+  // Extend each wall by half its thickness at the shared corner so no light gap can show through.
+  const leftWall=new THREE.Mesh(new THREE.BoxGeometry(n+wallOverlap,wallH,wallThickness),leftWallMat);
+  leftWall.position.set(n/2+wallOverlap/2,wallH/2,-wallOverlap);leftWall.castShadow=true;leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
+  const rightWall=new THREE.Mesh(new THREE.BoxGeometry(wallThickness,wallH,n+wallOverlap),rightWallMat);
+  rightWall.position.set(-wallOverlap,wallH/2,n/2+wallOverlap/2);rightWall.castShadow=true;rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
   threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall};
   const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(.12,2.15,n*.72);threeFloorGroup.add(lampGlow);
   const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(n/2,1.05,.12);threeFloorGroup.add(windowGlow);

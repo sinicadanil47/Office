@@ -343,7 +343,7 @@ const fillLight=new THREE.DirectionalLight(0x566b80,.28);fillLight.position.set(
 let threeEnvironmentGroup=null,threeEnvironmentTier=-1,threeAtmosphereTransition=null;
 const threeRoot=new THREE.Group();threeScene.add(threeRoot);
 const threeRaycaster=new THREE.Raycaster(),threePointer=new THREE.Vector2(),threeGround=new THREE.Plane(new THREE.Vector3(0,1,0),0),threeHit=new THREE.Vector3();
-let threeCamera=null,threeFloorGroup=null,threeFurnitureGroup=null,threeWorkerGroups=new Map(),threeSceneSignature="",threeWidth=0,threeHeight=0,floorPageActive=true;
+let threeCamera=null,threeFloorGroup=null,threeFurnitureGroup=null,threeWorkerGroups=new Map(),threeSceneSignature="",threeWidth=0,threeHeight=0,floorPageActive=true,threeLastRenderAt=0;
 let buildPreviewState=null,threePreviewGroup=null;
 let threePanX=0,threePanZ=0;
 const mat=(color,roughness=.72,metalness=0,extra={})=>new THREE.MeshStandardMaterial({color,roughness,metalness,...extra});
@@ -618,7 +618,9 @@ function renderThreeScene(){
   const blend=g.userData.poseBlend+=(targetBlend-g.userData.poseBlend)*(1-Math.exp(-frameDt*7));
   const sitBlend=state==="sit"?Math.max(0,Math.min(1,1-(rt.timer/.62))):0;
   const baseX=walking||state==="sit"?p.x:seatX,baseZ=walking||state==="sit"?p.y:seatZ;
-  g.position.set(state==="sit"?baseX+(seatX-baseX)*sitBlend:baseX,walking?Math.abs(Math.sin(now*9))*.012:0,state==="sit"?baseZ+(seatZ-baseZ)*sitBlend:baseZ);
+  const rootX=state==="stand"?seatX+(p.x-seatX)*blend:state==="sit"?baseX+(seatX-baseX)*sitBlend:baseX;
+  const rootZ=state==="stand"?seatZ+(p.y-seatZ)*blend:state==="sit"?baseZ+(seatZ-baseZ)*sitBlend:baseZ;
+  g.position.set(rootX,walking?Math.abs(Math.sin(now*9))*.012:0,rootZ);
   let targetYaw=Math.PI+deskAngle;
   if(walking&&rt?.path?.length>1){
    const idx=Math.min(rt.index||0,rt.path.length-2),a=rt.path[idx],b=rt.path[idx+1],dx=b.x-a.x,dz=b.y-a.y;

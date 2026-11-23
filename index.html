@@ -365,10 +365,11 @@ function applyBasementTextures(){
  if(floor&&basementFloorTex?.image){
   basementFloorTex.colorSpace=THREE.SRGBColorSpace;basementFloorTex.wrapS=basementFloorTex.wrapT=THREE.ClampToEdgeWrapping;basementFloorTex.needsUpdate=true;
   if(!threeFloorGroup.userData.basementFloorOverlay){
-   const overlay=new THREE.Mesh(new THREE.PlaneGeometry(currentGridSize(),currentGridSize()),new THREE.MeshBasicMaterial({map:basementFloorTex,side:THREE.DoubleSide,toneMapped:false}));
-   overlay.rotation.x=-Math.PI/2;overlay.position.set(currentGridSize()/2,.0005,currentGridSize()/2);overlay.renderOrder=2;overlay.frustumCulled=false;threeFloorGroup.add(overlay);threeFloorGroup.userData.basementFloorOverlay=overlay;
+   const overlayMat=new THREE.MeshBasicMaterial({map:basementFloorTex,color:0xffffff,side:THREE.DoubleSide,toneMapped:false,transparent:false,depthTest:true,depthWrite:false});
+   const overlay=new THREE.Mesh(new THREE.PlaneGeometry(currentGridSize(),currentGridSize()),overlayMat);
+   overlay.rotation.x=-Math.PI/2;overlay.position.set(currentGridSize()/2,.026,currentGridSize()/2);overlay.renderOrder=5;overlay.frustumCulled=false;overlay.visible=true;threeFloorGroup.add(overlay);threeFloorGroup.userData.basementFloorOverlay=overlay;
   }else{
-   const overlay=threeFloorGroup.userData.basementFloorOverlay;overlay.material.map=basementFloorTex;overlay.material.needsUpdate=true;overlay.visible=true;
+   const overlay=threeFloorGroup.userData.basementFloorOverlay;overlay.material.map=basementFloorTex;overlay.material.color.set(0xffffff);overlay.material.needsUpdate=true;overlay.position.y=.026;overlay.visible=true;
   }
   floor.visible=true;
  }
@@ -885,11 +886,13 @@ function addRoom3D(){
  if(tier===0){threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();}
  {
  // Fine tile joints are aligned exactly to the playable grid (one world unit per cell).
- const tileGrid=new THREE.Group(),gridMat=mat(tier===4?0xc8a66e:tier===3?0x83c9c4:tier===0?0x424e54:0x5d686c,.82,.12,{transparent:true,opacity:.48,depthWrite:false});
+ const tileGrid=new THREE.Group();
+ const gridMat=tier===0?new THREE.MeshBasicMaterial({color:0xd5dce4,transparent:true,opacity:.88,depthWrite:false,toneMapped:false}):mat(tier===4?0xc8a66e:tier===3?0x83c9c4:0x5d686c,.82,.12,{transparent:true,opacity:.48,depthWrite:false});
  for(let k=0;k<=n;k++){
-  const edgeLine=k===0||k===n,thickness=edgeLine?.022:.012;
-  const vx=boxMesh(tileGrid,k,.001,n/2,thickness,.008,n,gridMat);
-  const hz=boxMesh(tileGrid,n/2,.001,k,n,.008,thickness,gridMat);
+  const thickness=tier===0?.022:(k===0||k===n?.022:.012);
+  const y=tier===0?.028:.001,h=tier===0?.018:.008;
+  const vx=boxMesh(tileGrid,k,y,n/2,thickness,h,n,gridMat);
+  const hz=boxMesh(tileGrid,n/2,y,k,n,h,thickness,gridMat);
   vx.castShadow=hz.castShadow=false;vx.receiveShadow=hz.receiveShadow=false;
  }
  threeFloorGroup.add(tileGrid);

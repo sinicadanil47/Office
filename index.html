@@ -348,6 +348,25 @@ let threeCamera=null,threeFloorGroup=null,threeFurnitureGroup=null,threeWorkerGr
 let buildPreviewState=null,threePreviewGroup=null,moveMode=false,quickBuildCell=null;
 let threePanX=0,threePanZ=0;
 const mat=(color,roughness=.72,metalness=0,extra={})=>new THREE.MeshStandardMaterial({color,roughness,metalness,...extra});
+const basementTextureLoader=new THREE.TextureLoader();
+const basementTextureCache={};
+function loadBasementTexture(key,files){
+ if(basementTextureCache[key])return basementTextureCache[key];
+ let attempt=0;
+ const next=()=>{if(attempt>=files.length){console.warn("Basement texture unavailable:",key,files);return;}const file=files[attempt++];basementTextureLoader.load(file,t=>{t.colorSpace=THREE.SRGBColorSpace;t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.generateMipmaps=true;t.needsUpdate=true;basementTextureCache[key]=t;applyBasementTextures();},undefined,()=>next());};
+ next();return null;
+}
+const basementFloorTex=loadBasementTexture("floor",["6ad454-3-draft.png","6ad454-3-draft.jpg","basement_floor.png","basement_floor.jpg"]);
+const basementWallLeftTex=loadBasementTexture("wallLeft",["input_74c949_4.png","input_74c949_4.jpg","basement_wall_left.png","basement_wall_left.jpg"]);
+const basementWallRightTex=loadBasementTexture("wallRight",["f5432d15.png","f5432d15.jpg","basement_wall_right.png","basement_wall_right.jpg"]);
+function applyBasementTextures(){
+ if(currentFloorTier()!==0||!threeFloorGroup)return;
+ const floor=threeFloorGroup.userData.basementFloor;
+ if(floor&&basementFloorTex){floor.material.map=basementFloorTex;floor.material.color.set(0xffffff);floor.material.roughness=.7;floor.material.metalness=.1;floor.material.needsUpdate=true;}
+ const walls=threeFloorGroup.userData.basementWalls;
+ if(walls){if(basementWallLeftTex)walls.left.material.map=basementWallLeftTex;if(basementWallRightTex)walls.right.material.map=basementWallRightTex;[walls.left,walls.right].forEach(m=>{m.material.color.set(0xffffff);m.material.needsUpdate=true;});}
+}
+
 const boxMesh=(parent,x,y,z,w,h,d,material,r=.035)=>{const geo=new THREE.BoxGeometry(w,h,d,1,1,1),m=new THREE.Mesh(geo,material);m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
 const sphereMesh=(parent,x,y,z,r,material,scale=null)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),material);m.position.set(x,y,z);if(scale)m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
 const cylMesh=(parent,x,y,z,r1,r2,h,material,segments=16)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,segments),material);m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
@@ -851,6 +870,7 @@ function addRoom3D(){
  boxMesh(threeFloorGroup,n/2,-.105,n/2,n+.30,.13,n+.30,under);
  const floor=new THREE.Mesh(new THREE.BoxGeometry(n,.035,n),makeInteriorFloorMaterial(tier,n));
  floor.position.set(n/2,-.0175,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
+ if(tier===0){threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();}
  // Fine tile joints are aligned exactly to the playable grid (one world unit per cell).
  const tileGrid=new THREE.Group(),gridMat=mat(tier===4?0xc8a66e:tier===3?0x83c9c4:tier===0?0x424e54:0x5d686c,.82,.12,{transparent:true,opacity:.48,depthWrite:false});
  for(let k=0;k<=n;k++){
@@ -890,8 +910,21 @@ function addRoom3D(){
  const wallColors=[0x596166,0xe5e6df,0xd1d5d6,0x14232d,0x252532];
  const wallMat=tier===4?mat(0x9eb6c9,.25,.18,{transparent:true,opacity:.12,depthWrite:false}):mat(wallColors[tier],tier===2?.48:.84,tier===2?.08:0);
  // Exactly two rear walls. Their fronts remain fully open for the isometric cutaway view.
- boxMesh(threeFloorGroup,n/2,0,-.105,n+.06,wallH,.22,wallMat);
- boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
+ if(tier===0){
+  boxMesh(threeFloorGroup,n/2,0,-.105,n+.06,wallH,.22,wallMat);
+  boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
+  const leftMat=new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex||null,roughness:.86,metalness:.04});
+  const rightMat=new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex||null,roughness:.86,metalness:.04});
+  const leftWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),leftMat);leftWall.position.set(n/2,wallH/2,-.222);leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
+  const rightWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),rightMat);rightWall.rotation.y=Math.PI/2;rightWall.position.set(-.222,wallH/2,n/2);rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
+  threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall};
+  const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(n-.65,2.05,n*.55);threeFloorGroup.add(lampGlow);
+  const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(.75,.48,.12);threeFloorGroup.add(windowGlow);
+  applyBasementTextures();
+ }else{
+  boxMesh(threeFloorGroup,n/2,0,-.105,n+.06,wallH,.22,wallMat);
+  boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
+ }
  addInteriorDecor(threeFloorGroup,n,tier,wallH);
  // A restrained cell outline appears only for the active pointer or build preview.
  const hoverGroup=new THREE.Group(),hoverMat=mat(tier===4?0xe5c98d:tier===3?0x48e5d7:0xdce8ed,.32,.2,{emissive:tier===3?0x126b66:tier===4?0x6b4b1d:0x536b78,emissiveIntensity:.65,transparent:true,opacity:.72});

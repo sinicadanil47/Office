@@ -394,84 +394,91 @@ function createBoss(parent,o){const g=new THREE.Group();parent.add(g);const wood
 function createMeeting(parent,o){const g=new THREE.Group();parent.add(g);const wood=mat(0x916a46),edge=mat(0xd0b28b),chair=mat(0x344b64);boxMesh(g,0,.4,0,.88,.1,.48,wood);boxMesh(g,0,.46,0,.9,.025,.5,edge);for(const [x,z] of [[-.36,-.38],[.36,-.38],[-.36,.38],[.36,.38]]){boxMesh(g,x,.08,z,.19,.18,.18,chair);boxMesh(g,x,.26,z-.055,.19,.28,.055,chair);}for(const x of [-.3,.3])boxMesh(g,x,.06,.0,.035,.34,.035,wood);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
 function createSecurity(parent,o){const g=new THREE.Group();parent.add(g);const shell=mat(0x354e65),dark=mat(0x0c1d30),screens=[0x29b9e8,0x39d7b9,0x7e9cff].map(c=>mat(c,.25,.2,{emissive:c,emissiveIntensity:.55}));boxMesh(g,0,.38,0,.84,.62,.5,shell);boxMesh(g,0,.72,-.02,.78,.05,.42,dark);for(let i=0;i<3;i++){const x=(i-1)*.24;boxMesh(g,x,.91,-.08,.21,.23,.035,dark);boxMesh(g,x,.92,-.057,.18,.18,.012,screens[i]);}sphereMesh(g,.32,.47,.25,.035,mat(0x4be4bb,.2,.1,{emissive:0x16a77e,emissiveIntensity:1.4}));g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
 function createWorker3D(parent,desk){
- // Cohesive stylized 3D office character: larger readable head, compact body,
- // rounded tailored clothes and expressive face.
+ // Full articulated stylized office-worker rig. Neutral pose is seated; the
+ // same skeleton blends into a complete upright walking pose.
  const g=new THREE.Group();parent.add(g);
  const palettes=[
   {jacket:0x315579,shirt:0xf5f1e8,tie:0xe17b55,pants:0x293b52,hair:0x493126,skin:0xe8b18d,accent:0xf0bd69},
   {jacket:0x59616e,shirt:0xf8f1e5,tie:0x5c9b9a,pants:0x343d4c,hair:0x28252b,skin:0xc98a68,accent:0xd6b37b},
   {jacket:0x3e7168,shirt:0xf2eee2,tie:0xd6a24e,pants:0x2d4645,hair:0x69452e,skin:0xf0c29d,accent:0xe4c27d},
-  {jacket:0x74536b,shirt:0xf8eee9,tie:0xb9a0d2,pants:0x3c354b,hair:0x30242b,skin:0xd99c7d,accent:0xe8b7a0}
+  {jacket:0x74536b,shirt:0xf8eee9,tie:0xb9a0d2,pants:0x3c354b,hair:0x30242b,skin:0xd99c7d,accent:0xe8b7a0},
+  {jacket:0x8a623d,shirt:0xf2eee5,tie:0x6b8dbe,pants:0x394052,hair:0x3a3028,skin:0xd99c78,accent:0xe6c17b}
  ];
  const variant=Math.abs(Math.floor(desk.x*17+desk.y*31))%palettes.length,p=palettes[variant];
  const material=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
- const skin=material(p.skin,.82),hair=material(p.hair,.9),jacket=material(p.jacket,.76),shirt=material(p.shirt,.7),tie=material(p.tie,.58),pants=material(p.pants,.8),shoe=material(0x202a38,.4,.08),sole=material(0x111923,.65),white=material(0xfffdf6,.42),iris=material(0x4b7890,.38),dark=material(0x29252a,.7),blush=material(0xd98579,.85),gold=material(p.accent,.35,.55);
+ const skin=material(p.skin,.82),hair=material(p.hair,.9),jacket=material(p.jacket,.76),shirt=material(p.shirt,.7),tie=material(p.tie,.58),pants=material(p.pants,.8),shoe=material(0x202a38,.4,.08),sole=material(0x111923,.65),white=material(0xfffdf6,.42),iris=material(0x4b7890,.38),dark=material(0x29252a,.7),gold=material(p.accent,.35,.55),accent=material(p.accent,.48,.25);
  const sphere=(parent,x,y,z,sx,sy,sz,m,detail=20)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(1,detail,Math.max(12,Math.floor(detail*.72))),m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;};
  const capsuleBetween=(parent,a,b,r,m,segments=14)=>{const d=new THREE.Vector3().subVectors(b,a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r*.82,r,d.length(),segments,1),m);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.clone().normalize());mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);sphere(parent,a.x,a.y,a.z,r,r,r,m,12);sphere(parent,b.x,b.y,b.z,r*.82,r*.82,r*.82,m,12);return mesh;};
- // Seated legs and polished shoes.
- sphere(g,0,.61,-.015,.19,.15,.16,pants);
- const legs=[];
- for(const side of [-1,1]){
-  const thigh=new THREE.Group();thigh.position.set(side*.085,.61,.015);g.add(thigh);
-  capsuleBetween(thigh,new THREE.Vector3(0,0,0),new THREE.Vector3(side*.012,-.055,.235),.067,pants);
-  const knee=new THREE.Group();knee.position.set(side*.012,-.055,.235);thigh.add(knee);
-  capsuleBetween(knee,new THREE.Vector3(0,0,0),new THREE.Vector3(0,-.225,-.025),.049,pants);
-  const foot=new THREE.Group();foot.position.set(0,-.245,.045);knee.add(foot);
-  sphere(foot,0,-.01,.045,.068,.045,.12,shoe);
-  sphere(foot,0,-.039,.045,.069,.012,.12,sole);
-  legs.push({thigh,knee,foot});
- }
- // Compact jacket, shirt front, lapels and tie.
- const torso=sphere(g,0,.91,-.005,.205,.265,.15,jacket,24);
- sphere(g,0,.925,.126,.105,.205,.026,shirt,20);
+ // Body pivot allows a subtle forward lean while keeping head and arms aligned.
+ const torsoRig=new THREE.Group();torsoRig.position.set(0,.91,0);g.add(torsoRig);
+ sphere(torsoRig,0,.015,0,.205,.265,.15,jacket,24);
+ sphere(torsoRig,0,.025,.126,.105,.205,.026,shirt,20);
  const lapelShape=new THREE.Shape();lapelShape.moveTo(0,.11);lapelShape.lineTo(.075,.025);lapelShape.lineTo(.025,-.105);lapelShape.lineTo(-.012,-.025);lapelShape.closePath();
  const lapelGeo=new THREE.ShapeGeometry(lapelShape);
- const lapelL=new THREE.Mesh(lapelGeo,jacket);lapelL.position.set(-.105,.99,.151);lapelL.castShadow=true;g.add(lapelL);
- const lapelR=new THREE.Mesh(lapelGeo,jacket);lapelR.position.set(.105,.99,.151);lapelR.rotation.y=Math.PI;lapelR.castShadow=true;g.add(lapelR);
- const tieMesh=new THREE.Mesh(new THREE.CylinderGeometry(.012,.025,.17,6),tie);tieMesh.position.set(0,.875,.158);tieMesh.castShadow=true;g.add(tieMesh);
- sphere(g,0,.974,.161,.024,.025,.012,tie,12);
- sphere(g,-.137,.93,.132,.026,.018,.009,white,12);
- for(const y of [.84,.78])sphere(g,.055,y,.15,.008,.008,.006,gold,10);
- // Neck and expressive oversized head facing the desk (+Z).
- const neck=new THREE.Mesh(new THREE.CylinderGeometry(.047,.055,.095,16),skin);neck.position.set(0,1.16,0);neck.castShadow=true;g.add(neck);
- const head=new THREE.Group();head.position.set(0,1.365,.025);g.add(head);
+ const lapelL=new THREE.Mesh(lapelGeo,jacket);lapelL.position.set(-.105,.09,.151);lapelL.castShadow=true;torsoRig.add(lapelL);
+ const lapelR=new THREE.Mesh(lapelGeo,jacket);lapelR.position.set(.105,.09,.151);lapelR.rotation.y=Math.PI;lapelR.castShadow=true;torsoRig.add(lapelR);
+ const tieMesh=new THREE.Mesh(new THREE.CylinderGeometry(.012,.025,.17,6),tie);tieMesh.position.set(0,-.025,.158);tieMesh.castShadow=true;torsoRig.add(tieMesh);
+ sphere(torsoRig,0,.074,.161,.024,.025,.012,tie,12);
+ sphere(torsoRig,-.137,.02,.132,.026,.018,.009,white,12);
+ for(const y of [-.07,-.13])sphere(torsoRig,.055,y,.15,.008,.008,.006,gold,10);
+ sphere(torsoRig,.137,.105,.154,.012,.012,.008,gold,10);
+ // Neck and expressive head.
+ const neck=new THREE.Mesh(new THREE.CylinderGeometry(.047,.055,.095,16),skin);neck.position.set(0,.28,0);neck.castShadow=true;torsoRig.add(neck);
+ const head=new THREE.Group();head.position.set(0,.49,.025);torsoRig.add(head);
  sphere(head,0,0,0,.177,.205,.157,skin,28);
+ // Hair style varies slightly by employee so the floor reads as a team.
  sphere(head,0,.105,-.026,.181,.125,.16,hair,24);
  sphere(head,-.105,.025,.075,.065,.115,.095,hair,18);
  sphere(head,.105,.025,.075,.065,.115,.095,hair,18);
- sphere(head,-.075,.105,.104,.085,.065,.07,hair,18);
- sphere(head,.018,.145,.105,.105,.055,.065,hair,18);
+ if(variant%2===0){sphere(head,-.075,.105,.104,.085,.065,.07,hair,18);sphere(head,.018,.145,.105,.105,.055,.065,hair,18);}
+ else{sphere(head,-.035,.145,.105,.12,.06,.065,hair,18);sphere(head,.105,.09,.085,.045,.09,.075,hair,16);}
+ const eyes=[];
  for(const side of [-1,1]){
   sphere(head,side*.171,-.012,.005,.032,.047,.028,skin,14);
-  sphere(head,side*.066,.018,.139,.036,.043,.018,white,18);
+  const eyeWhite=sphere(head,side*.066,.018,.139,.036,.043,.018,white,18);
   sphere(head,side*.066,.014,.155,.019,.026,.009,iris,16);
   sphere(head,side*.066,.012,.162,.009,.016,.005,dark,12);
   sphere(head,side*.057,.027,.168,.006,.008,.004,white,10);
+  eyes.push(eyeWhite);
   const brow=sphere(head,side*.066,.071,.14,.043,.012,.012,hair,12);brow.rotation.z=side*.12;
-  sphere(head,side*.112,-.065,.112,.025,.012,.009,blush,12);
  }
  sphere(head,0,-.028,.17,.018,.026,.022,skin,14);
  const smile=new THREE.Mesh(new THREE.TorusGeometry(.031,.004,6,18,Math.PI),dark);smile.position.set(0,-.091,.142);smile.rotation.z=Math.PI;smile.castShadow=true;head.add(smile);
- // Articulated jacket sleeves, shirt cuffs and hands.
+ // Arms are built downward from shoulder pivots. Rotation blends from
+ // keyboard-reaching seated pose to a relaxed counter-swing while walking.
  const arms=[];
  for(const side of [-1,1]){
   const shoulder=new THREE.Group();shoulder.position.set(side*.174,1.055,.005);g.add(shoulder);
   sphere(shoulder,0,0,0,.075,.078,.078,jacket,16);
-  capsuleBetween(shoulder,new THREE.Vector3(0,0,0),new THREE.Vector3(side*.018,-.155,.105),.052,jacket);
-  const elbow=new THREE.Group();elbow.position.set(side*.018,-.155,.105);shoulder.add(elbow);
-  capsuleBetween(elbow,new THREE.Vector3(0,0,0),new THREE.Vector3(-side*.012,-.245,.205),.039,shirt);
-  sphere(elbow,-side*.012,-.224,.188,.043,.027,.035,white,14);
-  const hand=new THREE.Group();hand.position.set(-side*.012,-.26,.205);elbow.add(hand);
-  sphere(hand,0,-.004,.025,.042,.027,.052,skin,16);
-  for(let f=0;f<3;f++){const finger=sphere(hand,(f-1)*.019,-.014,.067,.009,.012,.035,skin,10);finger.rotation.x=-.12;}
+  capsuleBetween(shoulder,new THREE.Vector3(0,0,0),new THREE.Vector3(side*.018,-.245,0),.052,jacket);
+  const elbow=new THREE.Group();elbow.position.set(side*.018,-.245,0);shoulder.add(elbow);
+  capsuleBetween(elbow,new THREE.Vector3(0,0,0),new THREE.Vector3(-side*.012,-.34,0),.039,shirt);
+  sphere(elbow,-side*.012,-.325,0,.043,.027,.035,white,14);
+  const hand=new THREE.Group();hand.position.set(-side*.012,-.34,0);elbow.add(hand);
+  sphere(hand,0,-.004,.018,.042,.027,.052,skin,16);
+  for(let f=0;f<4;f++){const finger=sphere(hand,(f-1.5)*.017,-.014,.058,.008,.011,.032,skin,10);finger.rotation.x=-.12;}
   arms.push({shoulder,elbow,hand,side});
  }
- sphere(g,.137,1.015,.154,.012,.012,.008,gold,10);
+ // Articulated legs: straight when standing, folded forward when seated.
+ sphere(g,0,.77,-.015,.18,.14,.15,pants);
+ const legs=[];
+ for(const side of [-1,1]){
+  const thigh=new THREE.Group();thigh.position.set(side*.09,.78,0);g.add(thigh);
+  capsuleBetween(thigh,new THREE.Vector3(0,0,0),new THREE.Vector3(0,-.31,0),.067,pants);
+  const knee=new THREE.Group();knee.position.set(0,-.31,0);thigh.add(knee);
+  capsuleBetween(knee,new THREE.Vector3(0,0,0),new THREE.Vector3(0,-.32,0),.049,pants);
+  const foot=new THREE.Group();foot.position.set(0,-.32,.015);knee.add(foot);
+  sphere(foot,0,-.005,.055,.068,.045,.12,shoe);
+  sphere(foot,0,-.034,.055,.069,.012,.12,sole);
+  legs.push({thigh,knee,foot});
+ }
+ // Small belt buckle and wrist accents improve readability at isometric scale.
+ const belt=material(0x202b39,.55,.18);sphere(g,0,.735,.13,.12,.018,.012,belt,14);sphere(g,0,.735,.145,.025,.014,.008,gold,12);
  const zCanvas=document.createElement("canvas");zCanvas.width=128;zCanvas.height=64;const zctx=zCanvas.getContext("2d");
  zctx.font="bold 48px sans-serif";zctx.textAlign="center";zctx.fillStyle="#d8edff";zctx.shadowColor="#58a9ef";zctx.shadowBlur=12;zctx.fillText("Zz",64,48);
  const zTex=new THREE.CanvasTexture(zCanvas),sleepLabel=new THREE.Sprite(new THREE.SpriteMaterial({map:zTex,transparent:true,depthWrite:false}));
  sleepLabel.scale.set(.62,.31,1);sleepLabel.position.set(.3,1.68,0);sleepLabel.visible=false;g.add(sleepLabel);
- g.userData={desk,arms,legs,head,torso,sleepLabel};return g;
+ g.userData={desk,arms,legs,head,torso:torsoRig,sleepLabel,eyes,poseBlend:0,blinkSeed:(desk.x*7+desk.y*13)%5};return g;
 }
 
 const FLOOR_ATMOSPHERES=[
@@ -598,16 +605,60 @@ function panThreeCameraByScreen(dx,dy){
  threePanX-=((right.x*dx)-(up.x*dy))*worldPerPixel;
  threePanZ-=((right.z*dx)-(up.z*dy))*worldPerPixel;
 }
-function renderThreeScene(){if(!threeRenderer||!threeWidth||!threeHeight||!floorPageActive||document.hidden)return;const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(sig!==threeSceneSignature)rebuildThreeScene();const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000;threeWorkerGroups.forEach((g,desk)=>{const rt=employeeMotion.get(desk),state=rt?.state||"work";const p=rt?.pos||{x:desk.x+.5,y:desk.y+.91};const deskAngle=(Number(desk.rot)||0)*Math.PI/2,seatX=desk.x+.5+Math.sin(deskAngle)*.62,seatZ=desk.y+.5+Math.cos(deskAngle)*.62;g.position.set(state==="walk"?p.x:seatX,state==="walk"?Math.abs(Math.sin(now*9))*.018:0,state==="walk"?p.y:seatZ);
-let targetYaw=Math.PI+deskAngle;
-if(state==="walk"&&rt?.path?.length>1){
- const a=rt.path[Math.min(rt.index||0,rt.path.length-2)],b=rt.path[Math.min((rt.index||0)+1,rt.path.length-1)];
- const dx=b.x-a.x,dz=b.y-a.y;
- if(Math.abs(dx)+Math.abs(dz)>.001){targetYaw=Math.atan2(dx,dz);rt.lastWalkYaw=targetYaw;}
- else if(Number.isFinite(rt.lastWalkYaw))targetYaw=rt.lastWalkYaw;
+function renderThreeScene(){
+ if(!threeRenderer||!threeWidth||!threeHeight||!floorPageActive||document.hidden)return;
+ const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);
+ if(sig!==threeSceneSignature)rebuildThreeScene();
+ const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;
+ threeWorkerGroups.forEach((g,desk)=>{
+  const rt=employeeMotion.get(desk),state=rt?.state||"work",p=rt?.pos||{x:desk.x+.5,y:desk.y+.5};
+  const deskAngle=(Number(desk.rot)||0)*Math.PI/2,seatX=desk.x+.5+Math.sin(deskAngle)*.62,seatZ=desk.y+.5+Math.cos(deskAngle)*.62;
+  const walking=state==="walk"||state==="stand"||state==="coffee";
+  const targetBlend=walking?1:0;
+  const blend=g.userData.poseBlend+=(targetBlend-g.userData.poseBlend)*(1-Math.exp(-frameDt*7));
+  const sitBlend=state==="sit"?Math.max(0,Math.min(1,1-(rt.timer/.62))):0;
+  const baseX=walking||state==="sit"?p.x:seatX,baseZ=walking||state==="sit"?p.y:seatZ;
+  g.position.set(state==="sit"?baseX+(seatX-baseX)*sitBlend:baseX,walking?Math.abs(Math.sin(now*9))*.012:0,state==="sit"?baseZ+(seatZ-baseZ)*sitBlend:baseZ);
+  let targetYaw=Math.PI+deskAngle;
+  if(walking&&rt?.path?.length>1){
+   const idx=Math.min(rt.index||0,rt.path.length-2),a=rt.path[idx],b=rt.path[idx+1],dx=b.x-a.x,dz=b.y-a.y;
+   if(Math.abs(dx)+Math.abs(dz)>.001){targetYaw=Math.atan2(dx,dz);rt.lastWalkYaw=targetYaw;}
+   else if(Number.isFinite(rt.lastWalkYaw))targetYaw=rt.lastWalkYaw;
+  }else if(state==="sit"&&Number.isFinite(rt?.lastWalkYaw))targetYaw=rt.lastWalkYaw;
+  const yawDelta=Math.atan2(Math.sin(targetYaw-g.rotation.y),Math.cos(targetYaw-g.rotation.y));
+  g.rotation.y+=yawDelta*(1-Math.exp(-frameDt*(walking?8:5)));
+  const stride=now*9;
+  g.userData.legs.forEach((l,i)=>{
+   const phase=stride+i*Math.PI,step=Math.sin(phase);
+   const seatedThigh=-1.18,walkThigh=step*.42;
+   const seatedKnee=1.18,walkKnee=Math.max(0,-step)*.78;
+   l.thigh.rotation.x=seatedThigh*(1-blend)+walkThigh*blend;
+   l.knee.rotation.x=seatedKnee*(1-blend)+walkKnee*blend;
+   l.foot.rotation.x=-l.thigh.rotation.x-l.knee.rotation.x+(walking?-.12:0);
+  });
+  g.userData.arms.forEach((a,i)=>{
+   const phase=stride+i*Math.PI,armSwing=Math.sin(phase)*.48;
+   const typing=Math.sin(now*12+i*Math.PI);
+   const seatedShoulder=-.62+typing*.035,walkingShoulder=armSwing;
+   const seatedElbow=-.2-Math.max(0,typing)*.12,walkingElbow=-.28+Math.max(0,-Math.sin(phase))*.2;
+   a.shoulder.rotation.x=seatedShoulder*(1-blend)+walkingShoulder*blend;
+   a.shoulder.rotation.z=a.side*(.035+blend*.025);
+   a.elbow.rotation.x=seatedElbow*(1-blend)+walkingElbow*blend;
+   a.hand.rotation.x=blend?Math.sin(phase+.6)*.12:typing*.16;
+   a.hand.rotation.z=a.side*(blend*.12);
+  });
+  g.userData.torso.rotation.x=(walking?-.045:0)+(state==="sleep"?.13:0);
+  g.userData.torso.rotation.z=state==="sleep"?.1:Math.sin(now*1.4+g.userData.blinkSeed)*.008;
+  g.userData.head.rotation.z=state==="sleep"?.3:Math.sin(now*1.7+g.userData.blinkSeed)*.018;
+  g.userData.head.rotation.x=walking?Math.sin(now*2+g.userData.blinkSeed)*.018:0;
+  const blinkCycle=(now*0.7+g.userData.blinkSeed)%4.8,blink=blinkCycle>4.58?Math.sin((blinkCycle-4.58)/.22*Math.PI):0;
+  g.userData.eyes.forEach(e=>{e.scale.y=.043*(1-.88*blink);});
+  g.userData.sleepLabel.visible=state==="sleep";g.userData.sleepLabel.position.y=1.68+Math.sin(now*2.4)*.05;
+ });
+ threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});
+ if(buildPreviewState)updateBuildPreviewVisual();updateThreeCamera();threeRenderer.render(threeScene,threeCamera);
 }
-const yawDelta=Math.atan2(Math.sin(targetYaw-g.rotation.y),Math.cos(targetYaw-g.rotation.y));
-g.rotation.y+=yawDelta*(state==="walk"?.22:.14);g.userData.arms.forEach((a,i)=>{const phase=now*11+i*Math.PI; if(state==="work"){a.shoulder.rotation.x=-.18+Math.sin(phase)*.035;a.elbow.rotation.x=-.12+Math.max(0,Math.sin(phase))*-.22;a.hand.rotation.x=Math.sin(phase)*.16;}else if(state==="walk"){a.shoulder.rotation.x=Math.sin(now*9+i*Math.PI)*.52;a.elbow.rotation.x=-.12;a.hand.rotation.x=0;}else if(state==="sleep"){a.shoulder.rotation.x=.42;a.elbow.rotation.x=.35;a.hand.rotation.x=.15;}else{a.shoulder.rotation.x=-.08;a.elbow.rotation.x=-.08;a.hand.rotation.x=0;}});g.userData.legs.forEach((l,i)=>{if(state==="walk"){const stride=Math.sin(now*9+i*Math.PI);l.thigh.rotation.x=1.18+stride*.24;l.knee.rotation.x=-1.18+Math.max(0,-stride)*.62;l.foot.rotation.x=-l.thigh.rotation.x-l.knee.rotation.x;}else{l.thigh.rotation.x=0;l.knee.rotation.x=0;l.foot.rotation.x=0;}});g.userData.head.rotation.z=state==="sleep"?.42:Math.sin(now*1.7)*.025;g.userData.torso.rotation.z=state==="sleep"?.16:0;g.userData.sleepLabel.visible=state==="sleep";g.userData.sleepLabel.position.y=1.65+Math.sin(now*2.4)*.05;});threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});if(buildPreviewState)updateBuildPreviewVisual();updateThreeCamera();threeRenderer.render(threeScene,threeCamera);}
+
 function resizeThree(){const r=canvas.getBoundingClientRect();threeWidth=window.innerWidth;threeHeight=window.innerHeight;threeRenderer.setSize(threeWidth,threeHeight,false);if(!threeCamera){threeCamera=new THREE.OrthographicCamera(-10,10,10,-10,.1,200);}updateThreeCamera();threeRenderer.render(threeScene,threeCamera);}
 
 const canvas=$("room");let ctx=canvas.getContext("2d");
@@ -786,44 +837,74 @@ function chooseEmployeeWalk(desk,layout,n=currentGridSize()){
 
 function startEmployeeWalk(desk,layout,n=currentGridSize()){
  const choice=chooseEmployeeWalk(desk,layout,n);if(!choice)return false;
- const old=employeeMotion.get(desk)||{};employeeMotion.set(desk,{...old,state:"walk",pos:{x:desk.x+.5,y:desk.y+.91},path:choice.path,index:0,progress:0,returning:false,pause:0,coffeeStop:!!choice.coffeeStop});
+ const old=employeeMotion.get(desk)||{};
+ employeeMotion.set(desk,{...old,state:"stand",timer:.58,pos:{x:desk.x+.5,y:desk.y+.5},path:choice.path,index:0,progress:0,returning:false,pause:0,coffeeStop:!!choice.coffeeStop,afterSit:"sleep"});
  return true;
 }
 function updateEmployeeMotion(dt,layout,n=currentGridSize()){
- const now=performance.now();
  layout.filter(o=>o.type==="desk").forEach(desk=>{
   let rt=employeeMotion.get(desk);
-  if(!rt){rt={state:"work",pos:{x:desk.x+.5,y:desk.y+.91},timer:6+Math.random()*5,path:null,index:0,progress:0,returning:false,pause:0};employeeMotion.set(desk,rt);}
-  if(rt.state==="sleep"){rt.timer-=dt;if(rt.timer<=0){rt.state="work";rt.timer=rt.coffeeUntil>Date.now()?8+Math.random()*5:4+Math.random()*4;}return;}
-  if(rt.state==="coffee"){rt.timer-=dt;if(rt.timer<=0){rt.coffeeUntil=Date.now()+45000;const home={x:desk.x,y:desk.y},start={x:Math.max(0,Math.min(n-1,Math.floor(rt.pos.x))),y:Math.max(0,Math.min(n-1,Math.floor(rt.pos.y)))},route=findEmployeePath(start,home,layout,desk,n);if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;rt.state="walk";rt.coffeeStop=false;}else{rt.state="work";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.timer=10;}}return;}
-  if(rt.state==="work"){rt.timer-=dt*(rt.coffeeUntil>Date.now()?1.35:1);if(rt.timer<=0){if(startEmployeeWalk(desk,layout,n)){rt=employeeMotion.get(desk);rt.state="walk";}else{rt.timer=5;}}return;}
-  if(rt.state!=="walk"||!rt.path)return;
-  if(rt.pause>0){rt.pause-=dt;if(rt.pause<=0&& !rt.returning){rt.path=rt.path.slice().reverse();rt.index=0;rt.progress=0;rt.returning=true;}return;}
-  if(rt.index>=rt.path.length-1){
-   if(!rt.returning){if(rt.coffeeStop){rt.state="coffee";rt.timer=2.8;rt.pause=0;rt.path=null;rt.coffeeStop=false;rt.coffeeUntil=Date.now()+45000;toast("Сотрудник выпил кофе · бодрость +45 сек");return;}rt.pause=1.2;return;}
-   rt.state="sleep";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.path=null;rt.timer=2.5+Math.random()*1.5;return;
-  }
-  const a=rt.path[rt.index],b=rt.path[rt.index+1];
-  if(!freeEmployeeCell(b.x,b.y,layout,desk,n)){ // An obstacle may have been built during the walk: recalculate a safe route home.
-   const home={x:desk.x,y:desk.y},route=findEmployeePath({x:Math.round(rt.pos.x-.5),y:Math.round(rt.pos.y-.5)},home,layout,desk,n);
-   if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;}else{rt.state="work";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.path=null;}
+  if(!rt){rt={state:"work",pos:{x:desk.x+.5,y:desk.y+.5},timer:6+Math.random()*5,path:null,index:0,progress:0,returning:false,pause:0};employeeMotion.set(desk,rt);}
+  if(rt.state==="work"||rt.state==="sleep"){
+   rt.timer-=dt*(rt.coffeeUntil>Date.now()?1.25:1);
+   if(rt.timer<=0){if(startEmployeeWalk(desk,layout,n)){rt=employeeMotion.get(desk);}else rt.timer=5;}
    return;
   }
-  rt.progress=Math.min(1,rt.progress+dt*1.15);
-  rt.pos={x:a.x+.5+(b.x-a.x)*rt.progress,y:a.y+.5+(b.y-a.y)*rt.progress};
+  if(rt.state==="stand"){
+   rt.timer-=dt;
+   if(rt.timer<=0){rt.state="walk";rt.timer=0;}
+   return;
+  }
+  if(rt.state==="sit"){
+   rt.timer-=dt;
+   if(rt.timer<=0){rt.state=rt.afterSit||"work";rt.afterSit=null;rt.pos={x:desk.x+.5,y:desk.y+.5};rt.path=null;rt.index=0;rt.progress=0;rt.returning=false;rt.timer=rt.state==="sleep"?2.5+Math.random()*1.5:6+Math.random()*5;}
+   return;
+  }
+  if(rt.state==="coffee"){
+   rt.timer-=dt;
+   if(rt.timer<=0){
+    rt.coffeeUntil=Date.now()+45000;
+    const home={x:desk.x,y:desk.y},start={x:Math.max(0,Math.min(n-1,Math.floor(rt.pos.x))),y:Math.max(0,Math.min(n-1,Math.floor(rt.pos.y)))},route=findEmployeePath(start,home,layout,desk,n);
+    if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;rt.state="walk";rt.coffeeStop=false;}
+    else{rt.state="sit";rt.timer=.62;rt.afterSit="work";}
+   }
+   return;
+  }
+  if(rt.state!=="walk"||!rt.path)return;
+  if(rt.pause>0){
+   rt.pause-=dt;
+   if(rt.pause<=0&&!rt.returning){rt.path=rt.path.slice().reverse();rt.index=0;rt.progress=0;rt.returning=true;}
+   return;
+  }
+  if(rt.index>=rt.path.length-1){
+   if(!rt.returning){
+    if(rt.coffeeStop){rt.state="coffee";rt.timer=2.8;rt.path=null;rt.coffeeStop=false;rt.coffeeUntil=Date.now()+45000;toast("Сотрудник выпил кофе · бодрость +45 сек");return;}
+    rt.pause=1.05;return;
+   }
+   rt.state="sit";rt.timer=.62;rt.afterSit="sleep";rt.path=null;rt.pos={x:desk.x+.5,y:desk.y+.5};return;
+  }
+  const a=rt.path[rt.index],b=rt.path[rt.index+1];
+  if(!freeEmployeeCell(b.x,b.y,layout,desk,n)){
+   const here={x:Math.max(0,Math.min(n-1,Math.floor(rt.pos.x))),y:Math.max(0,Math.min(n-1,Math.floor(rt.pos.y)))},route=findEmployeePath(here,{x:desk.x,y:desk.y},layout,desk,n);
+   if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;rt.pause=0;}
+   else{rt.state="sit";rt.timer=.62;rt.afterSit="work";rt.path=null;}
+   return;
+  }
+  rt.progress=Math.min(1,rt.progress+dt*1.28);
+  const t=rt.progress; // smoothstep keeps each tile transition continuous.
+  const eased=t*t*(3-2*t);
+  rt.pos={x:a.x+.5+(b.x-a.x)*eased,y:a.y+.5+(b.y-a.y)*eased};
   if(rt.progress>=1){rt.index++;rt.progress=0;}
  });
 }
 function wakeEmployee(desk){
  let rt=employeeMotion.get(desk);
- if(!rt){rt={state:"work",pos:{x:desk.x+.5,y:desk.y+.91},timer:8,path:null,index:0,progress:0,returning:false,pause:0};employeeMotion.set(desk,rt);}
- if(rt.state==="walk"){
-  const n=currentGridSize(),layout=currentLayout(),start={x:Math.max(0,Math.min(n-1,Math.floor(rt.pos.x))),y:Math.max(0,Math.min(n-1,Math.floor(rt.pos.y)))},home={x:desk.x,y:desk.y};
-  const route=findEmployeePath(start,home,layout,desk,n);
-  if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;rt.pause=0;rt.pos={x:start.x+.5,y:start.y+.5};toast("Сотрудник возвращается к рабочему месту");draw();return;}
+ if(!rt){rt={state:"work",pos:{x:desk.x+.5,y:desk.y+.5},timer:8,path:null,index:0,progress:0,returning:false,pause:0};employeeMotion.set(desk,rt);}
+ if(rt.state==="walk"||rt.state==="stand"||rt.state==="coffee"){
+  const n=currentGridSize(),layout=currentLayout(),start={x:Math.max(0,Math.min(n-1,Math.floor(rt.pos.x))),y:Math.max(0,Math.min(n-1,Math.floor(rt.pos.y)))},route=findEmployeePath(start,{x:desk.x,y:desk.y},layout,desk,n);
+  if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;rt.pause=0;rt.coffeeStop=false;rt.state="walk";rt.pos={x:start.x+.5,y:start.y+.5};toast("Сотрудник возвращается к рабочему месту");draw();return;}
  }
- rt.state="work";rt.path=null;rt.index=0;rt.progress=0;rt.returning=false;rt.pause=0;rt.pos={x:desk.x+.5,y:desk.y+.91};rt.timer=8;
- toast("Сотрудник вернулся к работе");draw();
+ rt.state="sit";rt.timer=.62;rt.afterSit="work";rt.path=null;rt.index=0;rt.progress=0;rt.returning=false;rt.pause=0;rt.pos={x:desk.x+.5,y:desk.y+.5};toast("Сотрудник возвращается к работе");draw();
 }
 function drawEmployeeOnFloor(desk){
  const rt=employeeMotion.get(desk);if(!rt)return;

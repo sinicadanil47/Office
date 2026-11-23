@@ -874,9 +874,11 @@ function addRoom3D(){
  const sideMat=mat(edgeColors[tier],.46,.35),under=mat(tier===4?0x171722:tier===3?0x101b24:0x333b40,.72,.18);
  let floor;
  if(tier===0){
-  // Basement slab: exact 5x5 footprint, top flush with wall bases, same floor image on all six faces.
-  const slabDepth=.28,floorMaterials=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0}));
-  floor=new THREE.Mesh(new THREE.BoxGeometry(n,slabDepth,n),floorMaterials);
+  // Basement slab extends beneath the full wall thickness and slightly beyond the room.
+  // The playable 5x5 grid remains n-by-n; only the supporting slab footprint is enlarged.
+  const slabDepth=.28,slabOverhang=.34,slabSize=n+slabOverhang*2;
+  const floorMaterials=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0}));
+  floor=new THREE.Mesh(new THREE.BoxGeometry(slabSize,slabDepth,slabSize),floorMaterials);
   floor.position.set(n/2,-slabDepth/2,n/2);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
   threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();
  }else{

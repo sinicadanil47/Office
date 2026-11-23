@@ -588,23 +588,116 @@ function updateThreeAtmosphere(now){
  if(k>=1)threeAtmosphereTransition=null;
 }
 function disposeThreeTree(root){if(!root)return;root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});}});}
+function makeInteriorFloorMaterial(tier,n){
+ const palettes=[
+  {base:"#343a40",line:"#414951",detail:"#59616a"},
+  {base:"#a68b6b",line:"#987a59",detail:"#c4ad8d"},
+  {base:"#555b68",line:"#666b76",detail:"#8a7868"},
+  {base:"#1b2b3b",line:"#243c4c",detail:"#315a62"},
+  {base:"#4a4650",line:"#5d5660",detail:"#9c815c"}
+ ],p=palettes[tier],c=document.createElement("canvas");c.width=512;c.height=512;
+ const x=c.getContext("2d");x.fillStyle=p.base;x.fillRect(0,0,512,512);
+ if(tier===1||tier===2||tier===4){
+  const plank=tier===1?64:128;
+  for(let y=0;y<512;y+=plank){x.fillStyle=p.line;x.fillRect(0,y,512,2);for(let xx=(y/plank%2)*plank/2;xx<512;xx+=plank){x.fillStyle=p.detail;x.fillRect(xx,y+3,1,plank-5);x.fillStyle="rgba(255,255,255,.045)";x.fillRect(0,y+5,512,2);}}
+  if(tier===4){x.strokeStyle="rgba(206,174,119,.18)";x.lineWidth=3;for(let q=0;q<=512;q+=128){x.beginPath();x.moveTo(q,0);x.lineTo(q,512);x.stroke();}}
+ }else{
+  const step=tier===0?64:48;x.strokeStyle=p.line;x.lineWidth=tier===0?2:1;
+  for(let q=0;q<=512;q+=step){x.beginPath();x.moveTo(q,0);x.lineTo(q,512);x.moveTo(0,q);x.lineTo(512,q);x.stroke();}
+  if(tier===3){x.strokeStyle="rgba(55,210,204,.12)";x.lineWidth=3;for(let q=24;q<512;q+=96){x.beginPath();x.moveTo(q,0);x.lineTo(q,512);x.stroke();}}
+ }
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(Math.max(1,n*.55),Math.max(1,n*.55));tex.anisotropy=Math.min(8,threeRenderer.capabilities.getMaxAnisotropy());
+ return new THREE.MeshStandardMaterial({color:0xffffff,map:tex,roughness:tier===4?.42:.88,metalness:tier===4?.12:0});
+}
+function addBackWindow(parent,x,y,z,w,h,theme){
+ const frame=mat(theme.frame,.48,.28),glass=mat(theme.glass,.22,.35,{emissive:theme.glow,emissiveIntensity:theme.glowI,transparent:true,opacity:.88}),bar=mat(theme.bar,.42,.2);
+ boxMesh(parent,x,y,z,w,h,.055,frame);
+ boxMesh(parent,x,y+.055,z+.032,w-.105,h-.11,.018,glass);
+ boxMesh(parent,x,y+h*.5,z+.047,.025,h-.12,.018,bar);
+ boxMesh(parent,x,y+h*.5,z+.047,w-.12,.025,.018,bar);
+ boxMesh(parent,x,y-.045,z+.055,w+.08,.045,.075,bar);
+}
+function addInteriorDecor(parent,n,tier,wallH){
+ const themes=[
+  {wall:0x343b42,trim:0x69727a,frame:0x202b32,glass:0x526c78,glow:0x1b3540,glowI:.35,bar:0x9a773f,accent:0xe0ad42},
+  {wall:0xe3e4df,trim:0xb7a58b,frame:0x667d86,glass:0x9ed4e5,glow:0x5ba9c6,glowI:.3,bar:0xf1e4cd,accent:0x6d947b},
+  {wall:0x4c4650,trim:0xb18b65,frame:0x392f34,glass:0xf1b989,glow:0xd47d54,glowI:.3,bar:0xd6b17a,accent:0xe4bd7b},
+  {wall:0x10252f,trim:0x24616a,frame:0x071923,glass:0x1d6374,glow:0x27d9cf,glowI:.8,bar:0x32aeb0,accent:0x41e1d0},
+  {wall:0x211f29,trim:0xc3a36c,frame:0x151721,glass:0x879eb1,glow:0xd2a66a,glowI:.32,bar:0xe2c58d,accent:0xe6c17c}
+ ],t=themes[tier],wall=mat(t.wall,.9),trim=mat(t.trim,.55,.18),accent=mat(t.accent,.38,.3,{emissive:tier===3?t.accent:0x000000,emissiveIntensity:tier===3?.65:0});
+ // Continuous skirting, corner uprights and a clean architectural top rail.
+ boxMesh(parent,n/2,.02,.025,n,.12,.07,trim);
+ boxMesh(parent,.025,.02,n/2,.07,.12,n,trim);
+ boxMesh(parent,n/2,wallH-.18,-.015,n,.16,.12,trim);
+ boxMesh(parent,-.015,wallH-.18,n/2,.12,.16,n,trim);
+ for(let k=1;k<4;k++){
+  const x=n*k/4;
+  boxMesh(parent,x,.14,.012,.035,wallH-.38,.045,tier===3?accent:trim);
+  boxMesh(parent,.012,.14,x,.045,wallH-.38,.035,tier===3?accent:trim);
+ }
+ if(tier===0){
+  // Industrial basement: ventilation, exposed conduit and safety markings.
+  for(let i=0;i<3;i++){
+   const yy=.55+i*.52;
+   lineMesh(parent,new THREE.Vector3(.18,yy,-.005),new THREE.Vector3(n-.18,yy,-.005),.018,mat(i===1?0x687982:0x48545c,.72,.25));
+  }
+  for(let i=0;i<Math.floor(n/2);i++){
+   const x=.55+i*2;
+   boxMesh(parent,x,.2,.045,.34,.22,.025,mat(0x202a30));
+   for(let q=0;q<4;q++)boxMesh(parent,x-.12+q*.08,.25,.064,.035,.12,.012,mat(0x87939a));
+  }
+  for(let i=0;i<8;i++)boxMesh(parent,.25+i*.16,.025,.34,.09,.012,.05,mat(i%2?0x272e34:0xe0ae42));
+ }else if(tier===1){
+  // Bright coworking: broad daylight windows and warm timber wall inserts.
+  const count=Math.max(2,Math.min(4,Math.floor(n/2)));
+  for(let i=0;i<count;i++){const x=(i+1)*n/(count+1);addBackWindow(parent,x,1.05,-.012,Math.min(1.05,n/(count+1)*.72),1.42,t);}
+  for(let i=0;i<5;i++)boxMesh(parent,.35+i*.34,.35,.055,.12,1.05,.035,mat(0xb58c60));
+  boxMesh(parent,n/2,.48,.08,Math.min(1.4,n*.28),.48,.045,mat(0xf4ead9));
+ }else if(tier===2){
+  // Executive floor: sunset glazing, walnut panels and brass details.
+  const count=Math.max(2,Math.min(4,Math.floor(n/2)));
+  for(let i=0;i<count;i++){const x=(i+1)*n/(count+1);addBackWindow(parent,x,1.0,-.012,Math.min(1.18,n/(count+1)*.78),1.58,t);}
+  for(let i=0;i<Math.floor(n*1.2);i++){const x=.22+i*.82;boxMesh(parent,x,.22,.055,.035,wallH-.55,.035,mat(0x795d4b));}
+  boxMesh(parent,n/2,.48,.085,Math.min(1.2,n*.24),.42,.035,mat(0x9a765a));
+ }else if(tier===3){
+  // IT floor: luminous data panels, rack indicators and cyan cable channels.
+  for(let i=0;i<Math.max(3,Math.floor(n/1.7));i++){
+   const x=.55+i*(n-1.1)/Math.max(2,Math.floor(n/1.7)-1);
+   boxMesh(parent,x,.72,-.012,.52,.9,.045,mat(0x091923));
+   boxMesh(parent,x,.82,.018,.43,.66,.018,mat(i%2?0x16414d:0x183b4b,.3,.25,{emissive:i%2?0x0b6972:0x123d64,emissiveIntensity:.75}));
+   for(let q=0;q<3;q++)boxMesh(parent,x-.14+q*.14,.32,.04,.055,.025,.025,accent);
+  }
+  boxMesh(parent,n/2,.16,.065,n-.5,.035,.045,accent);
+  boxMesh(parent,.065,.16,n/2,.045,.035,n-.5,accent);
+ }else{
+  // Penthouse: panoramic glazing, marble-like floor and warm brass framing.
+  const count=Math.max(2,Math.min(4,Math.floor(n/2)));
+  for(let i=0;i<count;i++){const x=(i+1)*n/(count+1);addBackWindow(parent,x,.72,-.012,Math.min(1.35,n/(count+1)*.82),1.9,t);}
+  for(let i=0;i<4;i++)boxMesh(parent,.4+i*(n-.8)/3,.18,.065,.035,wallH-.38,.045,accent);
+  boxMesh(parent,n/2,.28,.09,n-.6,.035,.045,accent);
+  // A restrained framed feature panel gives the room a finished focal wall.
+  boxMesh(parent,n/2,2.72,.035,Math.min(1.45,n*.28),.08,.06,mat(0x9b815f));
+ }
+}
 function addRoom3D(){
  if(threeFloorGroup){threeRoot.remove(threeFloorGroup);disposeThreeTree(threeFloorGroup);}
  threeFloorGroup=new THREE.Group();threeRoot.add(threeFloorGroup);
  const n=currentGridSize(),tier=currentFloorTier();
- const colors=[0x42484d,0x98714d,0x263c5b,0x15383e,0x29272d];
- const floorMat=mat(colors[tier],.88),edge=mat(tier===4?0xc59a4b:tier===3?0x287f83:0x53677a,.55,.25);
- const wallColors=[0x34383d,0xc2cbd0,0x172a42,0x102c31,0x1c1a20];
+ const colors=[0x42484d,0xa68b6b,0x555b68,0x1b2b3b,0x4a4650];
+ const edgeColors=[0x69727a,0xc2a77e,0xb18b65,0x287f83,0xc59a4b];
+ const floorMat=makeInteriorFloorMaterial(tier,n),edge=mat(edgeColors[tier],.48,.22);
+ const wallColors=[0x343b42,0xe3e4df,0x4c4650,0x10252f,0x211f29];
  const wallMat=mat(wallColors[tier],.86,0);
  const floor=new THREE.Mesh(new THREE.BoxGeometry(n,.16,n),floorMat);
  floor.position.set(n/2,-.09,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
- const grid=new THREE.GridHelper(n,n,tier===4?0xc49a51:tier===3?0x287f83:0x7a8da0,0x64778b);
- grid.position.set(n/2,.002,n/2);grid.material.transparent=true;grid.material.opacity=.2;threeFloorGroup.add(grid);
+ const grid=new THREE.GridHelper(n,n,tier===4?0xc49a51:tier===3?0x287f83:0x7a8da0);
+ grid.position.set(n/2,.002,n/2);grid.material.transparent=true;grid.material.opacity=tier===1?.1:.17;threeFloorGroup.add(grid);
  boxMesh(threeFloorGroup,n/2,-.2,n/2,n+.18,.12,n+.18,edge);
- // These are the only room walls: the two rear sides of the isometric room.
  const wallH=tier===0?2.2:3.1;
  boxMesh(threeFloorGroup,n/2,0,-.1,n,wallH,.18,wallMat);
  boxMesh(threeFloorGroup,-.1,0,n/2,.18,wallH,n,wallMat);
+ addInteriorDecor(threeFloorGroup,n,tier,wallH);
+ // Accent rails remain attached to the room perimeter, never the walkable tiles.
  if(tier===3||tier===4){
   const glow=mat(tier===4?0xc69a55:0x27bdb6,.3,.15,{emissive:tier===4?0x72501c:0x075b59,emissiveIntensity:.55});
   boxMesh(threeFloorGroup,n/2,.08,-.24,n,.035,.035,glow);

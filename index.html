@@ -735,8 +735,10 @@ function addInteriorDecor(parent,n,tier,wallH){
   const windowTheme={frame:0x252d38,glass:0xeab58d,glow:0xffbd80,glowI:.28,bar:0xb68d66};
   addArchitecturalWindow(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,windowTheme);
   addWindowBackdrop(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,2);
-  addArchitecturalWindow(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,windowTheme);\n  addWindowBackdrop(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,2);
-  addArchitecturalWindow(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,windowTheme);\n  addWindowBackdrop(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,2);
+  addArchitecturalWindow(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,windowTheme);
+  addWindowBackdrop(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,2);
+  addArchitecturalWindow(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,windowTheme);
+  addWindowBackdrop(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,2);
   // Deep stone-clad piers at both exposed rear corners.
   for(const [x,z] of [[.14,.12],[n-.14,.12]]){
    back(x,0,z,.28,wallH,.28,M(0x737b80,.45,.22));
@@ -769,7 +771,8 @@ function addInteriorDecor(parent,n,tier,wallH){
   // Penthouse: transparent panoramic guard-glazing, gold posts and a premium stone reveal.
   const glass=mat(0x9eb6c9,.16,.22,{transparent:true,opacity:.22,depthWrite:false,side:THREE.DoubleSide});
   const gold=M(0xd8b778,.3,.72),darkFrame=M(0x252432,.48,.35);
-  back(n/2,.72,.055,n-.35,wallH-.72,.035,glass);\n  addWindowBackdrop(parent,"back",n/2,.72,n-.45,wallH-.72,4);
+  back(n/2,.72,.055,n-.35,wallH-.72,.035,glass);
+  addWindowBackdrop(parent,"back",n/2,.72,n-.45,wallH-.72,4);
   side(.055,.72,n/2,.035,wallH-.72,n-.35,glass);
   const posts=Math.max(4,Math.floor(n/2));
   for(let i=0;i<=posts;i++){

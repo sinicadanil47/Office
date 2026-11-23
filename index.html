@@ -353,7 +353,7 @@ const basementTextureCache={};
 function loadBasementTexture(key,files){
  const tex=new THREE.Texture();tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;basementTextureCache[key]=tex;
  let attempt=0;
- const next=()=>{if(attempt>=files.length){console.warn("Basement texture unavailable:",key,files);return;}const file=files[attempt++];basementTextureLoader.load(file,loaded=>{tex.copy(loaded);tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.needsUpdate=true;applyBasementTextures();},undefined,()=>next());};
+ const next=()=>{if(attempt>=files.length){console.error("Basement texture failed to load:",key,files);return;}const file=files[attempt++],url=new URL(file,document.baseURI).href;basementTextureLoader.load(url,loaded=>{tex.image=loaded.image;tex.source=loaded.source;tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.needsUpdate=true;console.info("Basement texture loaded:",key,url,loaded.image?.width,loaded.image?.height);applyBasementTextures();},undefined,error=>{console.error("Basement texture request failed:",url,error);next();});};
  next();return tex;
 }
 const basementFloorTex=loadBasementTexture("floor",["textures/basement_floor.PNG","textures/basement_floor.png"]);
@@ -362,7 +362,7 @@ const basementWallRightTex=loadBasementTexture("wallRight",["textures/basement_w
 function applyBasementTextures(){
  if(currentFloorTier()!==0||!threeFloorGroup)return;
  const floor=threeFloorGroup.userData.basementFloor;
- if(floor&&basementFloorTex?.image){floor.material.map=basementFloorTex;floor.material.color.set(0xffffff);floor.material.roughness=.7;floor.material.metalness=.1;floor.material.needsUpdate=true;}
+ if(floor&&basementFloorTex?.image){floor.material.map=basementFloorTex;floor.material.color.set(0xffffff);floor.material.bumpMap=null;floor.material.roughnessMap=null;floor.material.normalMap=null;floor.material.roughness=.82;floor.material.metalness=.02;floor.material.needsUpdate=true;}
  const walls=threeFloorGroup.userData.basementWalls;
  if(walls){if(basementWallLeftTex?.image){walls.left.material.map=basementWallLeftTex;walls.left.visible=true;}if(basementWallRightTex?.image){walls.right.material.map=basementWallRightTex;walls.right.visible=true;}[walls.left,walls.right].forEach(m=>{m.material.color.set(0xffffff);m.material.needsUpdate=true;});}
 }
@@ -913,8 +913,6 @@ function addRoom3D(){
  const wallMat=tier===4?mat(0x9eb6c9,.25,.18,{transparent:true,opacity:.12,depthWrite:false}):mat(wallColors[tier],tier===2?.48:.84,tier===2?.08:0);
  // Exactly two rear walls. Their fronts remain fully open for the isometric cutaway view.
  if(tier===0){
-  boxMesh(threeFloorGroup,n/2,0,-.105,n+.06,wallH,.22,wallMat);
-  boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
   const leftMat=new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex||null,roughness:.86,metalness:.04});
   const rightMat=new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex||null,roughness:.86,metalness:.04});
   const leftWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),leftMat);leftWall.position.set(n/2,wallH/2,-.222);leftWall.receiveShadow=true;leftWall.visible=!!basementWallLeftTex.image;threeFloorGroup.add(leftWall);

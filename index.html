@@ -799,7 +799,7 @@ function addInteriorDecor(parent,n,tier,wallH){
   for(let k=0;k<7;k++)back(.72,.91+k*.065,.205,.64,.018,.018,vent);
   for(let k=0;k<3;k++)lineMesh(parent,new THREE.Vector3(.2,1.95+k*.12,.095),new THREE.Vector3(n-.2,1.95+k*.12,.095),.035,mat(k===1?0xb46f42:0x78868c,.38,.78));
   const dustMat=new THREE.MeshBasicMaterial({color:0xffd9a1,transparent:true,opacity:.45});
-  for(let i=0;i<22;i++){const mote=new THREE.Mesh(new THREE.SphereGeometry(.012+(i%3)*.004,6,5),dustMat);mote.position.set(n*.35+(i%7)*.12,1.35+(i%5)*.17,.55+(i%4)*.22);mote.userData.dustMote=true;parent.add(mote);}
+  for(let i=0;i<22;i++){const mote=new THREE.Mesh(new THREE.SphereGeometry(.012+(i%3)*.004,6,5),dustMat);mote.position.set(n*.35+(i%7)*.12,1.35+(i%5)*.17,.55+(i%4)*.22);mote.userData.dustMote=true;mote.userData.baseX=mote.position.x;mote.userData.baseY=mote.position.y;parent.add(mote);}
  }else if(tier===1){
   const shelf=mat(0x8b603d,.58,.12),bookColors=[0x456b75,0xb66d4d,0xd0ad72,0x526b52,0xeee1c7];
   back(n/2,.72,.17,1.02,.075,.30,shelf);back(n/2,1.18,.17,1.02,.075,.30,shelf);
@@ -827,7 +827,7 @@ function addInteriorDecor(parent,n,tier,wallH){
   addPremiumPalm(parent,.48,.48,1.0);addPremiumPalm(parent,n-.48,.48,.92);
   const glow=mat(0xffd39a,.24,.12,{emissive:0xffc477,emissiveIntensity:1.1});
   back(n/2,.055,.14,n-.7,.025,.05,glow);side(.14,.055,n/2,.05,.025,n-.7,glow);
-  for(let i=0;i<7;i++){const cloud=new THREE.Mesh(new THREE.SphereGeometry(.8+(i%3)*.25,10,8),new THREE.MeshBasicMaterial({color:i%2?0x8a8ba8:0xc5a58d,transparent:true,opacity:.12,depthWrite:false}));cloud.scale.set(1.7,.32,.72);cloud.position.set(-.8+i*2.25,-.78,n+.18+(i%2)*.2);parent.add(cloud);}
+  for(let i=0;i<7;i++){const cloud=new THREE.Mesh(new THREE.SphereGeometry(.8+(i%3)*.25,10,8),new THREE.MeshBasicMaterial({color:i%2?0x8a8ba8:0xc5a58d,transparent:true,opacity:.12,depthWrite:false}));cloud.scale.set(1.7,.22,.72);cloud.position.set(-.8+i*2.25,-1.08,n+.18+(i%2)*.2);parent.add(cloud);}
  }
  // Architectural corner uprights and a fine ceiling-edge reveal; no roof or front wall is created.
  if(tier!==2&&tier!==4){
@@ -982,7 +982,7 @@ function renderThreeScene(){
   g.userData.sleepLabel.visible=state==="sleep";g.userData.sleepLabel.position.y=1.68+Math.sin(now*2.4)*.05;
  });
  threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});
- threeFloorGroup?.traverse(o=>{if(o.userData.dustMote){o.position.y+=Math.sin(now*1.7+o.position.x)*.0008;o.position.x+=Math.sin(now*.7+o.position.z)*.00035;}});
+ threeFloorGroup?.traverse(o=>{if(o.userData.dustMote){o.position.y=o.userData.baseY+Math.sin(now*1.7+o.userData.baseX)*.035;o.position.x=o.userData.baseX+Math.sin(now*.7+o.userData.baseY)*.045;}});
  if(buildPreviewState)updateBuildPreviewVisual();
  const hover=threeFloorGroup?.userData.hoverTile,hoverActive=!!(pointer&&!buildPreviewState&&!state.viewing&&(state.selected||moveMode)&&pointer.x>=0&&pointer.y>=0&&pointer.x<currentGridSize()&&pointer.y<currentGridSize());
  if(hover){hover.visible=hoverActive;if(hoverActive)hover.position.set(pointer.x,0,pointer.y);}

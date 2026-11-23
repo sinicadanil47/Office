@@ -377,39 +377,145 @@ function addEnvCloud(parent,x,y,z,scale,color=0xdce9ee,opacity=.72){
  envSphere(parent,x-.52*scale,y+.12*scale,z+.04*scale,.55*scale,color,opacity);
  envSphere(parent,x+.48*scale,y+.08*scale,z-.06*scale,.62*scale,color,opacity);
 }
+function addEnvTree(g,x,z,scale=1){
+ envBox(g,x,-.02,z,.2*scale,1.25*scale,.2*scale,0x70513b);
+ envSphere(g,x,1.25*scale,z,.95*scale,0x477a58,1,[1.05,1.15,.95]);
+ envSphere(g,x-.5*scale,1.55*scale,z+.08,.58*scale,0x5b9567);
+ envSphere(g,x+.48*scale,1.48*scale,z-.06,.62*scale,0x6b9d70);
+}
+function addEnvBuilding(g,x,z,w,d,h,tier,side){
+ const palette=tier===2?[0x45536a,0x59677b,0x35445c]:tier===3?[0x111a36,0x172747,0x20294b]:[0x292d46,0x343650,0x1c2940];
+ const body=palette[Math.abs(Math.floor(x*7+z*3))%palette.length];
+ envBox(g,x,-.05,z,w,h,d,body);
+ const rows=Math.min(13,Math.floor(h/.82)),cols=Math.max(2,Math.floor(w/.58));
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+  const lit=((r*13+c*7+Math.floor(x*3+z))%6)!==0;
+  const winColor=tier===2?0xffc58a:tier===3?(lit?0x68dce0:0x304a6c):(lit?0xffd18b:0x35445f);
+  const glow=tier===2?0xc4773f:tier===3?(lit?0x087f8b:0x000000):(lit?0xa96a27:0x000000);
+  if(side==="north"||side==="south"){
+   const faceZ=z+(side==="north"?d/2+.014:-d/2-.014);
+   envBox(g,x-w/2+.22+c*.52,-.02+r*.78,faceZ,.24,.34,.028,winColor,lit?glow:null);
+  }else{
+   const faceX=x+(side==="west"?w/2+.014:-w/2-.014);
+   envBox(g,faceX,-.02+r*.78,z-d/2+.22+c*.52,.028,.34,.24,winColor,lit?glow:null);
+  }
+ }
+}
+function addCityBackdrop(g,n,tier){
+ const center=n/2,spacing=2.15;
+ for(let i=0;i<9;i++){
+  const x=-5+i*spacing,depth=-(4.7+(i%3)*1.15),w=1.25+(i%3)*.22,d=.85+(i%2)*.25,h=(tier===2?3.4:5.5)+((i*7)%8)*(tier===2?.48:.9);
+  addEnvBuilding(g,x,depth,w,d,h,tier,"north");
+ }
+ for(let i=0;i<9;i++){
+  const x=-5+i*spacing,depth=n+4.8+(i%3)*1.1,w=1.3+(i%2)*.25,d=.9,h=(tier===2?2.8:5)+((i*5)%7)*(tier===2?.42:.88);
+  addEnvBuilding(g,x,depth,w,d,h,tier,"south");
+ }
+ for(let i=0;i<7;i++){
+  const z=-3+i*spacing;
+  const h=(tier===2?3.2:5.4)+((i*3)%7)*(tier===2?.45:.85);
+  addEnvBuilding(g,-4.8,z,1,h*.0+1,h,tier,"west");
+  addEnvBuilding(g,n+4.8,z,1,1.2,h*.82,tier,"east");
+ }
+ if(tier===2){
+  for(let i=0;i<5;i++){addEnvTree(g,-2+i*(n+4)/4,n+2.2,.8+(i%2)*.18);}
+  for(let i=0;i<4;i++)addEnvCloud(g,center-6+i*4,7+(i%2),-10-i,.95,0xf1e8dc,.62);
+ }else{
+  for(let i=0;i<4;i++)envBox(g,center-5+i*3.2,.02,-5.1,.16,1.8,.16,0x202c48);
+ }
+}
 function buildFloorEnvironment(tier,n){
  if(threeEnvironmentGroup){threeScene.remove(threeEnvironmentGroup);disposeThreeTree(threeEnvironmentGroup);}
  const g=new THREE.Group();threeEnvironmentGroup=g;threeScene.add(g);
- const backZ=-n*.72-7,center=n/2;
+ const center=n/2,outer=n+6;
+ if(tier===0){
+  // Subterranean service level: concrete retaining walls, pillars, ducts and a low ceiling.
+  const concrete=0x343b43,edge=0x58616a,pipe=0x87949a;
+  envBox(g,center,-.35,-3.4,outer,6.2,.55,concrete);
+  envBox(g,-3.4,-.35,center,.55,6.2,outer,concrete);
+  envBox(g,n+3.4,-.35,center,.55,6.2,outer,concrete);
+  envBox(g,center,5.55,center,outer,.28,outer,0x252c33);
+  for(let x=-2.7;x<=n+2.7;x+=3.8){
+   envBox(g,x,-.1,-2.8,.38,5.5,.48,edge);
+   envBox(g,x,5.1,center,.34,.34,outer,edge);
+  }
+  for(let z=-2.8;z<=n+2.8;z+=3.8)envBox(g,-2.8,-.1,z,.48,5.5,.38,edge);
+  for(let i=0;i<3;i++){
+   const y=4.65-i*.42;
+   const pipeMesh=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,outer-.5,12),new THREE.MeshStandardMaterial({color:i===1?0x9b694b:pipe,metalness:.68,roughness:.36}));
+   pipeMesh.rotation.x=Math.PI/2;pipeMesh.position.set(center,y,-1.9+i*.42);g.add(pipeMesh);
+  }
+  for(let i=0;i<5;i++){
+   const x=-1.6+i*2.1;
+   envBox(g,x,.15,-3.05,.48,2.4,.08,0x1d252c);
+   envBox(g,x,2.45,-3.05,.55,.13,.12,0xc17b3c,0x9a4a17);
+  }
+  for(let i=0;i<4;i++){
+   const x=-2+i*(n+4)/3;
+   envBox(g,x,1.2,n+3.1,.14,2.8,.14,0x4a535b);
+   envBox(g,x,2.5,n+3.02,.42,.08,.12,0xd28a3c,0x9c501a);
+  }
+  // A lit maintenance doorway and ventilation grilles make the space read as a real basement.
+  envBox(g,center,0,-3.08,1.8,2.9,.12,0x171e25);
+  envBox(g,center,0,-3.16,1.45,2.55,.06,0x29343c);
+  for(let r=0;r<8;r++)envBox(g,center-.52,.32+r*.27,-3.205,1.04,.035,.025,0x69747b);
+  envBox(g,center+2.4,3.9,-3.03,1.4,.72,.1,0x252d34);
+  for(let i=0;i<7;i++)envBox(g,center+1.82+i*.19,3.95,-3.1,.045,.58,.04,0x79838a);
+ }
  if(tier===1){
-  for(let i=0;i<3;i++){const x=center+(i-1)*(n*.43);addEnvCloud(g,x,3.7+(i%2)*.45,backZ-1-i*.7,.92,0xe8f0e8,.68);}
-  const trunk=0x725d45,foliage=[0x477d62,0x5b956c,0x709f75];
-  for(let i=0;i<3;i++){const x=center+(i-1)*(n*.47);envBox(g,x,.05,backZ+1,.18,1.25,.18,trunk);envSphere(g,x,1.7,backZ+1,.95,foliage[i],1,[1.1,1.05,.85]);envSphere(g,x-.48,1.45,backZ+1.1,.62,foliage[(i+1)%3]);}
+  // Open coworking campus: low pavilions, landscaped planters and a bright courtyard.
+  envBox(g,center,-.3,-5.5,n+18,.28,.22,0x9a9d8b);
+  for(let i=0;i<7;i++){
+   const x=-4+i*3.5;
+   envBox(g,x,-.1,-7,2.8,2.2,1.15,0xc6c2b2);
+   envBox(g,x,1.2,-7.62,3,.18,.12,0xe6d5b5);
+   for(let r=0;r<2;r++)for(let c=0;c<3;c++)envBox(g,x-.8+c*.8,.35+r*.68,-7.59,.46,.42,.035,0x87b7c7);
+  }
+  for(let i=0;i<9;i++)addEnvTree(g,-3+i*2.5,n+2.5+(i%2)*.6,.95+(i%3)*.12);
+  for(let i=0;i<5;i++)addEnvCloud(g,center-8+i*4,6+(i%2)*.7,-11-i*.3,1.35,0xf0f1ec,.82);
+  envSphere(g,n+4,8,-8,1.15,0xffe2a7,.92,[1,1,.2]);
+  for(let i=0;i<5;i++)envBox(g,-2+i*3.5,-.05,n+4,.95,.5,.95,0x687d58);
  }
  if(tier===2||tier===3){
-  const count= tier===2?9:13;
-  for(let i=0;i<count;i++){
-   const x=center+(i-(count-1)/2)*1.55,depth=backZ-(i%3)*1.2,h=(tier===2?2.2:3.1)+(Math.abs(Math.sin(i*2.17))*(tier===2?3.3:5.1)),w=.9+(i%3)*.2;
-   envBox(g,x,-.05,depth,w,h,.72,tier===2?0x34445d:0x101a39);
-   if(tier===2){
-    for(let row=0;row<Math.min(4,Math.floor(h/.8));row++)envBox(g,x,-.02+row*.72,depth+.37,w*.58,.045,.025,0xf2b27a,0xe58d50);
-   }else{
-    for(let row=0;row<Math.min(7,Math.floor(h/.62));row++)for(let col=0;col<2;col++)envBox(g,x-w*.25+col*w*.5,.18+row*.62,depth+.38,.12,.2,.025,0x75c8d5,(i+row+col)%3?0x1a7d9b:0xe0a45c);
+  addCityBackdrop(g,n,tier);
+  if(tier===2){
+   // The business centre sits above a warm, hazy city at sunset.
+   envSphere(g,n+2,9,-9,1.35,0xffc27e,.95,[1,1,.22]);
+   for(let i=0;i<5;i++)addEnvCloud(g,-3+i*4,5.6+(i%2)*.7,-12,.9,0xf0b995,.38);
+  }else{
+   // Distant tower tops and neon crowns surround the IT skyscraper at night.
+   for(let i=0;i<8;i++){
+    const x=-4+i*2.7,z=-7-(i%3)*1.3,h=8+(i*7)%10;
+    envBox(g,x,h-.25,z,1.2,.5,.7,0x20d7d0,0x087e83);
+    envBox(g,x,0,z,.045,h,.045,0x1e536b,0x073849);
    }
   }
  }
- if(tier===1||tier===2){
-  for(let i=0;i<4;i++)addEnvCloud(g,center-5+i*3.2,2.8+(i%2)*.5,backZ-3,.7,0xf3e9dc,.45);
- }
- if(tier===3){
-  const starPositions=[];for(let i=0;i<150;i++){const x=center-18+((i*37)%360)/10,y=5+((i*19)%110)/10,z=backZ-8-(i%5)*2;starPositions.push(x,y,z);}
-  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(starPositions,3));const stars=new THREE.Points(geo,new THREE.PointsMaterial({color:0xb7d9ff,size:.075,transparent:true,opacity:.8,sizeAttenuation:false}));g.add(stars);
- }
  if(tier===4){
-  const starPositions=[];for(let i=0;i<230;i++){const x=center-22+((i*53)%440)/10,y=5+((i*29)%145)/10,z=backZ-10-(i%7)*2;starPositions.push(x,y,z);}
-  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(starPositions,3));g.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xffe2b4,size:.09,transparent:true,opacity:.9,sizeAttenuation:false})));
-  for(let i=0;i<13;i++){const a=i*Math.PI*2/13,x=center+Math.cos(a)*(n*.72+2.8),z=center+Math.sin(a)*(n*.72+2.8);addEnvCloud(g,x,-1.05,z,1.05,0xb9c8da,.35);}
-  for(let i=0;i<5;i++)addEnvCloud(g,center-7+i*3.5,-1.35,backZ+2,.95,0xd9d6dc,.28);
+  // Penthouse rooftop: parapet, glass balustrade, rooftop fixtures and cloud sea below.
+  const rail=0x8794a8;
+  envBox(g,center,-.15,-2.7,n+5,.12,.12,rail);
+  envBox(g,center,-.15,n+2.7,n+5,.12,.12,rail);
+  envBox(g,-2.7,-.15,center,.12,.12,n+5,rail);
+  envBox(g,n+2.7,-.15,center,.12,.12,n+5,rail);
+  for(let x=-2.7;x<=n+2.7;x+=1.5){
+   envBox(g,x,.05,-2.7,.045,1.15,.045,0x8d9cad);
+   envBox(g,x,.05,n+2.7,.045,1.15,.045,0x8d9cad);
+  }
+  for(let z=-2.7;z<=n+2.7;z+=1.5){
+   envBox(g,-2.7,.05,z,.045,1.15,.045,0x8d9cad);
+   envBox(g,n+2.7,.05,z,.045,1.15,.045,0x8d9cad);
+  }
+  addCityBackdrop(g,n,3);
+  for(let i=0;i<19;i++){
+   const x=-7+i*1.35,z=-2.5-(i%4)*2.3;
+   addEnvCloud(g,x,-1.5-(i%3)*.22,z,1.35+(i%2)*.3,0xd5dce8,.38);
+  }
+  for(let i=0;i<15;i++)addEnvCloud(g,-5+i*1.8,-1.7,-5+(i%3)*3.6,1.1,0xcbd5e3,.25);
+  const starPositions=[];
+  for(let i=0;i<260;i++){const x=-18+((i*53)%520)/10,y=6+((i*29)%160)/10,z=-16-(i%7)*2;starPositions.push(x,y,z);}
+  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(starPositions,3));
+  g.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xffe2b4,size:.11,transparent:true,opacity:.9,sizeAttenuation:false})));
  }
  return g;
 }
@@ -430,7 +536,7 @@ function updateThreeAtmosphere(now){
  if(k>=1)threeAtmosphereTransition=null;
 }
 function disposeThreeTree(root){if(!root)return;root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});}});}
-function addRoom3D(){if(threeFloorGroup){threeRoot.remove(threeFloorGroup);disposeThreeTree(threeFloorGroup);}threeFloorGroup=new THREE.Group();threeRoot.add(threeFloorGroup);const n=currentGridSize(),tier=currentFloorTier(),colors=[0x42484d,0x98714d,0x263c5b,0x15383e,0x29272d],floorMat=mat(colors[tier],.88),edge=mat(tier===4?0xc59a4b:0x53677a,.55,.25),wallMat=mat([0x34383d,0xd0d4d6,0x172a42,0x102c31,0x1c1a20][tier],.86);
+function addRoom3D(){if(threeFloorGroup){threeRoot.remove(threeFloorGroup);disposeThreeTree(threeFloorGroup);}threeFloorGroup=new THREE.Group();threeRoot.add(threeFloorGroup);const n=currentGridSize(),tier=currentFloorTier(),colors=[0x42484d,0x98714d,0x263c5b,0x15383e,0x29272d],floorMat=mat(colors[tier],.88),edge=mat(tier===4?0xc59a4b:0x53677a,.55,.25),wallMat=mat([0x34383d,0xd0d4d6,0x172a42,0x102c31,0x1c1a20][tier],.86,0,tier===0?{}:{transparent:true,opacity:tier===1?.28:.12,depthWrite:false});
 const floor=new THREE.Mesh(new THREE.BoxGeometry(n,.16,n),floorMat);floor.position.set(n/2,-.09,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
 const gridMat=mat(tier===4?0x806638:0x687d91,.9,.05,{transparent:true,opacity:.32});const grid=new THREE.GridHelper(n,n,tier===4?0xc49a51:0x7a8da0,0x64778b);grid.position.set(n/2,.002,n/2);grid.material.transparent=true;grid.material.opacity=.26;threeFloorGroup.add(grid);
 boxMesh(threeFloorGroup,n/2,-.2,n/2,n+.18,.12,n+.18,edge);

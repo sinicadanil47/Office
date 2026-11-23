@@ -77,10 +77,10 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 <div class="section-head"><h2>Строительство</h2><span>ВЫБЕРИТЕ ОБЪЕКТ</span></div>
 <div class="shop" id="shop">
 <div class="expansion-card"><div class="expansion-copy" id="shopExpansionStatus">Переезд на следующий этаж</div><button class="primary" id="expandShopBtn" type="button">📐 Расширить этаж</button></div>
-<button class="item" data-type="desk"><img class="sprite-preview" data-sprite="desk" width="56" height="56" alt="" aria-hidden="true"><b>IT-стол с работником</b><small>Программист · +$25/сек</small><strong>$500</strong></button>
-<button class="item" data-type="coffee"><img class="sprite-preview" data-sprite="coffee" width="56" height="56" alt="" aria-hidden="true"><b>Кофемашина</b><small>+25% к соседним IT-столам</small><strong>$800</strong></button>
-<button class="item" data-type="server"><img class="sprite-preview" data-sprite="server" width="56" height="56" alt="" aria-hidden="true"><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
-<button class="item" data-type="boss"><img class="sprite-preview" data-sprite="boss" width="56" height="56" alt="" aria-hidden="true"><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button><button class="item" data-type="meeting"><img class="sprite-preview" data-sprite="meeting" width="56" height="56" alt="" aria-hidden="true"><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><img class="sprite-preview" data-sprite="security" width="56" height="56" alt="" aria-hidden="true"><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
+<button class="item" data-type="desk"><canvas class="sprite-preview" data-sprite="desk" width="56" height="56" aria-hidden="true"></canvas><b>IT-стол с работником</b><small>Программист · +$25/сек</small><strong>$500</strong></button>
+<button class="item" data-type="coffee"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>+25% к соседним IT-столам</small><strong>$800</strong></button>
+<button class="item" data-type="server"><canvas class="sprite-preview" data-sprite="server" width="56" height="56" aria-hidden="true"></canvas><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
+<button class="item" data-type="boss"><canvas class="sprite-preview" data-sprite="boss" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button><button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
 </div>
 <div class="tools"><button class="tool-btn" id="rotateBtn">↻ Повернуть (90°)</button><button class="tool-btn" id="sellBtn">⌫ Режим продажи</button></div>
 </section>
@@ -189,8 +189,8 @@ const SPRITE_URI={},SPRITE_IMAGES={};
 function spriteKey(type){return type==="boss"?"ceo":type;}
 function spriteData(type){const key=spriteKey(type);if(!SPRITE_URI[key])SPRITE_URI[key]="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(SPRITE_SVG[key]||SPRITE_SVG.desk);return SPRITE_URI[key];}
 function spriteMarkup(type,size=56){
- const key=spriteKey(type),src=SPRITE_ASSETS[key]||spriteData(key);
- return '<img class="sprite-preview" width="'+size+'" height="'+size+'" style="object-fit:contain" src="'+src+'" data-fallback="'+spriteData(key)+'" alt="" aria-hidden="true">';
+ const key=spriteKey(type);
+ return '<canvas class="sprite-preview" width="'+size+'" height="'+size+'" data-preview-type="'+key+'" aria-hidden="true"></canvas>';
 }
 function loadFurnitureSprite(key){
  const img=new Image();SPRITE_IMAGES[key]=img;
@@ -199,11 +199,7 @@ function loadFurnitureSprite(key){
  img.src=SPRITE_ASSETS[key]||spriteData(key);
 }
 Object.keys(SPRITE_SVG).forEach(loadFurnitureSprite);
-document.querySelectorAll("#shop .sprite-preview[data-sprite]").forEach(el=>{
- const key=spriteKey(el.dataset.sprite);el.style.objectFit="contain";
- el.onerror=()=>{el.onerror=null;el.src=el.dataset.fallback||spriteData(key);};
- el.src=SPRITE_ASSETS[key]||spriteData(key);
-});
+// Shop previews use the same Canvas furniture renderers as the floor.
 
 const KEY="corporate_skyscraper_v1";
 const FLOORS=[
@@ -532,7 +528,7 @@ function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.togg
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 
 function closeShop(){$("shop").classList.remove("open");$("installBar").classList.remove("show");}
-function showUpgradeCard(index){const o=state.layout[index];if(!o)return;const name=TYPES[o.type]?.name||"Объект",level=Number(o.level)||1,baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost;$("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+' · '+money(TYPES[o.type].base||0)+'/сек</small></div></div><button id="closeUpgrade">✕</button></div><div class="upgrade-actions"><button id="upgradeObject" class="primary">Улучшить за '+money(cost)+'</button></div>';$("upgradeCard").classList.add("show");$("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");$("upgradeObject").onclick=()=>{if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");toast("Уровень объекта повышен");};}
+function showUpgradeCard(index){const o=state.layout[index];if(!o)return;const name=TYPES[o.type]?.name||"Объект",level=Number(o.level)||1,baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost;$("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+' · '+money(TYPES[o.type].base||0)+'/сек</small></div></div><button id="closeUpgrade">✕</button></div><div class="upgrade-actions"><button id="upgradeObject" class="primary">Улучшить за '+money(cost)+'</button></div>';$("upgradeCard").classList.add("show");renderAllFurniturePreviews();$("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");$("upgradeObject").onclick=()=>{if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");toast("Уровень объекта повышен");};}
 function selectBuild(type){state.sellMode=false;state.selected=type;$("shop").classList.remove("open");$("installLabel").textContent="Установка: "+TYPES[type].name+" ("+(devFreeBuild?"БЕСПЛАТНО":money(TYPES[type].cost))+")";$("installBar").classList.add("show");updateUI();draw();}
 $("openShop").addEventListener("click",()=>{$("shop").classList.toggle("open");});$("expandShopBtn").addEventListener("click",buyExpansion);$("expandOfficeBtn").addEventListener("click",buyExpansion);
 $("quickSell").addEventListener("click",()=>{$("shop").classList.remove("open");state.selected=null;state.sellMode=!state.sellMode;$("installBar").classList.remove("show");toast(state.sellMode?"Нажмите на объект для продажи":"Продажа выключена");});
@@ -599,7 +595,7 @@ function tick(now){spawnVip();
 }
 window.addEventListener("resize",resize);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
-updateUI();renderTop();renderCompanies();addFeed();resize();requestAnimationFrame(tick);$("hudPlayer").textContent=player;$("page-floor").querySelector(".stats").querySelectorAll(".stat").forEach(el=>$("hudStats").appendChild(el));$("topHud").appendChild($("page-floor").querySelector(".view-banner"));document.body.appendChild(canvas);document.body.appendChild($("shop"));document.body.appendChild($("upgradeCard"));resize();
+updateUI();renderTop();renderCompanies();addFeed();resize();renderAllFurniturePreviews();requestAnimationFrame(tick);$("hudPlayer").textContent=player;$("page-floor").querySelector(".stats").querySelectorAll(".stat").forEach(el=>$("hudStats").appendChild(el));$("topHud").appendChild($("page-floor").querySelector(".view-banner"));document.body.appendChild(canvas);document.body.appendChild($("shop"));document.body.appendChild($("upgradeCard"));resize();
 loadPlayer().then(async()=>{await refreshLeaderboard();renderTop();renderCompanies();const elapsed=Math.max(0,Math.min(28800,(Date.now()-previousVisit)/1000)),inc=incomeFor(state.layout);if(elapsed>60&&inc>0){offlineReward=elapsed*inc*.5;$("offlineText").textContent="Офис работал без вас "+Math.floor(elapsed/60)+" мин и принёс "+money(offlineReward)+".";$("offlineModal").classList.add("show");}localSave();});
 $("claimOffline").addEventListener("click",()=>{state.balance+=offlineReward;state.totalEarned+=offlineReward;offlineReward=0;$("offlineModal").classList.remove("show");save();syncPlayer(false);updateUI();haptic();});
 window.addEventListener("pagehide",()=>localSave());

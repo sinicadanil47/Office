@@ -438,7 +438,7 @@ function updateEmployeeMotion(dt,layout,n=currentGridSize()){
   if(rt.pause>0){rt.pause-=dt;if(rt.pause<=0&& !rt.returning){rt.path=rt.path.slice().reverse();rt.index=0;rt.progress=0;rt.returning=true;}return;}
   if(rt.index>=rt.path.length-1){
    if(!rt.returning){rt.pause=1.2;return;}
-   rt.state="work";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.path=null;rt.timer=6+Math.random()*5;return;
+   rt.state="sleep";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.path=null;rt.timer=2.5+Math.random()*1.5;return;
   }
   const a=rt.path[rt.index],b=rt.path[rt.index+1];
   if(!freeEmployeeCell(b.x,b.y,layout,desk,n)){ // An obstacle may have been built during the walk: recalculate a safe route home.
@@ -454,6 +454,11 @@ function updateEmployeeMotion(dt,layout,n=currentGridSize()){
 function wakeEmployee(desk){
  let rt=employeeMotion.get(desk);
  if(!rt){rt={state:"work",pos:{x:desk.x+.5,y:desk.y+.91},timer:8,path:null,index:0,progress:0,returning:false,pause:0};employeeMotion.set(desk,rt);}
+ if(rt.state==="walk"){
+  const n=currentGridSize(),layout=currentLayout(),start={x:Math.max(0,Math.min(n-1,Math.floor(rt.pos.x))),y:Math.max(0,Math.min(n-1,Math.floor(rt.pos.y)))},home={x:desk.x,y:desk.y};
+  const route=findEmployeePath(start,home,layout,desk,n);
+  if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;rt.pause=0;rt.pos={x:start.x+.5,y:start.y+.5};toast("Сотрудник возвращается к рабочему месту");draw();return;}
+ }
  rt.state="work";rt.path=null;rt.index=0;rt.progress=0;rt.returning=false;rt.pause=0;rt.pos={x:desk.x+.5,y:desk.y+.91};rt.timer=8;
  toast("Сотрудник вернулся к работе");draw();
 }

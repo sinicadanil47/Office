@@ -668,7 +668,7 @@ function addWindowBackdrop(parent,axis,center,y,w,h,tier){
  if(tier>=2){for(let i=0;i<34;i++){const x=i*17+(i%3)*4,bh=28+(i*31)%100;g.fillStyle=tier===4?"rgba(30,35,58,.92)":"rgba(8,18,40,.9)";g.fillRect(x,256-bh,12,bh);for(let yy=260-bh;yy<250;yy+=12){g.fillStyle=tier===4?"rgba(242,193,119,.8)":"rgba(68,206,232,.65)";g.fillRect(x+3,yy,2,3);}}}
  if(tier===4){g.fillStyle="rgba(228,178,116,.22)";g.fillRect(0,188,512,68);g.strokeStyle="rgba(242,198,133,.65)";g.lineWidth=2;g.beginPath();g.moveTo(0,190);g.lineTo(512,190);g.stroke();}
  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const m=new THREE.MeshBasicMaterial({map:tex,depthWrite:false,transparent:true,opacity:.96,side:THREE.DoubleSide});
- const plane=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);if(axis==="back")plane.position.set(center,y+.02,.025);else{plane.rotation.y=Math.PI/2;plane.position.set(.025,y+.02,center);}plane.renderOrder=1;parent.add(plane);
+ const plane=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);if(axis==="back")plane.position.set(center,y+h/2,.025);else{plane.rotation.y=Math.PI/2;plane.position.set(.025,y+h/2,center);}plane.renderOrder=0;parent.add(plane);
 }
 function addWallSconce(parent,x,y,z,axis,color=0xffc98b){
  const plate=mat(0x303944,.45,.55),glow=mat(color,.28,.1,{emissive:color,emissiveIntensity:1.25});
@@ -706,7 +706,7 @@ function addInteriorDecor(parent,n,tier,wallH){
    back(x,.06+row*.15,.078,.018,.012,.012,mortar);
    side(.078,.06+row*.15,x,.012,.012,.018,mortar);
   }
-  addArchitecturalWindow(parent,"back",n/2,wallH-.73,Math.min(2.35,n*.48),.34,{frame:0x252e34,glass:0x8da9b5,glow:0x9bbac7,glowI:.28,bar:0x707c80});
+  addArchitecturalWindow(parent,"back",n/2,wallH-.73,Math.min(2.35,n*.48),.34,{frame:0x252e34,glass:0xc18a4d,glow:0xffb45e,glowI:.48,bar:0x9a7650});
   addWindowBackdrop(parent,"back",n/2,wallH-.73,Math.min(2.35,n*.48),.34,0);
   addWindowLightStrip(parent,n/2,1.7,1.0,3.0,0xffc17a);
   // Pipework follows the rear-wall faces; it never projects into the room.
@@ -866,7 +866,20 @@ function addRoom3D(){
  boxMesh(threeFloorGroup,n/2,-.34,n+.265,n+.38,.035,.028,fascia);boxMesh(threeFloorGroup,n+.265,-.34,n/2,.028,.035,n+.38,fascia);
  boxMesh(threeFloorGroup,n/2,-.23,n+.265,n+.40,.018,.018,seam);boxMesh(threeFloorGroup,n+.265,-.23,n/2,.018,.018,n+.40,seam);
  for(let i=0;i<=n;i+=2){sphereMesh(threeFloorGroup,.12+i,-.355,n+.275,.035,seam);sphereMesh(threeFloorGroup,n+.275,-.355,.12+i,.035,seam);}
+ // Inlaid perimeter zoning and a restrained central medallion give empty floors a finished plan.
+ const zoneColor=tier===4?0xc7a15e:tier===3?0x3dcac4:tier===0?0x707c80:tier===1?0x9a7654:0x9aabb0;
+ const zoneMat=mat(zoneColor,.48,.35,{transparent:true,opacity:.58,depthWrite:false,emissive:tier>=3?zoneColor:0x000000,emissiveIntensity:tier>=3?.28:0});
+ const zoneY=.002,zoneT=.018,zoneInset=.18;
+ boxMesh(threeFloorGroup,n/2,zoneY,zoneInset,n-2*zoneInset,.006,zoneT,zoneMat);
+ boxMesh(threeFloorGroup,n/2,zoneY,n-zoneInset,n-2*zoneInset,.006,zoneT,zoneMat);
+ boxMesh(threeFloorGroup,zoneInset,zoneY,n/2,zoneT,.006,n-2*zoneInset,zoneMat);
+ boxMesh(threeFloorGroup,n-zoneInset,zoneY,n/2,zoneT,.006,n-2*zoneInset,zoneMat);
+ if(tier!==1){
+  const medallion=new THREE.Mesh(new THREE.RingGeometry(.68,.70,48),new THREE.MeshBasicMaterial({color:zoneColor,transparent:true,opacity:.26,depthWrite:false,side:THREE.DoubleSide}));
+  medallion.rotation.x=-Math.PI/2;medallion.position.set(n/2,.004,n/2);threeFloorGroup.add(medallion);
+ }
  const rim=mat(edgeColors[tier],.38,.48,tier===4?{emissive:0x65451d,emissiveIntensity:.28}:{});
+
 
  // Four narrow perimeter rails stay outside the playable cells.
  boxMesh(threeFloorGroup,n/2,.018,.045,n+.24,.055,.09,rim);

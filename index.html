@@ -945,7 +945,14 @@ function addRoom3D(){
   leftWall.position.set(n/2+wallOverlap/2,wallH/2,-wallOverlap);leftWall.castShadow=true;leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
   const rightWall=new THREE.Mesh(new THREE.BoxGeometry(wallThickness,wallH,n+wallOverlap),rightWallMat);
   rightWall.position.set(-wallOverlap,wallH/2,n/2+wallOverlap/2);rightWall.castShadow=true;rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
-  threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall};
+  // Continuous inside-corner connector hides the vertical seam and ties both wall panels together.
+  const cornerJointMat=new THREE.MeshStandardMaterial({color:0x252b30,roughness:.72,metalness:.28});
+  const cornerJoint=new THREE.Mesh(new THREE.BoxGeometry(.19,wallH+.015,.19),cornerJointMat);
+  cornerJoint.rotation.y=Math.PI/4;cornerJoint.position.set(-.015,wallH/2,-.015);
+  cornerJoint.castShadow=true;cornerJoint.receiveShadow=true;threeFloorGroup.add(cornerJoint);
+  const cornerTop=new THREE.Mesh(new THREE.BoxGeometry(.25,.055,.25),new THREE.MeshStandardMaterial({color:0x39434a,roughness:.55,metalness:.38}));
+  cornerTop.rotation.y=Math.PI/4;cornerTop.position.set(-.015,wallH-.015,-.015);threeFloorGroup.add(cornerTop);
+  threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall,cornerJoint,cornerTop};
   const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(.12,2.15,n*.72);threeFloorGroup.add(lampGlow);
   const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(n/2,1.05,.12);threeFloorGroup.add(windowGlow);
   applyBasementTextures();

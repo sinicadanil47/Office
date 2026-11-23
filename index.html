@@ -78,7 +78,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 <div class="shop" id="shop">
 <div class="expansion-card"><div class="expansion-copy" id="shopExpansionStatus">Переезд на следующий этаж</div><button class="primary" id="expandShopBtn" type="button">📐 Расширить этаж</button></div>
 <button class="item" data-type="desk"><canvas class="sprite-preview" data-sprite="desk" width="56" height="56" aria-hidden="true"></canvas><b>IT-стол с работником</b><small>Программист · +$25/сек</small><strong>$500</strong></button>
-<button class="item" data-type="coffee"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>+25% к соседним IT-столам</small><strong>$800</strong></button>
+<button class="item" data-type="coffee"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>Кофе команде · +25% дохода соседних IT-столов</small><strong>$800</strong></button>
 <button class="item" data-type="server"><canvas class="sprite-preview" data-sprite="server" width="56" height="56" aria-hidden="true"></canvas><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
 <button class="item" data-type="boss"><canvas class="sprite-preview" data-sprite="boss" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button><button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
 </div>
@@ -234,7 +234,7 @@ function incomeFor(layout,tier=floorTier){
  layout.forEach(o=>{const t=TYPES[o.type];if(t)sum+=(t.base||0)+(Number(o.baseBonus)||0);});
  layout.filter(o=>o.type==="desk").forEach(d=>{
   let bonus=0;
-  layout.forEach(o=>{if(o===d)return;const dist=Math.abs(o.x-d.x)+Math.abs(o.y-d.y);if(dist<=1){if(o.type==="coffee")bonus+=.25*(1+Math.max(0,(o.level||1)-1)*.1);if(o.type==="server")bonus+=.15*(1+Math.max(0,(o.level||1)-1)*.1);}});
+  layout.forEach(o=>{if(o===d)return;const dist=Math.abs(o.x-d.x)+Math.abs(o.y-d.y);if(dist<=1){if(o.type==="coffee")bonus+=.25*(1+Math.max(0,Math.min(3,(Number(o.level)||1)-1))*.2);if(o.type==="server")bonus+=.15*(1+Math.max(0,(o.level||1)-1)*.1);}});
   sum+=25*bonus;
  });
  return sum*FLOORS[Math.max(0,Math.min(4,Number(tier)||0))].incomeMult;
@@ -331,14 +331,15 @@ function drawWorker(x,y,state,bob=0,showChair=true){
  ctx.save();ctx.translate(x,y+bob);ctx.fillStyle="rgba(0,0,0,.25)";ctx.beginPath();ctx.ellipse(0,9,8,3,0,0,Math.PI*2);ctx.fill();
  if(showChair){poly([{x:-8,y:1},{x:-6,y:-10},{x:6,y:-10},{x:8,y:1},{x:5,y:4},{x:-5,y:4}],"#263d57","#18283c");
  ctx.strokeStyle="#8296aa";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,3);ctx.lineTo(0,10);ctx.moveTo(-5,10);ctx.lineTo(5,10);ctx.stroke();}
- const sleeping=state==="sleep",walking=state==="walk";ctx.fillStyle=sleeping?"#52677d":"#327da2";ctx.beginPath();ctx.roundRect(-6,-12,12,15,3);ctx.fill();
+ const sleeping=state==="sleep",walking=state==="walk",coffee=state==="coffee";ctx.fillStyle=sleeping?"#52677d":coffee?"#1e9b78":"#327da2";ctx.beginPath();ctx.roundRect(-6,-12,12,15,3);ctx.fill();
  ctx.strokeStyle="#d7a47e";ctx.lineWidth=3;ctx.lineCap="round";ctx.beginPath();
  if(sleeping){ctx.moveTo(-4,-9);ctx.lineTo(-8,-5);ctx.lineTo(-4,-2);ctx.moveTo(4,-9);ctx.lineTo(7,-5);}
  else if(walking){ctx.moveTo(-4,-8);ctx.lineTo(-8,-2);ctx.moveTo(4,-8);ctx.lineTo(8,-13);}
  else{ctx.moveTo(-5,-8);ctx.lineTo(-9,-3);ctx.moveTo(5,-8);ctx.lineTo(9,-3);}ctx.stroke();
  ctx.fillStyle="#dcae89";ctx.beginPath();ctx.arc(0,-17,5.2,0,Math.PI*2);ctx.fill();ctx.fillStyle="#29303a";ctx.beginPath();ctx.arc(0,-19,5.3,Math.PI,Math.PI*2);ctx.fill();
  if(sleeping){ctx.fillStyle="#c8d7e8";ctx.font="bold 8px sans-serif";ctx.textAlign="center";ctx.fillText("Zz",10,-25);}
- if(state==="work"){ctx.fillStyle="#68d8ed";ctx.beginPath();ctx.arc(2,-17,1,0,7);ctx.fill();}ctx.restore();
+ if(coffee){ctx.fillStyle="#ffe0a0";ctx.font="bold 10px sans-serif";ctx.textAlign="center";ctx.fillText("☕",10,-25);}
+ if(state==="work"||coffee){ctx.fillStyle=coffee?"#8fffd2":"#68d8ed";ctx.beginPath();ctx.arc(2,-17,1,0,7);ctx.fill();}ctx.restore();
 }
 function drawDesk(o){
  const t=performance.now()/1000,cycle=(t+(o.x*2+o.y)*.17)%18,rt=employeeMotion.get(o);
@@ -370,14 +371,28 @@ function drawDesk(o){
  if(!o.skipWorker)drawWorker(screen.x-1,screen.y-3,state,bob,!rt||rt.state!=="walk");
 }
 function drawCoffee(o){
- box(o.x+.2,o.y+.29,.6,.48,12,"#815536","#493326","#65432e");box(o.x+.13,o.y+.24,.74,.53,5,"#d4c5ad","#77634e","#a18a6c");
- box(o.x+.29,o.y+.18,.42,.36,25,"#b9c7ce","#526573","#8297a3");box(o.x+.33,o.y+.16,.34,.08,4,"#e4edf0","#7b8d98","#aab9c1");
- const p=iso(o.x+.5,o.y+.39);poly([{x:p.x-9,y:p.y-19},{x:p.x+9,y:p.y-19},{x:p.x+9,y:p.y-7},{x:p.x-9,y:p.y-7}],"#142637","#607c8d");
- poly([{x:p.x-7,y:p.y-17},{x:p.x+7,y:p.y-17},{x:p.x+7,y:p.y-10},{x:p.x-7,y:p.y-10}],"#143f51","#43cde0");
- ctx.fillStyle="#42d49b";ctx.shadowColor="#42d49b";ctx.shadowBlur=6;ctx.beginPath();ctx.arc(p.x+6,p.y-14,1.7,0,7);ctx.fill();ctx.shadowBlur=0;
- ctx.fillStyle="#f5f1e8";ctx.fillRect(p.x+11,p.y-5,7,6);ctx.strokeStyle="#c5d0d4";ctx.strokeRect(p.x+11,p.y-5,7,6);
- const t=performance.now()/650;ctx.save();ctx.strokeStyle="rgba(229,246,250,.72)";ctx.lineWidth=1.35;for(let i=0;i<3;i++){const q=(t+i*.36)%1,x=p.x-5+i*5;ctx.beginPath();ctx.moveTo(x,p.y-23-q*12);ctx.bezierCurveTo(x-5,p.y-28-q*12,x+5,p.y-31-q*12,x,p.y-37-q*12);ctx.stroke();}ctx.restore();
+ const level=Math.max(1,Math.min(4,Number(o.level)||1)),t=performance.now()/1000;
+ box(o.x+.16,o.y+.34,.68,.43,12,level>=3?"#354b5a":"#815536",level>=3?"#172a39":"#493326",level>=3?"#263d4c":"#65432e");
+ box(o.x+.12,o.y+.27,.76,.52,5,level>=3?"#c6d6dc":"#d4c5ad",level>=3?"#607b8a":"#77634e",level>=3?"#91a9b4":"#a18a6c");
+ const base=iso(o.x+.5,o.y+.52),p=iso(o.x+.5,o.y+.37),left=level>=3?17:15,right=level>=3?19:15,top=p.y-43-(level>=4?4:0);
+ poly([{x:base.x-10,y:base.y-1},{x:base.x+9,y:base.y-1},{x:base.x+9,y:base.y+15},{x:base.x-10,y:base.y+15}],"#344b59","#718b98");
+ ctx.strokeStyle=level>=4?"#f1cf83":"#b9a58a";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(base.x,base.y+1);ctx.lineTo(base.x,base.y+14);ctx.stroke();
+ ctx.fillStyle="#d7e2e5";ctx.fillRect(base.x-6,base.y+5,3,5);ctx.fillRect(base.x+3,base.y+5,3,5);
+ ctx.save();if(level>=3){ctx.shadowColor="#68d9e8";ctx.shadowBlur=level===4?13:7;}
+ poly([{x:p.x-left,y:top+8},{x:p.x+right-4,y:top},{x:p.x+right,y:p.y-5},{x:p.x-left+3,y:p.y+1}],"#536b78","#dce8eb");
+ poly([{x:p.x-left,y:top+8},{x:p.x-left+3,y:p.y+1},{x:p.x-left+3,y:p.y+16},{x:p.x-left,y:top+22}],"#263d4b","#6f8995");
+ poly([{x:p.x-left+3,y:p.y+1},{x:p.x+right,y:p.y-5},{x:p.x+right,y:p.y+10},{x:p.x-left+3,y:p.y+16}],"#9aadb5","#e7f0f2");ctx.restore();
+ const panelTop=top+12;poly([{x:p.x-left+5,y:panelTop},{x:p.x+right-5,y:panelTop-5},{x:p.x+right-5,y:panelTop+13},{x:p.x-left+5,y:panelTop+18}],"#102433","#668391");
+ if(level===1){ctx.fillStyle="#75d7e8";ctx.fillRect(p.x-5,panelTop+4,9,2);}else{poly([{x:p.x-7,y:panelTop+2},{x:p.x+8,y:panelTop-2},{x:p.x+8,y:panelTop+6},{x:p.x-7,y:panelTop+10}],level===2?"#123d51":"#092c42","#49cfe1");ctx.fillStyle="#baf6ff";ctx.font="bold 5px sans-serif";ctx.textAlign="center";ctx.fillText(level===4?"PRO":"BARISTA",p.x,panelTop+4);}
+ ctx.fillStyle="#263c49";ctx.fillRect(p.x-5,p.y+4,10,5);ctx.fillStyle=level>=3?"#f0d49b":"#cbd8dc";ctx.fillRect(p.x-3,p.y+7,6,2);
+ ctx.fillStyle="#f7f4eb";ctx.beginPath();ctx.roundRect(p.x+7,p.y+4,11,8,2);ctx.fill();ctx.strokeStyle="#a9b9bd";ctx.lineWidth=1;ctx.stroke();ctx.beginPath();ctx.arc(p.x+18,p.y+7,3,Math.PI*-.5,Math.PI*.5);ctx.stroke();ctx.fillStyle="#6c3d22";ctx.fillRect(p.x+9,p.y+5,7,2);
+ if(level>=2){ctx.fillStyle="#344b57";ctx.beginPath();ctx.moveTo(p.x-8,top+5);ctx.lineTo(p.x+1,top+1);ctx.lineTo(p.x+1,top+9);ctx.lineTo(p.x-8,top+13);ctx.closePath();ctx.fill();ctx.fillStyle="#b77b43";ctx.beginPath();ctx.arc(p.x-4,top+7,2,0,Math.PI*2);ctx.fill();}
+ if(level>=3){ctx.strokeStyle="#d6e9ed";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(p.x-10,p.y+19);ctx.lineTo(p.x+12,p.y+19);ctx.stroke();ctx.fillStyle="#7ee4c0";ctx.beginPath();ctx.arc(p.x+12,panelTop+1,2,0,7);ctx.fill();}
+ if(level>=4){ctx.strokeStyle="#f1cc79";ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(p.x-left+1,top+9);ctx.lineTo(p.x+right-3,top+1);ctx.stroke();ctx.fillStyle="#f4d78e";ctx.beginPath();ctx.arc(p.x-12,top+17,2,0,7);ctx.fill();}
+ const pulse=.65+.35*Math.sin(t*3.8);ctx.save();ctx.fillStyle=level>=4?"#f5d27c":"#42d49b";ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=5+4*pulse;ctx.globalAlpha=.7+.3*pulse;ctx.beginPath();ctx.arc(p.x+right-3,top+16,1.8,0,7);ctx.fill();ctx.restore();
+ ctx.save();ctx.strokeStyle="rgba(235,249,252,.76)";ctx.lineWidth=1.35;ctx.lineCap="round";for(let i=0;i<3;i++){const q=(t*.72+i*.34)%1,x=p.x-5+i*5,yy=top-3-q*13;ctx.globalAlpha=(1-q)*.72;ctx.beginPath();ctx.moveTo(x,yy);ctx.bezierCurveTo(x-5,yy-4,x+5,yy-7,x,yy-11);ctx.stroke();}ctx.restore();
 }
+
 function drawServer(o){
  box(o.x+.25,o.y+.22,.5,.6,43,"#34485b","#152638","#22384b");box(o.x+.22,o.y+.18,.56,.64,5,"#64798a","#34495b","#4a6072");
  const p=iso(o.x+.5,o.y+.48);poly([{x:p.x-10,y:p.y-24},{x:p.x+10,y:p.y-24},{x:p.x+10,y:p.y+14},{x:p.x-10,y:p.y+14}],"#101c2b","#91a6b4");
@@ -425,17 +440,16 @@ function findEmployeePath(start,goal,layout,desk,n=currentGridSize()){
 }
 function chooseEmployeeWalk(desk,layout,n=currentGridSize()){
  const home={x:desk.x,y:desk.y},reachable=[];
- for(let x=0;x<n;x++)for(let y=0;y<n;y++){
-  if(!freeEmployeeCell(x,y,layout,desk,n))continue;
-  const path=findEmployeePath(home,{x,y},layout,desk,n);
-  if(path&&path.length>2)reachable.push({target:{x,y},path});
- }
+ for(let x=0;x<n;x++)for(let y=0;y<n;y++){if(!freeEmployeeCell(x,y,layout,desk,n))continue;const path=findEmployeePath(home,{x,y},layout,desk,n);if(path&&path.length>2)reachable.push({target:{x,y},path});}
  if(!reachable.length)return null;
+ const rt=employeeMotion.get(desk),machines=layout.filter(o=>o.type==="coffee").sort((a,b)=>(Math.abs(a.x-desk.x)+Math.abs(a.y-desk.y))-(Math.abs(b.x-desk.x)+Math.abs(b.y-desk.y)));
+ if(machines.length&&(!rt||!rt.coffeeUntil||rt.coffeeUntil<Date.now())){const m=machines[0],near=reachable.filter(v=>Math.abs(v.target.x-m.x)+Math.abs(v.target.y-m.y)===1);if(near.length&&Math.random()<.78)return {...near[Math.floor(Math.random()*near.length)],coffeeStop:true};}
  return reachable[Math.floor(Math.random()*reachable.length)];
 }
+
 function startEmployeeWalk(desk,layout,n=currentGridSize()){
  const choice=chooseEmployeeWalk(desk,layout,n);if(!choice)return false;
- employeeMotion.set(desk,{state:"walk",pos:{x:desk.x+.5,y:desk.y+.91},path:choice.path,index:0,progress:0,returning:false,pause:0});
+ const old=employeeMotion.get(desk)||{};employeeMotion.set(desk,{...old,state:"walk",pos:{x:desk.x+.5,y:desk.y+.91},path:choice.path,index:0,progress:0,returning:false,pause:0,coffeeStop:!!choice.coffeeStop});
  return true;
 }
 function updateEmployeeMotion(dt,layout,n=currentGridSize()){
@@ -443,12 +457,13 @@ function updateEmployeeMotion(dt,layout,n=currentGridSize()){
  layout.filter(o=>o.type==="desk").forEach(desk=>{
   let rt=employeeMotion.get(desk);
   if(!rt){rt={state:"work",pos:{x:desk.x+.5,y:desk.y+.91},timer:6+Math.random()*5,path:null,index:0,progress:0,returning:false,pause:0};employeeMotion.set(desk,rt);}
-  if(rt.state==="sleep"){rt.timer-=dt;if(rt.timer<=0){rt.state="work";rt.timer=4+Math.random()*4;}return;}
-  if(rt.state==="work"){rt.timer-=dt;if(rt.timer<=0){if(startEmployeeWalk(desk,layout,n)){rt=employeeMotion.get(desk);rt.state="walk";}else{rt.timer=5;}}return;}
+  if(rt.state==="sleep"){rt.timer-=dt;if(rt.timer<=0){rt.state="work";rt.timer=rt.coffeeUntil>Date.now()?8+Math.random()*5:4+Math.random()*4;}return;}
+  if(rt.state==="coffee"){rt.timer-=dt;if(rt.timer<=0){rt.coffeeUntil=Date.now()+45000;const home={x:desk.x,y:desk.y},start={x:Math.max(0,Math.min(n-1,Math.floor(rt.pos.x))),y:Math.max(0,Math.min(n-1,Math.floor(rt.pos.y)))},route=findEmployeePath(start,home,layout,desk,n);if(route){rt.path=route;rt.index=0;rt.progress=0;rt.returning=true;rt.state="walk";rt.coffeeStop=false;}else{rt.state="work";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.timer=10;}}return;}
+  if(rt.state==="work"){rt.timer-=dt*(rt.coffeeUntil>Date.now()?1.35:1);if(rt.timer<=0){if(startEmployeeWalk(desk,layout,n)){rt=employeeMotion.get(desk);rt.state="walk";}else{rt.timer=5;}}return;}
   if(rt.state!=="walk"||!rt.path)return;
   if(rt.pause>0){rt.pause-=dt;if(rt.pause<=0&& !rt.returning){rt.path=rt.path.slice().reverse();rt.index=0;rt.progress=0;rt.returning=true;}return;}
   if(rt.index>=rt.path.length-1){
-   if(!rt.returning){rt.pause=1.2;return;}
+   if(!rt.returning){if(rt.coffeeStop){rt.state="coffee";rt.timer=2.8;rt.pause=0;rt.path=null;rt.coffeeStop=false;rt.coffeeUntil=Date.now()+45000;toast("Сотрудник выпил кофе · бодрость +45 сек");return;}rt.pause=1.2;return;}
    rt.state="sleep";rt.pos={x:desk.x+.5,y:desk.y+.91};rt.path=null;rt.timer=2.5+Math.random()*1.5;return;
   }
   const a=rt.path[rt.index],b=rt.path[rt.index+1];
@@ -575,7 +590,7 @@ function handleRoomTap(e){
  if(activeVip&&Date.now()<activeVip.expires&&i>=0&&state.layout[i].x===activeVip.x&&state.layout[i].y===activeVip.y){closeVipDeal();return;}
  if(state.sellMode){if(i>=0){const o=state.layout.splice(i,1)[0];state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
  if(state.selected){if(i>=0){toast("Клетка занята");return;}const movingEmployee=state.layout.some(o=>{if(o.type!=="desk")return false;const rt=employeeMotion.get(o);return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===c.x&&Math.floor(rt.pos.y)===c.y;});if(movingEmployee){toast("Сотрудник проходит по этой клетке");return;}const t=TYPES[state.selected];if(!devFreeBuild&&state.balance<t.cost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=t.cost;state.layout.push({type:state.selected,x:c.x,y:c.y,rot:state.rotation});save();state.selected=null;closeShop();updateUI();haptic();toast(t.name+" установлен");draw();return;}
- if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(state.layout[i]);if(rt&&(rt.state==="sleep"||rt.state==="walk")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}toast("Выберите действие или объект в магазине");
+ if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(state.layout[i]);if(rt&&(rt.state==="sleep"||rt.state==="walk"||rt.state==="coffee")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}toast("Выберите действие или объект в магазине");
 }
 canvas.addEventListener("touchmove",e=>{e.preventDefault();},{passive:false});
 canvas.addEventListener("pointerdown",e=>{
@@ -627,7 +642,7 @@ function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.togg
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 
 function closeShop(){$("shop").classList.remove("open");$("installBar").classList.remove("show");}
-function showUpgradeCard(index){const o=state.layout[index];if(!o)return;const name=TYPES[o.type]?.name||"Объект",level=Number(o.level)||1,baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost;$("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64,level)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+' · '+money(TYPES[o.type].base||0)+'/сек</small></div></div><button id="closeUpgrade">✕</button></div><div class="upgrade-actions"><button id="upgradeObject" class="primary">Улучшить за '+money(cost)+'</button></div>';$("upgradeCard").classList.add("show");renderAllFurniturePreviews();$("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");$("upgradeObject").onclick=()=>{if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");toast("Уровень объекта повышен");};}
+function showUpgradeCard(index){const o=state.layout[index];if(!o)return;const name=TYPES[o.type]?.name||"Объект",level=Number(o.level)||1,baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost,coffee=o.type==="coffee",maxed=coffee&&level>=4,desc=coffee?"Бонус: "+(25+Math.min(3,level-1)*20)+"% к доходу соседних IT-столов · бодрость 45 сек":(TYPES[o.type].base||0)+"$/сек";$("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64,level)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+(coffee?" / 4":"")+" · "+escapeHtml(desc)+'</small></div></div><button id="closeUpgrade">✕</button></div><div class="upgrade-actions"><button id="upgradeObject" class="primary" '+(maxed?'disabled':'')+'>'+(maxed?"Максимальный уровень":'Улучшить за '+money(cost))+'</button><button id="sellObject" class="danger" style="margin-top:7px">Продать · вернуть '+money(Math.floor(TYPES[o.type].cost*.5))+'</button></div>';$("upgradeCard").classList.add("show");renderAllFurniturePreviews();$("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");$("upgradeObject").onclick=()=>{if(coffee&&level>=4)return;if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");renderAllFurniturePreviews();toast("Уровень объекта повышен");};$("sellObject").onclick=()=>{const at=state.layout.indexOf(o);if(at<0)return;state.layout.splice(at,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");draw();toast("Объект продан · возвращено "+money(Math.floor(TYPES[o.type].cost*.5)));};}
 function selectBuild(type){state.sellMode=false;state.selected=type;$("shop").classList.remove("open");$("installLabel").textContent="Установка: "+TYPES[type].name+" ("+(devFreeBuild?"БЕСПЛАТНО":money(TYPES[type].cost))+")";$("installBar").classList.add("show");updateUI();draw();}
 $("openShop").addEventListener("click",()=>{$("shop").classList.toggle("open");});$("expandShopBtn").addEventListener("click",buyExpansion);$("expandOfficeBtn").addEventListener("click",buyExpansion);
 $("quickSell").addEventListener("click",()=>{$("shop").classList.remove("open");state.selected=null;state.sellMode=!state.sellMode;$("installBar").classList.remove("show");toast(state.sellMode?"Нажмите на объект для продажи":"Продажа выключена");});

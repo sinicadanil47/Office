@@ -381,40 +381,59 @@ const cylMesh=(parent,x,y,z,r1,r2,h,material,segments=16)=>{const m=new THREE.Me
 function lineMesh(parent,a,b,r,material){const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),8),material);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());m.castShadow=true;parent.add(m);return m;}
 function makePlant(parent,x,z,scale=1){const pot=mat(0x765039),leaf=mat(0x277b55),leaf2=mat(0x46a56e);cylMesh(parent,x,.02,z,.16*scale,.19*scale,.27*scale,pot);for(let i=0;i<6;i++){const a=i*Math.PI/3,leafMesh=sphereMesh(parent,x+Math.cos(a)*.15*scale,.52*scale,z+Math.sin(a)*.15*scale,.19*scale,i%2?leaf:leaf2,[.55,1.5,.55]);leafMesh.rotation.z=Math.cos(a)*-.5;leafMesh.rotation.x=Math.sin(a)*.5;}cylMesh(parent,x,.27*scale,z,.025,.025,.4*scale,mat(0x376b4c));}
 function createDesk(parent,o){
- const g=new THREE.Group();parent.add(g);
- const lv=Math.max(1,Math.min(4,Number(o.level)||1));
- const wood=mat(lv>=3?0x3b5261:0x8c6241),edge=mat(0xc7a274,.42,.35),dark=mat(0x172638);
- const screen=mat(0x10354d,.28,.25,{emissive:0x087ca0,emissiveIntensity:lv>=3?.75:.25}),metal=mat(0x8b9ca8,.35,.65);
- boxMesh(g,0,.48,0,.78,.09,.48,wood);boxMesh(g,0,.43,0,.82,.035,.52,edge);
- for(const x of [-.31,.31])for(const z of [-.17,.17])boxMesh(g,x,.05,z,.045,.42,.045,metal);
- const count=lv>=4?2:1;
- for(let i=0;i<count;i++){const x=(i-(count-1)/2)*.28;boxMesh(g,x,.65,-.13,lv>=3?.3:.23,.25,.035,dark);boxMesh(g,x,.68,-.108,lv>=3?.27:.2,.19,.012,screen);boxMesh(g,x,.59,-.12,.035,.08,.04,metal);}
- boxMesh(g,0,.54,-.015,.24,.025,.16,dark);
- // Full-size keyboard, keycaps use InstancedMesh to keep desk detail inexpensive.
- const keyboard=new THREE.Group();g.add(keyboard);
- const kbBase=mat(0x1b2938,.52,.28),keyMat=mat(0x8294a5,.56,.12),keyAccent=mat(lv>=3?0x36c9cf:0x526d83,.45,.2,{emissive:lv>=3?0x075c65:0x000000,emissiveIntensity:.45});
- boxMesh(keyboard,0,.575,.155,.31,.025,.105,kbBase);
- const keyGeo=new THREE.BoxGeometry(.019,.012,.014),keys=new THREE.InstancedMesh(keyGeo,keyMat,44),dummy=new THREE.Object3D();
- let k=0;
- for(let row=0;row<4;row++)for(let col=0;col<11;col++){
-  dummy.position.set(-.135+col*.027,.609,.119+row*.022);dummy.scale.set(1,1,1);dummy.updateMatrix();keys.setMatrixAt(k++,dummy.matrix);
- }
- keys.instanceMatrix.needsUpdate=true;keyboard.add(keys);
- boxMesh(keyboard,0,.609,.205,.09,.012,.014,keyAccent);
- const pad=mat(0x253d50,.85,.05),mouseMat=mat(0xb3c0ca,.34,.22);
- boxMesh(g,.575,.16,.105,.012,.12,pad);
- const mouse=sphereMesh(g,.235,.602,.155,.045,mouseMat,[.72,.36,1.18]);
- boxMesh(g,.235,.610,.125,.006,.008,.028,mat(0x526777,.35,.3));
- if(lv>=2){boxMesh(g,-.29,.12,-.12,.15,.26,.19,mat(0x263746));for(let i=0;i<3;i++)sphereMesh(g,-.33+i*.035,.25,-.018,.012,mat(0x42e6d0));makePlant(g,.34,-.13,.55);}
- if(lv>=3)boxMesh(g,0,.47,.24,.68,.018,.025,mat(0x35d5e8,.3,.1,{emissive:0x0b8ca9,emissiveIntensity:1.2}));
- if(lv>=4)for(let i=0;i<3;i++)cylMesh(g,.28+i*.045,.56,.13,.018,.018,.07,mat(0xb6c6d1));
- // Fixed chair stays with the desk while the employee model sits in it.
- const chair=new THREE.Group();g.add(chair);chair.position.set(0,0,.62);
- cylMesh(chair,0,.04,0,.12,.12,.07,metal);
- boxMesh(chair,0,.36,0,.34,.07,.34,mat(0x344b65));
- boxMesh(chair,0,.59,.15,.34,.43,.075,mat(0x344b65));
- for(const x of [-.13,.13])boxMesh(chair,x,.13,0,.035,.2,.035,metal);
- g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+ const g=new THREE.Group();parent.add(g);const lv=Math.max(1,Math.min(4,Number(o.level)||1));
+ const M=(c,r=.72,m=0,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m,...e});
+ const B=(p,x,y,z,w,h,d,m)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);q.position.set(x,y,z);q.castShadow=true;q.receiveShadow=true;p.add(q);return q;};
+ const S=(p,x,y,z,w,h,d,m)=>{const q=new THREE.Mesh(new THREE.SphereGeometry(1,20,14),m);q.position.set(x,y,z);q.scale.set(w,h,d);q.castShadow=true;p.add(q);return q;};
+ const wood=M([0x765038,0x66503e,0x344b58,0x202f3b][lv-1],.58,.16),edge=M(lv>=3?0x7895a3:0xc49a6b,.4,.48),metal=M(0x91a9b8,.32,.72),rubber=M(0x202a34,.84);
+ const cyan=[0x65a9c7,0x28b8e0,0x29d6d0,0x78e8ff][lv-1],glow=M(cyan,.22,.18,{emissive:cyan,emissiveIntensity:[.18,.38,.72,1.05][lv-1]});
+ B(g,0,.48,0,.88,.075,.56,wood);B(g,0,.438,0,.9,.022,.575,edge);
+ for(const x of [-.365,.365])for(const z of [-.205,.205]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.022,.032,.42,8),metal);leg.position.set(x,.21,z);g.add(leg);B(g,x,.025,z,.075,.035,.075,rubber);}
+ // Monitor generations: bulky CRT -> early LCD -> thin LED -> premium ultrawide.
+ const mon=new THREE.Group();g.add(mon);mon.position.set(0,.535,-.17);
+ const w=lv===4?.43:lv>=3?.39:.34,h=lv===1?.29:lv===2?.25:lv===3?.27:.29,d=lv===1?.19:lv===2?.075:lv===3?.045:.035;
+ const shell=M([0x38434a,0x202e3b,0x172936,0x101d2b][lv-1],.38,lv>=3?.48:.25),glass=M(lv===1?0x163247:0x071827,.18,.1,{emissive:cyan,emissiveIntensity:lv===1?.16:lv===4?.58:.35});
+ B(mon,0,h/2,0,w,h,d,shell);B(mon,0,h/2,d/2+.006,w-.025,h-.026,.009,glass);
+ if(lv===1){S(mon,0,h/2,.075,w*.43,h*.39,.045,glass);B(mon,0,.035,.01,.17,.035,.14,shell);B(mon,0,.016,.01,.22,.018,.17,metal);}
+ else {B(mon,0,h*.12,d/2+.012,w*.84,.008,.006,glow);if(lv>=3){B(mon,0,h/2,-d/2-.008,w*.94,h*.92,.012,metal);}if(lv===4){B(mon,0,h+.008,0,w*.96,.012,.025,metal);B(mon,0,-.012,0,w*.96,.012,.025,metal);}}
+ // Stand neck and weighted foot.
+ B(mon,0,-.035,0,.055,.075,.045,lv===1?shell:metal);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.018,.024,.105,12),metal);neck.position.set(0,-.085,0);mon.add(neck);B(mon,0,-.14,.025,.19,.018,.105,metal);
+ // Screen interface details and indicator.
+ const ui=M(cyan,.3,.05,{emissive:cyan,emissiveIntensity:.5});
+ for(let i=0;i<5;i++)B(mon,-w*.27+i*.035,h*.72,d/2+.012,.018,.008,.004,ui);
+ B(mon,-w*.17,h*.48,d/2+.012,w*.28,.012,.004,ui);B(mon,w*.17,h*.48,d/2+.012,w*.2,.012,.004,ui);
+ for(let i=0;i<3;i++)B(mon,-w*.2+i*.055,h*.27,d/2+.012,.04,.006,.004,ui);
+ // Keyboard with individual keycaps and highlighted function/space keys.
+ const kb=new THREE.Group();g.add(kb);B(kb,0,.535,.145,.34,.022,.125,M(lv>=3?0x172632:0x26313b,.5,.28));
+ const keyGeo=new THREE.BoxGeometry(.019,.009,.014),keys=new THREE.InstancedMesh(keyGeo,M(lv>=3?0x8299a8:0xb0b9bd,.55,.14),55),dummy=new THREE.Object3D();let ki=0;
+ for(let row=0;row<5;row++)for(let col=0;col<11;col++){dummy.position.set(-.148+col*.029,.551,.098+row*.022);dummy.updateMatrix();keys.setMatrixAt(ki++,dummy.matrix);}keys.instanceMatrix.needsUpdate=true;kb.add(keys);
+ B(kb,0,.553,.188,.105,.01,.014,glow);
+ // Mouse, mousepad, scroll wheel and cable.
+ B(g,.275,.493,.15,.13,.012,.17,M(0x263a4b,.9,.08));S(g,.275,.515,.14,.034,.022,.052,M(0xc4cbd0,.42,.2));B(g,.275,.535,.112,.006,.004,.025,metal);
+ const cable=new THREE.QuadraticBezierCurve3(new THREE.Vector3(.275,.516,.105),new THREE.Vector3(.34,.53,.06),new THREE.Vector3(.34,.49,-.04));g.add(new THREE.Mesh(new THREE.TubeGeometry(cable,12,.004,6,false),rubber));
+ // PC case changes from beige office tower to RGB glass workstation.
+ const pc=new THREE.Group();g.add(pc);pc.position.set(-.345,.535,-.005);
+ const pcW=.155,pcH=[.29,.32,.34,.36][lv-1],pcD=.205,pcShell=M([0xb7ad98,0x354451,0x1b2c3a,0x111d2b][lv-1],.46,lv>=3?.5:.18);
+ B(pc,0,pcH/2,0,pcW,pcH,pcD,pcShell);const fz=pcD/2+.006;
+ B(pc,0,pcH*.55,fz,pcW*.82,pcH*.48,.012,M(lv===1?0x8c8b7e:0x0b1722,.48,.3));
+ if(lv===1){B(pc,0,pcH*.68,fz+.009,pcW*.58,.025,.012,metal);B(pc,0,pcH*.42,fz+.009,pcW*.58,.045,.012,M(0x3b454b,.5,.3));}
+ else{for(let i=0;i<4;i++)B(pc,0,pcH*(.26+i*.09),fz+.009,pcW*.62,.009,.008,metal);S(pc,pcW*.29,pcH*.13,fz+.014,.009,.009,.007,glow);}
+ if(lv>=3){B(pc,pcW/2+.004,pcH*.53,0,.008,pcH*.75,pcD*.72,M(lv===3?0x315064:0x23475a,.22,.4,{transparent:true,opacity:.72}));for(let i=0;i<(lv===4?3:2);i++){const z=-.055+i*.055,ring=new THREE.Mesh(new THREE.TorusGeometry(.038,.004,6,20),glow);ring.position.set(pcW/2+.012,pcH*.55,z);ring.rotation.y=Math.PI/2;pc.add(ring);}}
+ for(let i=0;i<4;i++)B(pc,-pcW*.3+i*pcW*.2,pcH*.92,fz+.008,.012,.004,.006,metal);
+ for(const x of [-.055,.055])B(pc,x,.012,0,.035,.024,.16,rubber);
+ // Stereo speakers flanking the monitor.
+ for(const x of [-.25,.25]){B(g,x,.55,-.12,.055,.16,.07,M(lv>=3?0x253d4d:0x343c43,.55,.22));S(g,x,.57,-.08,.019,.035,.009,glow);}
+ // Ergonomic chair: padded seat, back, lumbar panel, armrests, gas lift and five casters.
+ const chair=new THREE.Group();g.add(chair);chair.position.set(0,0,.66);
+ const upholstery=M([0x4a5360,0x344d66,0x235a65,0x263b52][lv-1],.86,.06);
+ B(chair,0,.39,0,.37,.095,.37,upholstery);B(chair,0,.445,.015,.32,.018,.31,edge);
+ const back=new THREE.Group();chair.add(back);back.position.set(0,.68,-.135);back.rotation.x=-.12;
+ B(back,0,0,0,.37,.48,.09,upholstery);B(back,0,.015,.049,.28,.31,.012,M(lv>=3?0x39717a:0x66717a,.9,.02));B(back,0,.19,0,.39,.045,.11,edge);
+ for(const x of [-.205,.205]){B(chair,x,.54,-.01,.035,.19,.035,metal);B(chair,x,.63,.04,.045,.025,.29,upholstery);}
+ const lift=new THREE.Mesh(new THREE.CylinderGeometry(.026,.038,.27,12),metal);lift.position.set(0,.19,0);chair.add(lift);
+ for(let i=0;i<5;i++){const a=i*Math.PI*2/5,dx=Math.cos(a)*.19,dz=Math.sin(a)*.19,spoke=new THREE.Mesh(new THREE.BoxGeometry(.22,.025,.035),metal);spoke.position.set(dx/2,.055,dz/2);spoke.rotation.y=-a;chair.add(spoke);const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.035,12),rubber);wheel.position.set(dx,.025,dz);wheel.rotation.z=Math.PI/2;chair.add(wheel);}
+ if(lv===4)B(back,0,.29,-.005,.24,.11,.08,upholstery);
+ g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.level=lv;return g;
 }
 function createCoffee(parent,o){const g=new THREE.Group();parent.add(g);const cabinet=mat(0x785236),steel=mat(0xaebfc7,.3,.65),black=mat(0x1c2d3b),glow=mat(0x2bc7d8,.25,.2,{emissive:0x087c91,emissiveIntensity:1.1});boxMesh(g,0,.04,0,.78,.56,.62,cabinet);boxMesh(g,0,.61,-.02,.58,.55,.43,steel);boxMesh(g,0,.65,.205,.47,.33,.025,black);boxMesh(g,0,.76,.222,.29,.08,.012,glow);boxMesh(g,0,.37,.28,.26,.07,.12,steel);cylMesh(g,.02,.39,.32,.09,.09,.025,mat(0x3c5662));boxMesh(g,-.12,.29,.25,.22,.035,.17,mat(0x4a6570));const cup=cylMesh(g,.23,.29,.22,.075,.09,.13,mat(0xf4eee0));cup.rotation.z=.02;lineMesh(g,new THREE.Vector3(.29,.36,.22),new THREE.Vector3(.34,.34,.22),.014,mat(0xf4eee0));for(let i=0;i<3;i++){const p=sphereMesh(g,-.1+i*.1,.98+Math.sin(i)*.04,.15,.025,mat(0xe7f7ff,.4,0,{transparent:true,opacity:.48}));p.userData.steam=true;}g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
 function createServer(parent,o){const g=new THREE.Group();parent.add(g);const shell=mat(0x34495c,.42,.55),glass=mat(0x5ca4bd,.2,.3,{transparent:true,opacity:.28}),dark=mat(0x0c1a29),led=mat(0x36e0c0,.25,.2,{emissive:0x13ad91,emissiveIntensity:1.4});boxMesh(g,0,.04,0,.55,1.18,.58,shell);boxMesh(g,0,.65,.298,.48,.92,.018,glass);for(let i=0;i<4;i++){boxMesh(g,0,.2+i*.22,.315,.4,.13,.018,dark);for(let j=0;j<3;j++)sphereMesh(g,-.13+j*.13,.25+i*.22,.34,.018,led);}g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}

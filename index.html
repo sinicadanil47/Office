@@ -872,13 +872,21 @@ function addRoom3D(){
  const n=currentGridSize(),tier=currentFloorTier();
  const edgeColors=[0x69747a,0xb18a61,0x7b858b,0x277c80,0xc69d60];
  const sideMat=mat(edgeColors[tier],.46,.35),under=mat(tier===4?0x171722:tier===3?0x101b24:0x333b40,.72,.18);
- // Rebuilt floor slab: exact grid footprint, top flush with wall bases, texture on all six faces.
- const slabDepth=.28;
- const floorMaterials=tier===0?Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0})):makeInteriorFloorMaterial(tier,n);
- const floor=new THREE.Mesh(new THREE.BoxGeometry(n,slabDepth,n),floorMaterials);
- floor.position.set(n/2,-slabDepth/2,n/2);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
- if(tier===0){threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();}
- // Furniture coordinates and floor geometry share the same 0..N cell grid.
+ let floor;
+ if(tier===0){
+  // Basement slab: exact 5x5 footprint, top flush with wall bases, same floor image on all six faces.
+  const slabDepth=.28,floorMaterials=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0}));
+  floor=new THREE.Mesh(new THREE.BoxGeometry(n,slabDepth,n),floorMaterials);
+  floor.position.set(n/2,-slabDepth/2,n/2);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
+  threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();
+ }else{
+  // Preserve the existing floor construction on the other four office levels.
+  boxMesh(threeFloorGroup,n/2,-.62,n/2,n+.58,.14,n+.58,under);
+  boxMesh(threeFloorGroup,n/2,-.49,n/2,n+.44,.49,n+.44,sideMat);
+  boxMesh(threeFloorGroup,n/2,-.105,n/2,n+.30,.13,n+.30,under);
+  floor=new THREE.Mesh(new THREE.BoxGeometry(n,.035,n),makeInteriorFloorMaterial(tier,n));
+  floor.position.set(n/2,-.0175,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
+ }
  {
  // Fine tile joints are aligned exactly to the playable grid (one world unit per cell).
  const tileGrid=new THREE.Group();

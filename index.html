@@ -794,7 +794,7 @@ function addRoom3D(){
  boxMesh(threeFloorGroup,n/2,-.49,n/2,n+.44,.49,n+.44,sideMat);
  boxMesh(threeFloorGroup,n/2,-.105,n/2,n+.30,.13,n+.30,under);
  const floor=new THREE.Mesh(new THREE.BoxGeometry(n,.035,n),makeInteriorFloorMaterial(tier,n));
- floor.position.set(n/2,.0125,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
+ floor.position.set(n/2,-.0175,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
  const rim=mat(edgeColors[tier],.38,.48,tier===4?{emissive:0x65451d,emissiveIntensity:.28}:{});
  // Four narrow perimeter rails stay outside the playable cells.
  boxMesh(threeFloorGroup,n/2,.018,.045,n+.24,.055,.09,rim);

@@ -668,7 +668,7 @@ function addWindowBackdrop(parent,axis,center,y,w,h,tier){
  if(tier>=2){for(let i=0;i<34;i++){const x=i*17+(i%3)*4,bh=28+(i*31)%100;g.fillStyle=tier===4?"rgba(30,35,58,.92)":"rgba(8,18,40,.9)";g.fillRect(x,256-bh,12,bh);for(let yy=260-bh;yy<250;yy+=12){g.fillStyle=tier===4?"rgba(242,193,119,.8)":"rgba(68,206,232,.65)";g.fillRect(x+3,yy,2,3);}}}
  if(tier===4){g.fillStyle="rgba(228,178,116,.22)";g.fillRect(0,188,512,68);g.strokeStyle="rgba(242,198,133,.65)";g.lineWidth=2;g.beginPath();g.moveTo(0,190);g.lineTo(512,190);g.stroke();}
  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const m=new THREE.MeshBasicMaterial({map:tex,depthWrite:false,transparent:true,opacity:.96,side:THREE.DoubleSide});
- const plane=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);if(axis==="back")plane.position.set(center,y+h/2,.025);else{plane.rotation.y=Math.PI/2;plane.position.set(.025,y+h/2,center);}plane.renderOrder=0;parent.add(plane);
+ const plane=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m);if(axis==="back")plane.position.set(center,y+h/2,.039);else{plane.rotation.y=Math.PI/2;plane.position.set(.039,y+h/2,center);}plane.renderOrder=0;parent.add(plane);
 }
 function addWallSconce(parent,x,y,z,axis,color=0xffc98b){
  const plate=mat(0x303944,.45,.55),glow=mat(color,.28,.1,{emissive:color,emissiveIntensity:1.25});
@@ -751,7 +751,7 @@ function addInteriorDecor(parent,n,tier,wallH){
   addWindowLightStrip(parent,.52,2.65,.9,4.2,0xffc38d);
  }else if(tier===3){
   // IT tower: full-height glass bays, slim metal mullions and cyan perimeter lighting.
-  const glass=M(0x164655,.24,.45,.22),rail=M(0x63828b,.35,.65),light=M(0x38d7cb,.25,.3,.9);
+  const glass=mat(0x164655,.24,.45,{transparent:true,opacity:.28,depthWrite:false,emissive:0x123a48,emissiveIntensity:.35}),rail=M(0x63828b,.35,.65),light=M(0x38d7cb,.25,.3,.9);
   for(let i=0;i<5;i++){
    const x=(i+.5)*n/5,w=n/5-.10;
    back(x,0.28,.07,w,wallH-.52,.045,dark);

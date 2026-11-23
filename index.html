@@ -188,9 +188,9 @@ const SPRITE_ASSETS={
 const SPRITE_URI={},SPRITE_IMAGES={};
 function spriteKey(type){return type==="boss"?"ceo":type;}
 function spriteData(type){const key=spriteKey(type);if(!SPRITE_URI[key])SPRITE_URI[key]="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(SPRITE_SVG[key]||SPRITE_SVG.desk);return SPRITE_URI[key];}
-function spriteMarkup(type,size=56){
+function spriteMarkup(type,size=56,level=1){
  const key=spriteKey(type);
- return '<canvas class="sprite-preview" width="'+size+'" height="'+size+'" data-preview-type="'+key+'" aria-hidden="true"></canvas>';
+ return '<canvas class="sprite-preview" width="'+size+'" height="'+size+'" data-preview-type="'+key+'" data-level="'+level+'" aria-hidden="true"></canvas>';
 }
 function loadFurnitureSprite(key){
  const img=new Image();SPRITE_IMAGES[key]=img;
@@ -344,19 +344,30 @@ function drawDesk(o){
  const t=performance.now()/1000,cycle=(t+(o.x*2+o.y)*.17)%18,rt=employeeMotion.get(o);
  const state=rt?rt.state:(o.workerState||o.mood||(cycle<12?"work":cycle<15?"sleep":"walk"));
  const bob=state==="work"?Math.sin(t*5+o.x)*.9:state==="sleep"?Math.sin(t*1.2)*.25:Math.sin(t*3)*1.4;
- box(o.x+.16,o.y+.19,.68,.56,13,"#9a6840","#573b2d","#70472f");box(o.x+.1,o.y+.13,.8,.62,5,"#d6a36b","#805334","#a16d43");
- const m=iso(o.x+.5,o.y+.34);
- poly([{x:m.x-13,y:m.y-31+bob},{x:m.x+12,y:m.y-31+bob},{x:m.x+12,y:m.y-14+bob},{x:m.x-13,y:m.y-14+bob}],"#0b1727","#718ba2");
- poly([{x:m.x-10,y:m.y-28+bob},{x:m.x+9,y:m.y-28+bob},{x:m.x+9,y:m.y-17+bob},{x:m.x-10,y:m.y-17+bob}],"#17445b","#43d5ec");
- ctx.save();ctx.shadowColor="#4bdcf5";ctx.shadowBlur=10;ctx.strokeStyle="#9af2ff";ctx.beginPath();ctx.moveTo(m.x-7,m.y-24+bob);ctx.lineTo(m.x-2,m.y-20+bob);ctx.lineTo(m.x+2,m.y-25+bob);ctx.lineTo(m.x+7,m.y-21+bob);ctx.stroke();ctx.restore();
- box(o.x+.46,o.y+.39,.08,.05,8,"#aebdca","#586c7e","#71869a");const k=iso(o.x+.51,o.y+.65);
+ const level=Math.max(1,Math.min(4,Number(o.level)||1)),m=iso(o.x+.5,o.y+.34);
+ box(o.x+.16,o.y+.19,.68,.56,13,"#9a6840","#573b2d","#70472f");
+ box(o.x+.1,o.y+.13,.8,.62,5,level===1?"#b58a61":"#d6a36b","#805334",level>=3?"#b7834e":"#a16d43");
+ // Monitor evolution: laptop -> single monitor + plant -> ultrawide RGB -> dual monitors + illuminated tower.
+ if(level===1){
+  poly([{x:m.x-11,y:m.y-28+bob},{x:m.x+10,y:m.y-28+bob},{x:m.x+10,y:m.y-15+bob},{x:m.x-11,y:m.y-15+bob}],"#17283a","#91a7b8");
+  poly([{x:m.x-13,y:m.y-14+bob},{x:m.x+12,y:m.y-14+bob},{x:m.x+8,y:m.y-11+bob},{x:m.x-9,y:m.y-11+bob}],"#536a7c","#aab9c5");
+ }else{
+  const count=level>=4?2:1,sw=level>=3?19:14;
+  for(let i=0;i<count;i++){const dx=(i-(count-1)/2)*(sw+3);
+   poly([{x:m.x+dx-sw/2,y:m.y-32+bob},{x:m.x+dx+sw/2,y:m.y-32+bob},{x:m.x+dx+sw/2,y:m.y-14+bob},{x:m.x+dx-sw/2,y:m.y-14+bob}],"#0b1727","#718ba2");
+   poly([{x:m.x+dx-sw/2+3,y:m.y-29+bob},{x:m.x+dx+sw/2-3,y:m.y-29+bob},{x:m.x+dx+sw/2-3,y:m.y-17+bob},{x:m.x+dx-sw/2+3,y:m.y-17+bob}],"#17445b","#43d5ec");
+   ctx.save();ctx.strokeStyle="#8be9f7";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(m.x+dx-sw/2+5,m.y-25+bob);ctx.lineTo(m.x+dx+sw/2-5,m.y-20+bob);ctx.stroke();ctx.restore();
+  }
+  box(o.x+.46,o.y+.39,.08,.05,8,"#aebdca","#586c7e","#71869a");
+ }
+ const k=iso(o.x+.51,o.y+.65);
  poly([{x:k.x-11,y:k.y-3},{x:k.x+7,y:k.y-3},{x:k.x+11,y:k.y+2},{x:k.x-7,y:k.y+2}],"#273b4e","#8da3b6");
  ctx.fillStyle="#d9e7ee";for(let i=0;i<5;i++)ctx.fillRect(k.x-6+i*3,k.y-1,1.2,1);
- const ch=iso(o.x+.5,o.y+.91);
- if(!o.skipWorker){
-  const wp=rt?rt.pos:{x:o.x+.5,y:o.y+.91},screen=iso(wp.x,wp.y);
-  drawWorker(screen.x-1,screen.y-3,state,bob,!rt||rt.state!=="walk");
- }
+ if(level>=2){const p=iso(o.x+.13,o.y+.3);ctx.fillStyle="#347d58";ctx.beginPath();ctx.arc(p.x-5,p.y-21,4,0,Math.PI*2);ctx.arc(p.x+1,p.y-23,4,0,Math.PI*2);ctx.fill();ctx.fillRect(p.x-3,p.y-21,2,9);}
+ if(level>=3){ctx.save();ctx.shadowColor="#4bdcf5";ctx.shadowBlur=9;ctx.strokeStyle="#8be9f7";ctx.lineWidth=1.2;ctx.strokeRect(m.x-19,m.y-34,38,22);ctx.restore();}
+ if(level>=4){box(o.x+.84,o.y+.27,.13,.23,8,"#26384d","#8ba7bb","#13263c");const p=iso(o.x+.84,o.y+.27);ctx.save();ctx.shadowColor="#38bdf8";ctx.shadowBlur=8;ctx.fillStyle="#38bdf8";ctx.beginPath();ctx.arc(p.x,p.y-3,2,0,Math.PI*2);ctx.fill();ctx.restore();}
+ const wp=rt?rt.pos:{x:o.x+.5,y:o.y+.91},screen=iso(wp.x,wp.y);
+ if(!o.skipWorker)drawWorker(screen.x-1,screen.y-3,state,bob,!rt||rt.state!=="walk");
 }
 function drawCoffee(o){
  box(o.x+.2,o.y+.29,.6,.48,12,"#815536","#493326","#65432e");box(o.x+.13,o.y+.24,.74,.53,5,"#d4c5ad","#77634e","#a18a6c");
@@ -474,17 +485,17 @@ function drawObject(o){
  ctx.shadowColor=glow;ctx.shadowBlur=13;ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(p.x,p.y+cellH*.2,w*.3,cellH*.2,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
  ctx.translate(p.x,p.y+cellH*.12);ctx.rotate(((Number(o.rot)||0)%4)*Math.PI/2);ctx.translate(-p.x,-(p.y+cellH*.12));drawFurnitureShape(o);ctx.restore();
 }
-function renderFurniturePreview(el,type,size){
+function renderFurniturePreview(el,type,size,level=1){
  if(!el)return;const old={ctx,cellW,cellH,originX,originY},dpr=Math.min(window.devicePixelRatio||1,2),w=size||64,h=size||64;
  el.width=Math.round(w*dpr);el.height=Math.round(h*dpr);el.style.width=w+"px";el.style.height=h+"px";
  const pctx=el.getContext("2d");pctx.setTransform(dpr,0,0,dpr,0,0);pctx.clearRect(0,0,w,h);
  ctx=pctx;cellW=31;cellH=15.5;originX=w/2;originY=h*.63;
- ctx.save();ctx.scale(Math.min(1,w/72),Math.min(1,h/72));drawFurnitureShape({type:type==="ceo"?"boss":type,x:0,y:0,rot:0,workerState:"work"});ctx.restore();
+ ctx.save();ctx.scale(Math.min(1,w/72),Math.min(1,h/72));drawFurnitureShape({type:type==="ceo"?"boss":type,x:0,y:0,rot:0,level,workerState:"work"});ctx.restore();
  ctx=old.ctx;cellW=old.cellW;cellH=old.cellH;originX=old.originX;originY=old.originY;
 }
 function renderAllFurniturePreviews(){
- document.querySelectorAll("#shop canvas.sprite-preview[data-sprite]").forEach(el=>renderFurniturePreview(el,el.dataset.sprite,56));
- document.querySelectorAll("#upgradeCard canvas.sprite-preview[data-preview-type]").forEach(el=>renderFurniturePreview(el,el.dataset.previewType,64));
+ document.querySelectorAll("#shop canvas.sprite-preview[data-sprite]").forEach(el=>renderFurniturePreview(el,el.dataset.sprite,56,1));
+ document.querySelectorAll("#upgradeCard canvas.sprite-preview[data-preview-type]").forEach(el=>renderFurniturePreview(el,el.dataset.previewType,64,Number(el.dataset.level)||1));
 }
 function synergyCells(o){
  if(!o)return[];const a=[];
@@ -616,7 +627,7 @@ function go(page){document.querySelectorAll(".page").forEach(p=>p.classList.togg
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 
 function closeShop(){$("shop").classList.remove("open");$("installBar").classList.remove("show");}
-function showUpgradeCard(index){const o=state.layout[index];if(!o)return;const name=TYPES[o.type]?.name||"Объект",level=Number(o.level)||1,baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost;$("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+' · '+money(TYPES[o.type].base||0)+'/сек</small></div></div><button id="closeUpgrade">✕</button></div><div class="upgrade-actions"><button id="upgradeObject" class="primary">Улучшить за '+money(cost)+'</button></div>';$("upgradeCard").classList.add("show");renderAllFurniturePreviews();$("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");$("upgradeObject").onclick=()=>{if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");toast("Уровень объекта повышен");};}
+function showUpgradeCard(index){const o=state.layout[index];if(!o)return;const name=TYPES[o.type]?.name||"Объект",level=Number(o.level)||1,baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost;$("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64,level)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+' · '+money(TYPES[o.type].base||0)+'/сек</small></div></div><button id="closeUpgrade">✕</button></div><div class="upgrade-actions"><button id="upgradeObject" class="primary">Улучшить за '+money(cost)+'</button></div>';$("upgradeCard").classList.add("show");renderAllFurniturePreviews();$("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");$("upgradeObject").onclick=()=>{if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");toast("Уровень объекта повышен");};}
 function selectBuild(type){state.sellMode=false;state.selected=type;$("shop").classList.remove("open");$("installLabel").textContent="Установка: "+TYPES[type].name+" ("+(devFreeBuild?"БЕСПЛАТНО":money(TYPES[type].cost))+")";$("installBar").classList.add("show");updateUI();draw();}
 $("openShop").addEventListener("click",()=>{$("shop").classList.toggle("open");});$("expandShopBtn").addEventListener("click",buyExpansion);$("expandOfficeBtn").addEventListener("click",buyExpansion);
 $("quickSell").addEventListener("click",()=>{$("shop").classList.remove("open");state.selected=null;state.sellMode=!state.sellMode;$("installBar").classList.remove("show");toast(state.sellMode?"Нажмите на объект для продажи":"Продажа выключена");});

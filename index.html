@@ -365,6 +365,7 @@ function applyBasementTextures(){
  if(floor&&basementFloorTex?.image){floor.material.map=basementFloorTex;floor.material.color.set(0xffffff);floor.material.roughness=.7;floor.material.metalness=.1;floor.material.needsUpdate=true;}
  const walls=threeFloorGroup.userData.basementWalls;
  if(walls){if(basementWallLeftTex?.image){walls.left.material.map=basementWallLeftTex;walls.left.visible=true;}if(basementWallRightTex?.image){walls.right.material.map=basementWallRightTex;walls.right.visible=true;}[walls.left,walls.right].forEach(m=>{m.material.color.set(0xffffff);m.material.needsUpdate=true;});}
+ if(basementWallLeftTex?.image&&basementWallRightTex?.image&&threeFloorGroup.userData.basementFallbackDecor){const fallback=threeFloorGroup.userData.basementFallbackDecor;threeFloorGroup.remove(fallback);disposeThreeTree(fallback);threeFloorGroup.userData.basementFallbackDecor=null;}
 }
 
 const boxMesh=(parent,x,y,z,w,h,d,material,r=.035)=>{const geo=new THREE.BoxGeometry(w,h,d,1,1,1),m=new THREE.Mesh(geo,material);m.position.set(x,y+h/2,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
@@ -925,7 +926,8 @@ function addRoom3D(){
   boxMesh(threeFloorGroup,n/2,0,-.105,n+.06,wallH,.22,wallMat);
   boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
  }
- if(tier!==0)addInteriorDecor(threeFloorGroup,n,tier,wallH);\n else if(!basementWallLeftTex.image&&!basementWallRightTex.image)addInteriorDecor(threeFloorGroup,n,tier,wallH);
+ if(tier!==0)addInteriorDecor(threeFloorGroup,n,tier,wallH);
+ else{const fallbackDecor=new THREE.Group();threeFloorGroup.add(fallbackDecor);addInteriorDecor(fallbackDecor,n,tier,wallH);threeFloorGroup.userData.basementFallbackDecor=fallbackDecor;}
  // A restrained cell outline appears only for the active pointer or build preview.
  const hoverGroup=new THREE.Group(),hoverMat=mat(tier===4?0xe5c98d:tier===3?0x48e5d7:0xdce8ed,.32,.2,{emissive:tier===3?0x126b66:tier===4?0x6b4b1d:0x536b78,emissiveIntensity:.65,transparent:true,opacity:.72});
  boxMesh(hoverGroup,.5,.002,.035,.91,.012,.018,hoverMat);

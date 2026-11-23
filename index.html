@@ -733,7 +733,8 @@ function addInteriorDecor(parent,n,tier,wallH){
  }else if(tier===2){
   // Business centre: polished stone, dark panoramic frames and monumental corner piers.
   const windowTheme={frame:0x252d38,glass:0xeab58d,glow:0xffbd80,glowI:.28,bar:0xb68d66};
-  addArchitecturalWindow(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,windowTheme);\n  addWindowBackdrop(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,2);
+  addArchitecturalWindow(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,windowTheme);
+  addWindowBackdrop(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,2);
   addArchitecturalWindow(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,windowTheme);\n  addWindowBackdrop(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,2);
   addArchitecturalWindow(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,windowTheme);\n  addWindowBackdrop(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,2);
   // Deep stone-clad piers at both exposed rear corners.
@@ -752,7 +753,8 @@ function addInteriorDecor(parent,n,tier,wallH){
   for(let i=0;i<5;i++){
    const x=(i+.5)*n/5,w=n/5-.10;
    back(x,0.28,.07,w,wallH-.52,.045,dark);
-   back(x,0.32,.105,w-.08,wallH-.62,.018,glass);\n   addWindowBackdrop(parent,"back",x,.32,w-.08,wallH-.62,3);
+   back(x,0.32,.105,w-.08,wallH-.62,.018,glass);
+   addWindowBackdrop(parent,"back",x,.32,w-.08,wallH-.62,3);
    back(x,0.32,.13,.035,wallH-.62,.035,rail);
    for(let q=0;q<3;q++)back(x-w*.28+q*w*.18,.38,.145,.025,.035,.02,light);
   }

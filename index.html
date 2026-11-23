@@ -356,13 +356,13 @@ function loadBasementTexture(key,files){
  const next=()=>{if(attempt>=files.length){console.warn("Basement texture unavailable:",key,files);return;}const file=files[attempt++];basementTextureLoader.load(file,loaded=>{tex.copy(loaded);tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.needsUpdate=true;applyBasementTextures();},undefined,()=>next());};
  next();return tex;
 }
-const basementFloorTex=loadBasementTexture("floor",["6ad454-3-draft.png","6ad454-3-draft.jpg","basement_floor.png","basement_floor.jpg"]);
-const basementWallLeftTex=loadBasementTexture("wallLeft",["input_74c949_4.png","input_74c949_4.jpg","basement_wall_left.png","basement_wall_left.jpg"]);
-const basementWallRightTex=loadBasementTexture("wallRight",["f5432d15.png","f5432d15.jpg","basement_wall_right.png","basement_wall_right.jpg"]);
+const basementFloorTex=loadBasementTexture("floor",["6ad454-3-draft.png","6ad454-3-draft.jpg","basement_floor.png","basement_floor.jpg","assets/6ad454-3-draft.png","assets/basement_floor.png","textures/basement_floor.png"]);
+const basementWallLeftTex=loadBasementTexture("wallLeft",["input_74c949_4.png","input_74c949_4.jpg","basement_wall_left.png","basement_wall_left.jpg","assets/input_74c949_4.png","assets/basement_wall_left.png","textures/basement_wall_left.png"]);
+const basementWallRightTex=loadBasementTexture("wallRight",["f5432d15.png","f5432d15.jpg","basement_wall_right.png","basement_wall_right.jpg","assets/f5432d15.png","assets/basement_wall_right.png","textures/basement_wall_right.png"]);
 function applyBasementTextures(){
  if(currentFloorTier()!==0||!threeFloorGroup)return;
  const floor=threeFloorGroup.userData.basementFloor;
- if(floor&&basementFloorTex){floor.material.map=basementFloorTex;floor.material.color.set(0xffffff);floor.material.roughness=.7;floor.material.metalness=.1;floor.material.needsUpdate=true;}
+ if(floor&&basementFloorTex?.image){floor.material.map=basementFloorTex;floor.material.color.set(0xffffff);floor.material.roughness=.7;floor.material.metalness=.1;floor.material.needsUpdate=true;}
  const walls=threeFloorGroup.userData.basementWalls;
  if(walls){if(basementWallLeftTex?.image){walls.left.material.map=basementWallLeftTex;walls.left.visible=true;}if(basementWallRightTex?.image){walls.right.material.map=basementWallRightTex;walls.right.visible=true;}[walls.left,walls.right].forEach(m=>{m.material.color.set(0xffffff);m.material.needsUpdate=true;});}
 }
@@ -906,7 +906,7 @@ function addRoom3D(){
  boxMesh(threeFloorGroup,n/2,.018,n-.045,n+.24,.055,.09,rim);
  boxMesh(threeFloorGroup,.045,.018,n/2,.09,.055,n+.24,rim);
  boxMesh(threeFloorGroup,n-.045,.018,n/2,.09,.055,n+.24,rim);
- const wallH=tier===0?2.45:3.05;
+ const wallH=tier===0?3.65:3.05;
  const wallColors=[0x596166,0xe5e6df,0xd1d5d6,0x14232d,0x252532];
  const wallMat=tier===4?mat(0x9eb6c9,.25,.18,{transparent:true,opacity:.12,depthWrite:false}):mat(wallColors[tier],tier===2?.48:.84,tier===2?.08:0);
  // Exactly two rear walls. Their fronts remain fully open for the isometric cutaway view.
@@ -918,14 +918,14 @@ function addRoom3D(){
   const leftWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),leftMat);leftWall.position.set(n/2,wallH/2,-.222);leftWall.receiveShadow=true;leftWall.visible=!!basementWallLeftTex.image;threeFloorGroup.add(leftWall);
   const rightWall=new THREE.Mesh(new THREE.PlaneGeometry(n,wallH),rightMat);rightWall.rotation.y=Math.PI/2;rightWall.position.set(-.222,wallH/2,n/2);rightWall.receiveShadow=true;rightWall.visible=!!basementWallRightTex.image;threeFloorGroup.add(rightWall);
   threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall};
-  const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(n-.65,2.05,n*.55);threeFloorGroup.add(lampGlow);
-  const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(.75,.48,.12);threeFloorGroup.add(windowGlow);
+  const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(.12,2.15,n*.72);threeFloorGroup.add(lampGlow);
+  const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(n/2,1.05,.12);threeFloorGroup.add(windowGlow);
   applyBasementTextures();
  }else{
   boxMesh(threeFloorGroup,n/2,0,-.105,n+.06,wallH,.22,wallMat);
   boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
  }
- addInteriorDecor(threeFloorGroup,n,tier,wallH);
+ if(tier!==0)addInteriorDecor(threeFloorGroup,n,tier,wallH);\n else if(!basementWallLeftTex.image&&!basementWallRightTex.image)addInteriorDecor(threeFloorGroup,n,tier,wallH);
  // A restrained cell outline appears only for the active pointer or build preview.
  const hoverGroup=new THREE.Group(),hoverMat=mat(tier===4?0xe5c98d:tier===3?0x48e5d7:0xdce8ed,.32,.2,{emissive:tier===3?0x126b66:tier===4?0x6b4b1d:0x536b78,emissiveIntensity:.65,transparent:true,opacity:.72});
  boxMesh(hoverGroup,.5,.002,.035,.91,.012,.018,hoverMat);

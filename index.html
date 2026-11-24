@@ -1504,9 +1504,9 @@ function addRoom3D(){
  // Fascia seams, corner plates and exposed fasteners make the cutaway slab read as a real floor plate.
  const fascia=mat(tier===4?0x272733:tier===3?0x14232b:0x424b50,.42,.62);
  const seam=mat(tier===4?0xd5b779:tier===3?0x37cfc8:0x89959a,.34,.72,tier>=3?{emissive:tier===3?0x087c79:0x60451f,emissiveIntensity:.45}:{});
- boxMesh(threeFloorGroup,n/2,-.34,n+.265,n+.38,.035,.028,fascia);boxMesh(threeFloorGroup,n+.265,-.34,n/2,.028,.035,n+.38,fascia);
- boxMesh(threeFloorGroup,n/2,-.23,n+.265,n+.40,.018,.018,seam);boxMesh(threeFloorGroup,n+.265,-.23,n/2,.018,.018,n+.40,seam);
- for(let i=0;i<=n;i+=2){sphereMesh(threeFloorGroup,.12+i,-.355,n+.275,.035,seam);sphereMesh(threeFloorGroup,n+.275,-.355,.12+i,.035,seam);}
+ boxMesh(threeFloorGroup,n/2-.0925,-.34,n+.016,n+.245,.035,.028,fascia);boxMesh(threeFloorGroup,n+.016,-.34,n/2-.0925,.028,.035,n+.245,fascia);
+ boxMesh(threeFloorGroup,n/2-.0925,-.23,n+.016,n+.245,.018,.018,seam);boxMesh(threeFloorGroup,n+.016,-.23,n/2-.0925,.018,.018,n+.245,seam);
+ for(let i=0;i<=n;i+=2){sphereMesh(threeFloorGroup,.12+i,-.355,n-.005,.035,seam);sphereMesh(threeFloorGroup,n-.005,-.355,.12+i,.035,seam);}
  // Inlaid perimeter zoning and a restrained central medallion give empty floors a finished plan.
  const zoneColor=tier===4?0xc7a15e:tier===3?0x3dcac4:tier===0?0x707c80:tier===1?0x9a7654:0x9aabb0;
  const zoneMat=mat(zoneColor,.48,.35,{transparent:true,opacity:.58,depthWrite:false,emissive:tier>=3?zoneColor:0x000000,emissiveIntensity:tier>=3?.28:0});

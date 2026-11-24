@@ -1876,6 +1876,14 @@ function renderThreeScene(){
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
  threePreviewGroup?.traverse(node=>{const character=node.userData?.character||node.userData?.worker;if(character?.userData?.update)character.userData.update(now);});
  threeOfficeControllers.forEach(controller=>controller.update(frameDt,now));
+ sysadminControllers.forEach(controller=>controller.update(frameDt,now));
+ if(Date.now()>=sysadminNextBreakAt){
+  const candidates=currentLayout().filter(o=>o.type==="desk"&&!sysadminIsBroken(o));
+  if(candidates.length){const chosen=candidates[Math.floor(Math.random()*candidates.length)];sysadminSetBroken(chosen,true);const dg=threeFurnitureGroup?.children.find(g=>g.userData.object===chosen);if(dg)sysadminPaintDesk(dg,true);sysadminNotify("⚠️ Сломался ПК на рабочем месте!");}
+  sysadminNextBreakAt=Date.now()+45000+Math.random()*45000;
+ }
+ threeFurnitureGroup?.children.forEach(dg=>{const o=dg.userData.object;if(o?.type==="desk"&&sysadminIsBroken(o)){sysadminPaintDesk(dg,true);if(dg.userData.character)dg.userData.character.userData.state="wait";}});
+
  threeFurnitureGroup?.children.forEach(deskGroup=>{if(deskGroup.userData.updateCyberAlert){deskGroup.userData.setCyberAlert?.(!!cyberSecurityState.activeThreat&&!state.viewing);deskGroup.userData.updateCyberAlert(now);}const obj=deskGroup.userData.object;if(obj?.type==="desk"&&deskGroup.userData.cyberLockIndicator){const until=cyberSecurityState.activeDebuffs.blockedDesks?.[obj.id]||0;deskGroup.userData.cyberLockIndicator.visible=until>Date.now();}});
  threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});
  threeFloorGroup?.traverse(o=>{if(o.userData.dustMote){o.position.y=o.userData.baseY+Math.sin(now*1.7+o.userData.baseX)*.035;o.position.x=o.userData.baseX+Math.sin(now*.7+o.userData.baseY)*.045;}});

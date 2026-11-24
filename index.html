@@ -1477,13 +1477,13 @@ function addRoom3D(){
   const slabDepth=.28,slabOverhang=.12,slabSize=n+slabOverhang*2;
   const floorMaterials=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0}));
   floor=new THREE.Mesh(new THREE.BoxGeometry(slabSize,slabDepth,slabSize),floorMaterials);
-  floor.position.set(n/2,-slabDepth/2,n/2);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
+  floor.position.set(n/2-.12,-slabDepth/2,n/2-.12);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
   threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();
  }else{
   // Preserve the existing floor construction on the other four office levels.
-  boxMesh(threeFloorGroup,n/2,-.62,n/2,n+.43,.14,n+.43,under);
-  boxMesh(threeFloorGroup,n/2,-.49,n/2,n+.43,.49,n+.43,sideMat);
-  boxMesh(threeFloorGroup,n/2,-.105,n/2,n+.43,.13,n+.43,under);
+  boxMesh(threeFloorGroup,n/2-.0925,-.62,n/2-.0925,n+.245,.14,n+.245,under);
+  boxMesh(threeFloorGroup,n/2-.0925,-.49,n/2-.0925,n+.245,.49,n+.245,sideMat);
+  boxMesh(threeFloorGroup,n/2-.0925,-.105,n/2-.0925,n+.245,.13,n+.245,under);
   floor=new THREE.Mesh(new THREE.BoxGeometry(n,.035,n),makeInteriorFloorMaterial(tier,n));
   floor.position.set(n/2,-.0175,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
  }
@@ -1924,7 +1924,7 @@ function employeeKey(o){return Math.round(o.x)+":"+Math.round(o.y);}
 function validFloorCell(x,y,n=currentGridSize()){return Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&y>=0&&x<n&&y<n;}
 function freeEmployeeCell(x,y,layout,desk,n=currentGridSize()){
  if(!validFloorCell(x,y,n))return false;
- return !layout.some(o=>o!==desk&&o.x===x&&o.y===y);
+ return !layout.some(o=>o!==desk&&objectFootprintCells(o).some(cell=>cell.x===x&&cell.y===y));
 }
 function findEmployeePath(start,goal,layout,desk,n=currentGridSize()){
  const key=(x,y)=>x+","+y,queue=[{x:start.x,y:start.y}],prev=new Map([[key(start.x,start.y),null]]);

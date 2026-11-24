@@ -1556,7 +1556,7 @@ class OfficeCharacterController{
 function rebuildThreeScene(){
  threeOfficeControllers.forEach(c=>c.forceDock());threeOfficeControllers.clear();dev3dGameMixers.forEach(m=>m.stopAllAction());dev3dGameMixers.length=0;dev3dProceduralRigs.length=0;dev3dTypingControllers.length=0;const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();
  floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);threeWorkerGroups.set(o,g);break;case"ceo":g=createCEO(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;}if(g)g.userData.object=o;});
- floor.forEach(o=>{if(o.type==="ceo")return;const key=o.type==="desk"?"desk_"+Math.max(1,Math.min(4,Number(o.level)||1)):o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});
+ floor.forEach(o=>{if(o.type==="ceo"||o.type==="desk"||o.type==="coffee")return;const key=o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});
  floor.forEach(o=>{if(o.type!=="desk"&&o.type!=="ceo")return;const dg=threeFurnitureGroup.children.find(c=>c.userData.object===o),character=dg?.userData.character;if(dg&&character)threeOfficeControllers.set(o,new OfficeCharacterController({character,deskGroup:dg,scene:threeScene,getCoffeeMachineGroup:()=>threeFurnitureGroup?.children.find(c=>c.userData.object?.type==="coffee")||null}));});
 }
 function updateThreeCamera(){if(!threeCamera)return;const n=currentGridSize(),span=n+5,aspect=Math.max(.5,threeWidth/Math.max(1,threeHeight));threeCamera.left=-span*aspect*.5;threeCamera.right=span*aspect*.5;threeCamera.top=span*.5;threeCamera.bottom=-span*.5;threeCamera.zoom=cameraZoom;const center=new THREE.Vector3(n/2+cameraOffsetX*.018+threePanX,0,n/2+cameraOffsetY*.018+threePanZ),d=span*1.75;threeCamera.position.copy(center).add(new THREE.Vector3(d,d,d));threeCamera.lookAt(center);threeCamera.updateProjectionMatrix();}
@@ -1583,7 +1583,7 @@ function renderThreeScene(){
  const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);
  if(sig!==threeSceneSignature)rebuildThreeScene();
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
- [threeFurnitureGroup,threePreviewGroup].forEach(root=>root?.traverse(node=>{const character=node.userData?.character||node.userData?.worker;if(character?.userData?.update)character.userData.update(now);}));
+ threePreviewGroup?.traverse(node=>{const character=node.userData?.character||node.userData?.worker;if(character?.userData?.update)character.userData.update(now);});
  threeOfficeControllers.forEach(controller=>controller.update(frameDt,now));
  threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});
  threeFloorGroup?.traverse(o=>{if(o.userData.dustMote){o.position.y=o.userData.baseY+Math.sin(now*1.7+o.userData.baseX)*.035;o.position.x=o.userData.baseX+Math.sin(now*.7+o.userData.baseY)*.045;}});
@@ -1848,10 +1848,7 @@ function wakeEmployee(desk){
  }
  rt.state="sit";rt.timer=.72;rt.afterSit="work";rt.energy=Math.max(rt.energy||0,25);rt.path=null;rt.index=0;rt.progress=0;rt.returning=false;rt.pause=0;rt.pos={x:desk.x+.5,y:desk.y+.5};toast("Сотрудник возвращается к работе");draw();
 }
-function drawEmployeeOnFloor(desk){
- const rt=employeeMotion.get(employeeKey(desk));if(!rt)return;
- const p=iso(rt.pos.x,rt.pos.y);drawWorker(p.x-1,p.y-3,rt.state,rt.state==="walk"?Math.sin(performance.now()/90)*1.2:0,rt.state!=="walk");
-}
+function drawEmployeeOnFloor(desk){}
 function drawFurnitureShape(o){if(o.type==="desk")drawDesk(o);else if(o.type==="coffee")drawCoffee(o);else if(o.type==="server")drawServer(o);else if(o.type==="meeting")drawMeeting(o);else if(o.type==="security")drawSecurity(o);}
 function drawObject(o){
  const p=iso(o.x+.5,o.y+.5),w=cellW*1.45;ctx.save();
@@ -2161,12 +2158,12 @@ $("devClearFurniture").addEventListener("click",()=>{if(!devUnlocked)return;stat
 $("devFullReset").addEventListener("click",()=>{if(!devUnlocked)return;state={balance:2500,prestige:0,layout:[],floorTier:0,gridSize:5,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};floorTier=0;gridSize=5;devFreeBuild=false;activeVip=null;lastVipAt=0;offlineReward=0;cameraZoom=1;cameraOffsetX=0;cameraOffsetY=0;lastTap=null;if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);cameraResetFrame=0;pointer=null;closeShop();$("upgradeCard").classList.remove("show");save();syncPlayer(false);updateUI();renderTop();renderCompanies();resize();updateDevPanel();haptic();toast("Полный сброс: Подвал · $2 500 · 0 ★");});
 $("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить баланс, этаж и инвестиции? Это действие нельзя отменить."))return;state={balance:2500,prestige:0,layout:[],floorTier:0,gridSize:5,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};floorTier=0;gridSize=5;cameraZoom=1;cameraOffsetX=0;cameraOffsetY=0;lastTap=null;if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);cameraResetFrame=0;save();syncPlayer(true);updateUI();renderTop();renderCompanies();resize();toast("Прогресс сброшен");});
 let last=performance.now(),incomeTimer=0;
-function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="desk");if(workers.length){const o=workers[Math.floor(Math.random()*workers.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
+function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="ceo");const eligible=workers.length?workers:state.layout.filter(o=>o.type==="desk");if(eligible.length){const o=eligible[Math.floor(Math.random()*eligible.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
 let gameFrameId=0;
 function scheduleGameLoop(){if(!gameFrameId&&!document.hidden)gameFrameId=requestAnimationFrame(tick);}
 function tick(now){gameFrameId=0;spawnVip();
- const dt=Math.min((now-last)/1000,.25);last=now;if(!state.viewing)updateEmployeeMotion(dt,state.layout,gridSize);
+ const dt=Math.min((now-last)/1000,.25);last=now;/* employee movement is handled by the unified 3D OfficeCharacterController */
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  if(floorPageActive&&!document.hidden)draw();scheduleGameLoop();
 }

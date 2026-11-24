@@ -683,7 +683,7 @@ function createBoss(parent,o){
  S(person,0,.625,0,.14,M.suit,[1.22,.62,.95]);
  const torso=new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(.12,-.235),new THREE.Vector2(.145,-.18),new THREE.Vector2(.17,-.04),new THREE.Vector2(.19,.12),new THREE.Vector2(.155,.235),new THREE.Vector2(.09,.255)],28),M.suit);
  torso.position.set(0,.91,0);torso.castShadow=true;torso.receiveShadow=true;person.add(torso);
- S(person,0,.91,.126,.079,.205,.027,M.shirt);
+ B(person,0,.91,.126,.105,.245,.018,M.shirt);
  // tailored lapels and tie.
  const lapelGeo=new THREE.Shape();lapelGeo.moveTo(0,.115);lapelGeo.lineTo(.066,.035);lapelGeo.lineTo(.025,-.12);lapelGeo.lineTo(-.012,-.025);lapelGeo.closePath();
  const lapelL=new THREE.Mesh(new THREE.ShapeGeometry(lapelGeo),M.suitHi);lapelL.position.set(-.075,.995,.153);person.add(lapelL);
@@ -721,7 +721,7 @@ function createBoss(parent,o){
   seg(shoulder,V(0,0,0),elbowPoint,.043,M.suit);
   const elbow=new THREE.Group();shoulder.add(elbow);elbow.position.copy(elbowPoint);
   S(elbow,0,0,0,.039,M.suitHi);
-  const wristPoint=V(-side*.012,-.255,.215);
+  const wristPoint=V(-side*.035,-.225,.215);
   seg(elbow,V(0,0,0),wristPoint,.032,M.suitHi);
   const wrist=new THREE.Group();elbow.add(wrist);wrist.position.copy(wristPoint);
   seg(wrist,V(0,0,0),V(0,-.035,.035),.022,M.shirt);
@@ -732,7 +732,7 @@ function createBoss(parent,o){
  };
  const rightArm=makeArm(1),leftArm=makeArm(-1);
  // Left hand rests on the near-left paper edge. Right-hand pen nib is calibrated to y=deskTopY+.008.
- const pen=new THREE.Group();rightArm.userData.hand.add(pen);pen.position.set(-.006,-.004,.018);pen.rotation.set(-1.48,0,-.12);
+ const pen=new THREE.Group();rightArm.userData.hand.add(pen);pen.position.set(-.025,.003,.018);pen.rotation.set(-1.48,0,-.12);
  cylMesh(pen,0,0,0,.0035,.0035,.09,M.ink,10);
  const nib=new THREE.Mesh(new THREE.ConeGeometry(.004,.016,8),M.brass);nib.position.set(0,-.052,0);pen.add(nib);
  // Store animation pivots and calibrated page plane for renderThreeScene.
@@ -1469,7 +1469,7 @@ function renderThreeScene(){
   a.rightArm.userData.elbow.rotation.z=.001+Math.sin(t*1.6)*.0015;
   a.rightArm.userData.wrist.rotation.x=.001;
   a.rightArm.userData.wrist.rotation.z=stroke*.006;
-  a.pen.position.x=-.006+stroke*.002;
+  a.pen.position.x=-.025+stroke*.002;
   a.pen.position.z=.018+row*.002;
   a.leftArm.rotation.x=.001+Math.sin(t*.55)*.001;
   a.leftArm.rotation.z=.001+Math.sin(t*.5)*.001;

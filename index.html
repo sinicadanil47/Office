@@ -1557,7 +1557,7 @@ function renderThreeScene(){
  const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);
  if(sig!==threeSceneSignature)rebuildThreeScene();
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
- [threeFurnitureGroup,threePreviewGroup].forEach(root=>root?.traverse(node=>{const worker=node.userData?.worker;if(worker?.userData?.updateAnimation)worker.userData.updateAnimation(now/1000);}));
+ [threeFurnitureGroup,threePreviewGroup].forEach(root=>root?.traverse(node=>{const worker=node.userData?.worker;if(worker?.userData?.updateAnimation)worker.userData.updateAnimation(now);}));
  threeWorkerGroups.forEach((g,desk)=>{
   const rt=employeeMotion.get(employeeKey(desk)),state=rt?.state||"work",p=rt?.pos||{x:desk.x+.5,y:desk.y+.5};
   const deskAngle=(Number(desk.rot)||0)*Math.PI/2,seatOffset=g.userData.workerSeatOffset||.62,seatX=desk.x+.5+Math.sin(deskAngle)*seatOffset,seatZ=desk.y+.5+Math.cos(deskAngle)*seatOffset;

@@ -7,6 +7,25 @@
 <title>Корпоративный небоскрёб</title>
 <script src="https://telegram.org/js/telegram-web-app.js">
 /* SYSADMIN + COMPUTER BREAKDOWN SYSTEM */
+
+function sysadminTryManualRepair(event){
+ if(state.viewing||!threeCamera||!threeFurnitureGroup)return;
+ const rect=canvas.getBoundingClientRect();threePointer.x=((event.clientX-rect.left)/rect.width)*2-1;threePointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
+ threeRaycaster.setFromCamera(threePointer,threeCamera);
+ const hits=threeRaycaster.intersectObjects(threeFurnitureGroup.children,true);
+ for(const hit of hits){
+  let node=hit.object;while(node&&node.parent!==threeFurnitureGroup)node=node.parent;
+  const desk=node?.userData?.object;if(!desk||desk.type!=="desk"||!sysadminIsBroken(desk))continue;
+  if(currentLayout().some(o=>o.type==="sysadmin")){sysadminNotify("Сисадмин уже направляется на ремонт.");return;}
+  const price=150*Math.max(1,Math.min(4,Number(desk.level)||1));
+  if(state.balance<price){sysadminNotify("Недостаточно средств для ремонта: $"+price);return;}
+  if(!confirm("Починить компьютер вручную за $"+price+"?"))return;
+  state.balance-=price;sysadminSetBroken(desk,false);sysadminPaintDesk(node,false);if(node.userData.character)node.userData.character.userData.state="work";
+  save();updateUI();sysadminNotify("Компьютер починен. Списано $"+price);return;
+ }
+}
+canvas.addEventListener("click",sysadminTryManualRepair);
+
 let sysadminBrokenDesks = {};
 let sysadminNextBreakAt = Date.now() + 45000 + Math.random()*45000;
 const sysadminControllers = new Map();

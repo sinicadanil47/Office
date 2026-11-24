@@ -435,7 +435,102 @@ function createDesk(parent,o){
  if(lv===4)B(back,0,.29,-.005,.24,.11,.08,upholstery);
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.level=lv;return g;
 }
-function createCoffee(parent,o){const g=new THREE.Group();parent.add(g);const cabinet=mat(0x785236),steel=mat(0xaebfc7,.3,.65),black=mat(0x1c2d3b),glow=mat(0x2bc7d8,.25,.2,{emissive:0x087c91,emissiveIntensity:1.1});boxMesh(g,0,.04,0,.78,.56,.62,cabinet);boxMesh(g,0,.61,-.02,.58,.55,.43,steel);boxMesh(g,0,.65,.205,.47,.33,.025,black);boxMesh(g,0,.76,.222,.29,.08,.012,glow);boxMesh(g,0,.37,.28,.26,.07,.12,steel);cylMesh(g,.02,.39,.32,.09,.09,.025,mat(0x3c5662));boxMesh(g,-.12,.29,.25,.22,.035,.17,mat(0x4a6570));const cup=cylMesh(g,.23,.29,.22,.075,.09,.13,mat(0xf4eee0));cup.rotation.z=.02;lineMesh(g,new THREE.Vector3(.29,.36,.22),new THREE.Vector3(.34,.34,.22),.014,mat(0xf4eee0));for(let i=0;i<3;i++){const p=sphereMesh(g,-.1+i*.1,.98+Math.sin(i)*.04,.15,.025,mat(0xe7f7ff,.4,0,{transparent:true,opacity:.48}));p.userData.steam=true;}g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
+function createCoffee(parent,o){
+ const g=new THREE.Group();parent.add(g);
+ const M=(c,r=.62,me=0,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:me,...e});
+ const shell=M(0x26333b,.38,.58),shellDark=M(0x111b22,.48,.42),steel=M(0xb7c3c7,.28,.78),steelDark=M(0x657780,.34,.72),black=M(0x101a22,.22,.24),rubber=M(0x202a30,.88),glass=M(0x182b34,.14,.18,{transparent:true,opacity:.88}),screen=M(0x123847,.18,.25,{emissive:0x087e9b,emissiveIntensity:.72}),cyan=M(0x4bd9e9,.24,.18,{emissive:0x16a9c0,emissiveIntensity:1.1}),amber=M(0xffbd58,.25,.1,{emissive:0xc87919,emissiveIntensity:.8}),white=M(0xf4eee2,.38,.05),coffee=M(0x382014,.3,.04);
+ const B=(p,x,y,z,w,h,d,m)=>boxMesh(p,x,y,z,w,h,d,m);
+ const S=(p,x,y,z,r,m,scale=[1,1,1])=>sphereMesh(p,x,y,z,r,m,scale);
+ const C=(p,x,y,z,r1,r2,h,m,seg=20)=>cylMesh(p,x,y,z,r1,r2,h,m,seg);
+ // Heavy anti-vibration base and stainless drip tray.
+ B(g,0,.035,0,.82,.07,.62,rubber);
+ B(g,0,.105,0,.78,.075,.59,shellDark);
+ B(g,0,.165,.025,.75,.055,.55,steelDark);
+ B(g,0,.198,.045,.69,.025,.47,steel);
+ const tray=B(g,0,.225,.105,.62,.025,.31,steelDark);
+ for(let i=0;i<9;i++)B(g,-.25+i*.062,.241,.11,.012,.004,.245,black);
+ // Main sculpted body with a stepped upper brewing module.
+ B(g,0,.64,-.035,.72,.82,.49,shell);
+ B(g,0,.67,.218,.65,.68,.035,steelDark);
+ B(g,0,.685,.241,.59,.62,.018,shellDark);
+ // Brushed-metal fascia and lower service door.
+ B(g,0,.42,.255,.58,.31,.025,steel);
+ B(g,0,.405,.273,.52,.255,.012,shell);
+ B(g,0,.29,.282,.47,.035,.012,steelDark);
+ // Tall black glass control panel with a crisp colour display.
+ B(g,-.105,.91,.235,.31,.29,.035,black);
+ B(g,-.105,.925,.256,.265,.225,.009,screen);
+ B(g,-.105,.995,.263,.19,.012,.004,cyan);
+ B(g,-.17,.955,.263,.085,.006,.004,cyan);
+ B(g,-.17,.935,.263,.085,.006,.004,cyan);
+ B(g,-.17,.915,.263,.085,.006,.004,cyan);
+ B(g,-.105,.855,.263,.18,.009,.004,amber);
+ // Touch controls, rotary selector and illuminated status indicators.
+ for(let i=0;i<3;i++){
+  const x=.12+i*.105;
+  C(g,x,.91,.272,.034,.034,.018,steel,24);
+  C(g,x,.922,.285,.023,.023,.012,black,24);
+  S(g,x,.922,.296,.009,i===1?cyan:white,[1,.55,.45]);
+ }
+ C(g,.205,.785,.273,.065,.065,.035,steel,28);
+ C(g,.205,.785,.296,.047,.047,.012,black,28);
+ C(g,.205,.785,.305,.012,.012,.008,amber,20);
+ for(let i=0;i<4;i++)S(g,-.22+i*.075,.76,.274,.012,i===0?amber:cyan,[1,1,.45]);
+ // Bean hopper on top, with transparent walls and a dark domed lid.
+ B(g,0,1.12,-.085,.36,.12,.32,shellDark);
+ B(g,0,1.255,-.085,.30,.18,.26,glass);
+ B(g,0,1.355,-.085,.34,.035,.30,black);
+ B(g,0,1.377,-.085,.27,.012,.23,steelDark);
+ // Visible coffee beans inside the hopper.
+ const beanMat=M(0x68432b,.82),beanHi=M(0x95623b,.76);
+ for(let i=0;i<11;i++){
+  const a=i*2.399,r=.035+(i%3)*.026;
+  const bean=S(g,Math.cos(a)*r,1.18+(i%4)*.026,-.085+Math.sin(a)*r,.022,i%3?beanMat:beanHi,[1,.62,.72]);
+  bean.rotation.z=(i%2?1:-1)*.42;
+ }
+ // Side ventilation slots and a small service panel.
+ B(g,.37,.68,-.045,.018,.36,.29,black);
+ for(let i=0;i<7;i++)B(g,.382,.55+i*.038,-.045,.009,.012,.22,steelDark);
+ B(g,-.37,.65,-.04,.018,.27,.28,steelDark);
+ B(g,-.382,.65,-.04,.009,.20,.21,shellDark);
+ // Brewing head, twin nozzles and the cup platform.
+ B(g,.04,.53,.305,.25,.16,.11,black);
+ B(g,.04,.47,.355,.19,.055,.055,steel);
+ for(const x of [-.025,.105]){
+  C(g,x,.405,.355,.018,.018,.105,steel,16);
+  C(g,x,.348,.355,.012,.012,.025,black,16);
+ }
+ // Cup centred below the dual spouts, with a dark espresso surface and handle.
+ C(g,.04,.265,.39,.075,.085,.12,white,28);
+ C(g,.04,.326,.39,.078,.078,.012,coffee,28);
+ C(g,.04,.334,.39,.055,.055,.004,M(0x9a6032,.24,.02),24);
+ const handle=new THREE.Mesh(new THREE.TorusGeometry(.043,.009,10,22,Math.PI*1.55),white);
+ handle.position.set(.125,.305,.39);handle.rotation.z=Math.PI/2;handle.castShadow=true;g.add(handle);
+ // Small cup logo and a ceramic highlight.
+ B(g,.04,.285,.476,.035,.022,.003,amber);
+ // Hot-water wand and articulated metal nozzle on the right flank.
+ C(g,.31,.49,.24,.025,.025,.20,steel,16);
+ const wandJoint=S(g,.31,.385,.24,.035,steel);
+ lineMesh(g,new THREE.Vector3(.31,.39,.24),new THREE.Vector3(.31,.28,.32),.012,steel);
+ C(g,.31,.255,.32,.012,.012,.035,black,12);
+ // Front lower access door, recessed handle and tiny fasteners.
+ B(g,0,.34,.29,.32,.12,.018,steelDark);
+ B(g,0,.35,.302,.22,.055,.009,shell);
+ B(g,.125,.35,.311,.045,.012,.009,steel);
+ for(const x of [-.29,.29])for(const y of [.31,.77])S(g,x,y,.278,.009,steel,[1,1,.4]);
+ // Subtle warm under-panel lighting and status strip.
+ B(g,-.24,.255,.285,.10,.008,.008,amber);
+ // Animated wisps rise above the cup without obscuring the machine.
+ const steamMat=M(0xe8f7ff,.35,0,{transparent:true,opacity:.38,emissive:0x8bbdca,emissiveIntensity:.16,depthWrite:false});
+ for(let i=0;i<4;i++){
+  const p=S(g,.04+(i-1.5)*.045,.43+i*.045,.39,.018,steamMat,[.7,1.8,.7]);
+  p.userData.steam=true;p.userData.steamIndex=i;
+ }
+ // Grounded feet, rear power cable and compact premium silhouette.
+ for(const x of [-.31,.31])for(const z of [-.22,.22])C(g,x,.005,z,.035,.035,.025,rubber,14);
+ lineMesh(g,new THREE.Vector3(-.34,.2,-.22),new THREE.Vector3(-.42,.16,-.28),.012,black);
+ g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+}
 function createServer(parent,o){const g=new THREE.Group();parent.add(g);const shell=mat(0x34495c,.42,.55),glass=mat(0x5ca4bd,.2,.3,{transparent:true,opacity:.28}),dark=mat(0x0c1a29),led=mat(0x36e0c0,.25,.2,{emissive:0x13ad91,emissiveIntensity:1.4});boxMesh(g,0,.04,0,.55,1.18,.58,shell);boxMesh(g,0,.65,.298,.48,.92,.018,glass);for(let i=0;i<4;i++){boxMesh(g,0,.2+i*.22,.315,.4,.13,.018,dark);for(let j=0;j<3;j++)sphereMesh(g,-.13+j*.13,.25+i*.22,.34,.018,led);}g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
 function createBoss(parent,o){const g=new THREE.Group();parent.add(g);const wood=mat(0x35251f),gold=mat(0xd4ad62,.35,.65),leather=mat(0x4b3029);boxMesh(g,0,.58,0,.82,.12,.56,wood);boxMesh(g,0,.65,0,.84,.025,.58,gold);for(const x of [-.32,.32])boxMesh(g,x,.06,0,.06,.52,.46,wood);cylMesh(g,0,.08,.31,.16,.18,.14,leather);boxMesh(g,0,.4,.38,.34,.4,.12,leather);boxMesh(g,0,.9,-.16,.05,.32,.05,gold);sphereMesh(g,.02,1.08,-.16,.12,mat(0xffd37b,.3,.2,{emissive:0x9a6418,emissiveIntensity:.5}));g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
 function createMeeting(parent,o){const g=new THREE.Group();parent.add(g);const wood=mat(0x916a46),edge=mat(0xd0b28b),chair=mat(0x344b64);boxMesh(g,0,.4,0,.88,.1,.48,wood);boxMesh(g,0,.46,0,.9,.025,.5,edge);for(const [x,z] of [[-.36,-.38],[.36,-.38],[-.36,.38],[.36,.38]]){boxMesh(g,x,.08,z,.19,.18,.18,chair);boxMesh(g,x,.26,z-.055,.19,.28,.055,chair);}for(const x of [-.3,.3])boxMesh(g,x,.06,.0,.035,.34,.035,wood);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}

@@ -622,8 +622,17 @@ function createBoss(parent,o){
  // Seated director: shaped jacket, shirt, lapels and a detailed expressive face.
  const person=new THREE.Group();g.add(person);person.position.set(0,0,-.235);
  const trousers=mat(0x202d3b,.86),sole=mat(0x111820,.7);
+ // Seated leg pose: thighs run horizontally beneath the desktop, knees bend forward,
+ // and lower legs drop behind the front apron; shoes stay below the desk, not on top.
  S(person,0,.755,-.012,.145,trousers,[1,.72,.86]);
- for(const x of [-.075,.075]){const thigh=B(person,x,.675,.045,.105,.20,.22,suit);thigh.rotation.x=-.12;B(person,x,.515,.105,.085,.16,.09,trousers);S(person,x,.455,.16,.052,shoe,[1,.65,1.65]);S(person,x,.43,.16,.053,sole,[1,.18,1.65]);}
+ for(const x of [-.075,.075]){
+  const thigh=S(person,x,.565,.075,.105,trousers,[.82,.62,1.75]);
+  const knee=S(person,x,.555,.185,.067,suit,[.9,.9,1.0]);
+  const shin=B(person,x,.335,.155,.078,.39,.085,trousers);
+  shin.rotation.x=-.04;
+  S(person,x,.125,.205,.052,shoe,[1,.55,1.5]);
+  S(person,x,.105,.205,.053,sole,[1,.16,1.5]);
+ }
  const torso=new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(.125,-.235),new THREE.Vector2(.145,-.18),new THREE.Vector2(.17,-.04),new THREE.Vector2(.19,.12),new THREE.Vector2(.155,.235),new THREE.Vector2(.09,.255)],32),suit);torso.position.set(0,.915,0);torso.castShadow=true;torso.receiveShadow=true;person.add(torso);
  // Shirt bib, collar points, tailored lapels and jacket buttons.
  B(person,0,.925,.145,.105,.285,.018,shirt);
@@ -658,14 +667,19 @@ function createBoss(parent,o){
  lineMesh(headPivot,new THREE.Vector3(-.027,-.075,.145),new THREE.Vector3(.027,-.075,.145),.004,mat(0x754b43,.8));
  S(headPivot,-.078,-.035,.105,.022,skinLight,[.5,.45,.35]);S(headPivot,.078,-.035,.105,.022,skinLight,[.5,.45,.35]);
  // Articulated arms with contrasting cuffs and visible hands resting over the desktop.
- const makeArm=(side)=>{const shoulder=new THREE.Group();person.add(shoulder);shoulder.position.set(side*.165,1.025,.008);
-  const upper=B(shoulder,0,-.105,.018,.092,.215,.105,suit);upper.rotation.z=-side*.045;
-  const elbow=new THREE.Group();shoulder.add(elbow);elbow.position.set(side*.008,-.205,.065);
-  const forearm=B(elbow,0,-.105,.065,.075,.215,.082,suitHi);forearm.rotation.x=-.12;
-  B(elbow,0,-.205,.112,.078,.035,.064,shirt);
-  const wrist=new THREE.Group();elbow.add(wrist);wrist.position.set(0,-.205,.12);
-  S(wrist,0,-.012,.012,.034,skinLight,[1,.72,1.05]);
-  for(let f=0;f<4;f++)lineMesh(wrist,new THREE.Vector3((f-1.5)*.012,-.018,.035),new THREE.Vector3((f-1.5)*.013,-.032,.048),.004,skin);
+ const makeArm=(side)=>{const shoulder=new THREE.Group();person.add(shoulder);
+  // Shoulder caps overlap the jacket silhouette; every segment is parented to the
+  // previous joint so no sleeve or hand can drift away from the torso.
+  shoulder.position.set(side*.125,1.015,.105);
+  S(shoulder,0,-.018,.018,.063,suitHi,[1.05,1,.92]);
+  const upper=B(shoulder,0,-.105,.045,.092,.215,.105,suit);upper.rotation.z=-side*.035;
+  const elbow=new THREE.Group();shoulder.add(elbow);elbow.position.set(side*.012,-.205,.085);
+  S(elbow,0,0,0,.045,suit,[1,1,.95]);
+  const forearm=B(elbow,0,-.105,.018,.078,.215,.09,suitHi);
+  const wrist=new THREE.Group();elbow.add(wrist);wrist.position.set(0,-.205,.055);
+  B(wrist,0,.006,.005,.076,.035,.07,shirt);
+  S(wrist,0,-.008,.045,.034,skinLight,[1,.72,1.05]);
+  for(let f=0;f<4;f++)lineMesh(wrist,new THREE.Vector3((f-1.5)*.012,-.012,.066),new THREE.Vector3((f-1.5)*.013,-.025,.078),.004,skin);
   shoulder.userData.elbow=elbow;shoulder.userData.wrist=wrist;return shoulder;
  };
  const rightArm=makeArm(1),leftArm=makeArm(-1);
@@ -711,7 +725,10 @@ function createBoss(parent,o){
  const shade=new THREE.Mesh(new THREE.ConeGeometry(.085,.09,20,1,true),gold);shade.position.set(.10,.82,.025);shade.rotation.z=-.35;lamp.add(shade);
  const lampLight=new THREE.PointLight(0xffc77a,.22,1.1,2);lampLight.position.set(.10,.74,.04);lamp.add(lampLight);
  B(g,0,.285,.30,.28,.045,.012,gold);B(g,0,.285,.309,.23,.026,.006,woodTop);
- const pen=new THREE.Group();rightArm.userData.wrist.add(pen);pen.position.set(-.012,-.019,.045);pen.rotation.set(1.42,0,-.22);
+ const pen=new THREE.Group();rightArm.userData.wrist.add(pen);
+ // Pen is angled down toward the active sheet: its nib lands on the paper surface,
+ // not on bare walnut. The writing animation only moves it within the sheet bounds.
+ pen.position.set(-.012,-.005,.045);pen.rotation.set(-1.42,0,-.22);
  cylMesh(pen,0,0,0,.004,.004,.105,ink,8);S(pen,0,-.052,0,.005,gold);
  g.userData.bossAnimation={rightArm,leftArm,headPivot,pen,laptop,papers,writingLines:[],lampLight,phase:Math.random()*Math.PI*2};
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
@@ -1436,21 +1453,22 @@ function renderThreeScene(){
   const a=o.userData.bossAnimation;if(!a)return;
   const t=now+a.phase;
   // Elbows stay articulated under the shoulders; wrists remain at desk height.
-  const cycle=(t*0.34)%1,stroke=Math.sin(t*15.5),lineY=.018+cycle*.075;
+  const cycle=(t*.12)%1,stroke=Math.sin(t*17.5),lineY=.014+cycle*.078;
   const glance=Math.pow(Math.max(0,Math.sin(t*.34+1.15)),18);
-  a.rightArm.rotation.x=-.015+Math.sin(t*1.8)*.012;
-  a.rightArm.rotation.z=.035+Math.sin(t*1.4)*.012;
-  a.rightArm.userData.elbow.rotation.x=-.045+Math.sin(t*1.8)*.012;
-  a.rightArm.userData.elbow.rotation.z=-.035+Math.sin(t*2.1)*.012;
-  a.rightArm.userData.wrist.rotation.x=.015+Math.sin(t*2.2)*.008;
-  a.rightArm.userData.wrist.rotation.z=stroke*.035;
-  a.pen.position.x=-.012+stroke*.009;
-  a.pen.position.y=-.012-lineY*.12;
-  a.pen.rotation.z=-.22+stroke*.035;
-  a.leftArm.rotation.x=-.01+Math.sin(t*.65)*.006;
-  a.leftArm.rotation.z=-.025+Math.sin(t*.55)*.008;
-  a.leftArm.userData.elbow.rotation.x=-.035;
-  a.leftArm.userData.wrist.rotation.z=Math.sin(t*.45)*.012;
+  a.rightArm.rotation.x=-.012+Math.sin(t*1.8)*.006;
+  a.rightArm.rotation.z=.018+Math.sin(t*1.4)*.008;
+  a.rightArm.userData.elbow.rotation.x=-.025+Math.sin(t*1.8)*.006;
+  a.rightArm.userData.elbow.rotation.z=-.018+Math.sin(t*2.1)*.008;
+  a.rightArm.userData.wrist.rotation.x=.008+Math.sin(t*2.2)*.004;
+  a.rightArm.userData.wrist.rotation.z=stroke*.018;
+  a.pen.position.x=-.012+stroke*.004;
+  a.pen.position.y=-.005-lineY*.025;
+  a.pen.position.z=.045+Math.sin(t*17.5)*.003;
+  a.pen.rotation.z=-.22+stroke*.018;
+  a.leftArm.rotation.x=-.006+Math.sin(t*.65)*.003;
+  a.leftArm.rotation.z=-.012+Math.sin(t*.55)*.004;
+  a.leftArm.userData.elbow.rotation.x=-.018;
+  a.leftArm.userData.wrist.rotation.z=Math.sin(t*.45)*.006;
   a.headPivot.rotation.y=-glance*.045+Math.sin(t*.22)*.012;
   a.headPivot.rotation.x=.045+Math.sin(t*1.15)*.008;
   a.lampLight.intensity=.20+.025*Math.sin(t*1.25);

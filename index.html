@@ -650,6 +650,7 @@ function createCoffeeMachineModel() {
 // Keep the existing scene and build-preview call sites unchanged.
 function createCoffee(parent, o) {
     const g = createCoffeeMachineModel();
+    g.scale.multiplyScalar(0.9);
     parent.add(g);
     g.position.set(o.x + 0.5, 0, o.y + 0.5);
     g.rotation.y = (Number(o.rot) || 0) * Math.PI / 2;

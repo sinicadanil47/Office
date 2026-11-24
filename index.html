@@ -711,8 +711,8 @@ function createBoss(parent,o){
  const shade=new THREE.Mesh(new THREE.ConeGeometry(.085,.09,20,1,true),gold);shade.position.set(.10,.82,.025);shade.rotation.z=-.35;lamp.add(shade);
  const lampLight=new THREE.PointLight(0xffc77a,.22,1.1,2);lampLight.position.set(.10,.74,.04);lamp.add(lampLight);
  B(g,0,.285,.30,.28,.045,.012,gold);B(g,0,.285,.309,.23,.026,.006,woodTop);
- const pen=new THREE.Group();rightArm.userData.wrist.add(pen);pen.position.set(-.012,-.012,.045);pen.rotation.z=-.22;pen.rotation.x=.08;
- cylMesh(pen,0,-.055,0,.004,.004,.105,ink,8);S(pen,0,-.108,0,.005,gold);
+ const pen=new THREE.Group();rightArm.userData.wrist.add(pen);pen.position.set(-.012,-.019,.045);pen.rotation.set(1.42,0,-.22);
+ cylMesh(pen,0,0,0,.004,.004,.105,ink,8);S(pen,0,-.052,0,.005,gold);
  g.userData.bossAnimation={rightArm,leftArm,headPivot,pen,laptop,papers,writingLines:[],lampLight,phase:Math.random()*Math.PI*2};
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }

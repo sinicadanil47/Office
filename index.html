@@ -77,9 +77,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 #room{position:fixed;inset:0;z-index:2;background:transparent!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/FBXLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/utils/SkeletonUtils.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js"}}</script>
 </head>
 <body><div class="top-hud glass" id="topHud"><div class="hud-head"><div class="hud-brand">КОРПОРАТИВНЫЙ НЕБОСКРЁБ<b id="hudPlayer">Директор</b></div><div class="hud-floor" id="hudFloor">ВАШ ОФИС · ПОДВАЛ · 5×5</div><button id="devButton" type="button" aria-label="Открыть режим разработчика">🛠 Dev</button></div><div class="hud-stats" id="hudStats"></div><div class="goal-line" id="directorGoal"><div class="goal-copy"><b>Цель директора</b> · Развивайте этаж<div class="goal-progress"><i id="goalFill"></i></div></div><button id="goalToggle" type="button">Цель</button></div></div><div class="floor-actions" id="floorActions"><button class="build" id="openShop">🔨 Строить</button><button id="moveBtn">↔ Переместить</button><button id="quickSell">💰 Продать</button></div><div class="install-bar glass" id="installBar"><span class="install-label" id="installLabel">Установка</span><button id="installRotate">↻ Повернуть</button><button id="cancelInstall">✕ Отмена</button></div><div class="build-preview-bar glass" id="buildPreviewBar" aria-live="polite"><div class="build-preview-info" id="buildPreviewInfo">Выберите клетку</div><button id="previewRotate">🔄 Повернуть</button><button class="preview-accept" id="previewAccept" disabled>✅ Принять</button><button id="previewCancel">✕ Отмена</button></div>
 <div id="app">
@@ -1467,8 +1465,9 @@ function dev3dInitView(){
 }
 function dev3dCloneAsset(asset){const src=dev3dState.assets[asset];if(!src)return null;const obj=asset.startsWith("character:")&&THREE.SkeletonUtils?THREE.SkeletonUtils.clone(src):src.clone(true);return obj;}
 function dev3dNormalize(obj,target=.84){obj.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(obj),size=b.getSize(new THREE.Vector3()),factor=target/Math.max(size.x,size.z,.0001);obj.scale.multiplyScalar(factor);obj.updateMatrixWorld(true);b.setFromObject(obj);const c=b.getCenter(new THREE.Vector3());obj.position.x-=c.x;obj.position.z-=c.z;obj.position.y-=b.min.y;return obj;}
-function dev3dLoad(){
+async function dev3dLoad(){
  if(dev3dState.ready||dev3dState.loading)return;dev3dState.loading=true;dev3dStatus("Загрузка FBX/GLB-моделей…");
+ try{const [fbxModule,gltfModule,skeletonModule]=await Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/FBXLoader.js"),import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js"),import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/utils/SkeletonUtils.js")]);THREE.FBXLoader=fbxModule.FBXLoader;THREE.GLTFLoader=gltfModule.GLTFLoader;THREE.SkeletonUtils={clone:skeletonModule.clone};}catch(error){dev3dState.loading=false;dev3dStatus("Ошибка загрузки FBX/GLTF-загрузчиков: "+error.message);console.error(error);return;}
  const manager=new THREE.LoadingManager(),fbx=new THREE.FBXLoader(manager),gltf=new THREE.GLTFLoader(manager),textureLoader=new THREE.TextureLoader();
  textureLoader.load("models/Cartoon_Office_Pack_Atlas.png",atlas=>{atlas.colorSpace=THREE.SRGBColorSpace;atlas.anisotropy=8;dev3dState.atlas=atlas;if(dev3dState.fbxRoot)dev3dState.fbxRoot.traverse(o=>{if(o.isMesh)o.material=dev3dFurnitureMaterial();});},undefined,e=>console.warn("Atlas load:",e));
  const loadFurniture=new Promise(resolve=>fbx.load("models/Cartoon_Office_Pack_Free_All.fbx",root=>{

@@ -1449,7 +1449,7 @@ function addRoom3D(){
 
 /* ── Dev 3D assembly editor: model loaders, per-cell assembly presets ── */
 const dev3dState={type:"ceo",tab:"furniture",parts:[],selected:-1,assets:{},names:[],ready:false,loading:false,renderer:null,scene:null,camera:null,root:null,raf:0,mixer:null};
-const dev3dPresets=(()=>{try{return JSON.parse(localStorage.getItem("office_custom_presets")||"{}")||{};}catch(e){return {};}})();
+const dev3dPresets=(()=>{try{return JSON.parse(localStorage.getItem("office_custom_presets")||"{}")||{};}catch(e){return {};}})();const dev3dGameMixers=[];
 const dev3dFurnitureMaterial=()=>new THREE.MeshStandardMaterial({map:dev3dState.atlas,roughness:.65});
 function dev3dStatus(t){const e=$("dev3dStatus");if(e)e.textContent=t;}
 function dev3dInitView(){
@@ -1470,10 +1470,10 @@ function dev3dNormalize(obj,target=.84){obj.updateMatrixWorld(true);let b=new TH
 function dev3dLoad(){
  if(dev3dState.ready||dev3dState.loading)return;dev3dState.loading=true;dev3dStatus("Загрузка FBX/GLB-моделей…");
  const manager=new THREE.LoadingManager(),fbx=new THREE.FBXLoader(manager),gltf=new THREE.GLTFLoader(manager),textureLoader=new THREE.TextureLoader();
- textureLoader.load("models/Cartoon_Office_Pack_Atlas.png",atlas=>{atlas.colorSpace=THREE.SRGBColorSpace;atlas.anisotropy=8;dev3dState.atlas=atlas;},undefined,e=>console.warn("Atlas load:",e));
+ textureLoader.load("models/Cartoon_Office_Pack_Atlas.png",atlas=>{atlas.colorSpace=THREE.SRGBColorSpace;atlas.anisotropy=8;dev3dState.atlas=atlas;if(dev3dState.fbxRoot)dev3dState.fbxRoot.traverse(o=>{if(o.isMesh)o.material=dev3dFurnitureMaterial();});},undefined,e=>console.warn("Atlas load:",e));
  const loadFurniture=new Promise(resolve=>fbx.load("models/Cartoon_Office_Pack_Free_All.fbx",root=>{
-  root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(dev3dState.atlas)o.material=dev3dFurnitureMaterial();else if(o.material){const mats=(Array.isArray(o.material)?o.material:[o.material]).map(m=>{const c=m.clone();c.roughness=.65;return c;});o.material=Array.isArray(o.material)?mats:mats[0];}}});
-  root.updateMatrixWorld(true);const found=[];root.traverse(o=>{if(o.isMesh&&o.geometry){const key=o.uuid;const clone=o.clone(true);clone.geometry=o.geometry;clone.material=o.material;const wrap=new THREE.Group();wrap.add(clone);dev3dNormalize(wrap,.72);dev3dState.assets["furniture:"+key]=wrap;found.push({key:"furniture:"+key,name:o.name||o.parent?.name||("Предмет "+(found.length+1))});}});
+  dev3dState.fbxRoot=root;root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(dev3dState.atlas)o.material=dev3dFurnitureMaterial();else if(o.material){const mats=(Array.isArray(o.material)?o.material:[o.material]).map(m=>{const c=m.clone();c.roughness=.65;return c;});o.material=Array.isArray(o.material)?mats:mats[0];}}});
+  root.updateMatrixWorld(true);const found=[];root.traverse(o=>{if(o.isMesh&&o.geometry){const key=o.uuid;o.updateWorldMatrix(true,false);const clone=o.clone(false);clone.geometry=o.geometry;clone.material=o.material;clone.applyMatrix4(o.matrixWorld);const wrap=new THREE.Group();wrap.add(clone);dev3dNormalize(wrap,.72);dev3dState.assets["furniture:"+key]=wrap;found.push({key:"furniture:"+key,name:o.name||o.parent?.name||("Предмет "+(found.length+1))});}});
   dev3dState.names=found;resolve();
  },undefined,e=>{console.error(e);resolve();}));
  const loadGLB=(key,path)=>new Promise(resolve=>gltf.load(path,g=>{const root=g.scene||g.scenes?.[0];if(root){dev3dNormalize(root,.72);dev3dState.assets[key]=root;dev3dState.assets[key+":clips"]=g.animations||[];}resolve();},undefined,e=>{console.error(path,e);resolve();}));
@@ -1515,7 +1515,7 @@ function dev3dCopy(){const payload=JSON.stringify(dev3dPresets,null,2);const don
 function dev3dUsePreset(parent,o,key){
  const preset=dev3dPresets[key];if(!preset?.length||!dev3dState.ready)return null;
  const group=new THREE.Group();parent.add(group);
- preset.forEach(p=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;obj.position.set(Number(p.x)||0,Number(p.y)||0,Number(p.z)||0);obj.rotation.y=THREE.MathUtils.degToRad(Number(p.rot)||0);obj.scale.multiplyScalar(Number(p.scale)||1);group.add(obj);});
+ preset.forEach(p=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;obj.position.set(Number(p.x)||0,Number(p.y)||0,Number(p.z)||0);obj.rotation.y=THREE.MathUtils.degToRad(Number(p.rot)||0);obj.scale.multiplyScalar(Number(p.scale)||1);group.add(obj);if(String(p.asset).startsWith("character:")){const clips=dev3dState.assets[p.asset+":clips"]||dev3dState.assets["character:employee:clips"]||[];if(clips.length){const mixer=new THREE.AnimationMixer(obj);mixer.clipAction(clips[0]).play();dev3dGameMixers.push(mixer);group.userData.animationMixer=mixer;}else{group.userData.proceduralCharacter=true;}}});
  group.position.set(o.x+.5,0,o.y+.5);group.rotation.y=(Number(o.rot)||0)*Math.PI/2;return group;
 }
 
@@ -1543,7 +1543,7 @@ function renderThreeScene(){
  if(!threeRenderer||!threeWidth||!threeHeight||!floorPageActive||document.hidden)return;
  const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);
  if(sig!==threeSceneSignature)rebuildThreeScene();
- const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;
+ const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));
  threeFurnitureGroup?.traverse(o=>{
   const a=o.userData.bossAnimation;if(!a)return;
   const t=now+a.phase;

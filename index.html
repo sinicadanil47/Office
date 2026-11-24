@@ -710,10 +710,10 @@ function createMeeting(parent,o){
  // Individual conference microphones, gooseneck stems and illuminated mute rings.
  const micBase=mat(0x18232b,.34,.62),micStem=mat(0x8b9da5,.28,.78),micHead=mat(0x202c35,.42,.5);
  for(const [x,z] of [[-.29,-.12],[.29,-.12],[-.29,.13],[.29,.13]]){
-  C(g,x,.585,z,.025,.025,.014,micBase,20);
+  cylMesh(g,x,.585,z,.025,.025,.014,micBase,20);
   lineMesh(g,new THREE.Vector3(x,.59,z),new THREE.Vector3(x,.675,z-.025),.006,micStem);
   lineMesh(g,new THREE.Vector3(x,.675,z-.025),new THREE.Vector3(x,.69,z-.045),.006,micStem);
-  SphericalConferenceMic(g,x,.695,z-.045,micHead,accent);
+  sphereMesh(g,x,.695,z-.045,.012,micHead,[1,.8,.8]);sphereMesh(g,x,.695,z-.058,.004,accent,[1,1,.5]);
  }
  // Branded delegate nameplates and individual water glasses.
  const plaque=mat(0x273641,.3,.58),plaqueText=mat(0xd9c18e,.4,.35);
@@ -722,7 +722,7 @@ function createMeeting(parent,o){
   boxMesh(g,x,.601,z+.002,.065,.003,.006,plaqueText);
   const glassCup=new THREE.Mesh(new THREE.CylinderGeometry(.018,.022,.055,18,1,true),new THREE.MeshStandardMaterial({color:0xb9dce4,roughness:.12,metalness:.08,transparent:true,opacity:.38,side:THREE.DoubleSide}));
   glassCup.position.set(x*.72,.615,z*.55);g.add(glassCup);
-  C(g,x*.72,.644,z*.55,.018,.018,.004,mat(0x9ac9d7,.15,.05,{transparent:true,opacity:.45}),18);
+  cylMesh(g,x*.72,.644,z*.55,.018,.018,.004,mat(0x9ac9d7,.15,.05,{transparent:true,opacity:.45}),18);
  }
  // Table edge stitching and a slim under-table cable raceway.
  for(let i=0;i<24;i++){const a=i*Math.PI/12;const x=Math.cos(a)*.438,z=Math.sin(a)*.274;sphereMesh(g,x,.555,z,.004,plaqueText,[1,.6,1]);}
@@ -769,7 +769,7 @@ function createSecurity(parent,o){
  const keyMat=mat(0x9aaab1,.35,.55),red=mat(0xff5a54,.24,.12,{emissive:0xb51e20,emissiveIntensity:.85}),green=mat(0x42e0a8,.24,.12,{emissive:0x129c6c,emissiveIntensity:.85});
  // Trackball, precision mouse and illuminated emergency response controls.
  boxMesh(g,.205,.755,.19,.105,.018,.10,dark);
- SphericalSecurityBall(g,.205,.786,.19,.027,metal);
+ sphereMesh(g,.205,.786,.19,.027,metal);
  const mouse=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),metal);mouse.position.set(-.22,.78,.20);mouse.scale.set(.035,.018,.052);g.add(mouse);
  lineMesh(g,new THREE.Vector3(-.22,.79,.17),new THREE.Vector3(-.22,.80,.13),.004,dark);
  for(let i=0;i<3;i++){

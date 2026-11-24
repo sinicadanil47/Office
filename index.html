@@ -1767,7 +1767,7 @@ function renderThreeScene(){
  sysadminControllers.forEach(controller=>controller.update(frameDt,now));
  if(Date.now()>=sysadminNextBreakAt){
   const candidates=currentLayout().filter(o=>o.type==="desk"&&!sysadminIsBroken(o));
-  if(candidates.length){const chosen=candidates[Math.floor(Math.random()*candidates.length)];sysadminSetBroken(chosen,true);const dg=threeFurnitureGroup?.children.find(g=>g.userData.object===chosen);if(dg)sysadminPaintDesk(dg,true);sysadminNotify("⚠️ Сломался ПК на рабочем месте!");}
+  if(candidates.length){const chosen=candidates[Math.floor(Math.random()*candidates.length)];sysadminSetBroken(chosen,true);sysadminNotify("⚠️ Сломался ПК на рабочем месте!");}
   sysadminNextBreakAt=Date.now()+45000+Math.random()*45000;
  }
  threeFurnitureGroup?.children.forEach(dg=>{const o=dg.userData.object;if(o?.type==="desk"){const broken=sysadminIsBroken(o);if(dg.userData.isBroken!==broken)setDeskBrokenVisual(o.id||sysadminDeskKey(o),broken);if(broken){dg.userData.brokenScreenController?.update(now);if(dg.userData.character)dg.userData.character.userData.state="idle_broken";}}});
@@ -2464,26 +2464,24 @@ function setDeskBrokenVisual(deskId,isBroken){
  const key=desk?sysadminDeskKey(desk):id;
  if(isBroken)sysadminBrokenDesks[key]={floor:Number(floorTier)||0,at:Date.now()};else delete sysadminBrokenDesks[key];
  const dg=desk?threeFurnitureGroup?.children.find(g=>g.userData.object===desk):threeFurnitureGroup?.children.find(g=>String(g.userData.object?.id||sysadminDeskKey(g.userData.object||{}))===id);
- if(dg){
-  dg.userData.isBroken=!!isBroken;
-  const meshes=dg.userData.screenMeshes||[];
-  if(isBroken){
-   const controller=dg.userData.brokenScreenController||(dg.userData.brokenScreenController=createBrokenScreenController());
-   if(!dg.userData.brokenScreenMaterial)dg.userData.brokenScreenMaterial=new THREE.MeshBasicMaterial({map:controller.texture,toneMapped:false});
-   meshes.forEach(mesh=>{mesh.material=dg.userData.brokenScreenMaterial;});
-  }else{
-   meshes.forEach((mesh,index)=>{mesh.material=dg.userData.originalScreenMaterials?.[index]||mesh.material;});
-   dg.userData.breakMarker?.removeFromParent();delete dg.userData.breakMarker;
-   dg.userData.breakGlow?.removeFromParent();delete dg.userData.breakGlow;
-   if(dg.userData.character)dg.userData.character.userData.state="sit";
-  }
- }
+ if(dg)sysadminPaintDesk(dg,!!isBroken);
  if(desk&&!isBroken){const controller=threeOfficeControllers.get(desk);if(controller){controller.phase="working";controller.timer=18;controller.character.userData.state="sit";}}
  sysadminPersist();save();updateUI();
 }
 function sysadminPaintDesk(dg,broken){
  if(!dg)return;
- const o=dg.userData.object;if(o?.id)setDeskBrokenVisual(o.id,broken);
+ dg.userData.isBroken=!!broken;
+ const meshes=dg.userData.screenMeshes||[];
+ if(broken){
+  const controller=dg.userData.brokenScreenController||(dg.userData.brokenScreenController=createBrokenScreenController());
+  if(!dg.userData.brokenScreenMaterial)dg.userData.brokenScreenMaterial=new THREE.MeshBasicMaterial({map:controller.texture,toneMapped:false});
+  meshes.forEach(mesh=>{mesh.material=dg.userData.brokenScreenMaterial;});
+ }else{
+  meshes.forEach((mesh,index)=>{mesh.material=dg.userData.originalScreenMaterials?.[index]||mesh.material;});
+  dg.userData.breakMarker?.removeFromParent();delete dg.userData.breakMarker;
+  dg.userData.breakGlow?.removeFromParent();delete dg.userData.breakGlow;
+  if(dg.userData.character)dg.userData.character.userData.state="sit";
+ }
 }
 
 class SysadminRepairController{

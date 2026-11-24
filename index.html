@@ -576,6 +576,7 @@ function createServer(parent,o){
 }
 function createBoss(parent,o){
  const g=new THREE.Group();parent.add(g);
+ const ell=(p,x,y,z,sx,sy,sz,m)=>sphereMesh(p,x,y,z,1,m,[sx,sy,sz]);
  const wood=mat(0x35251f,.34,.24),woodTop=mat(0x60402f,.42,.18),gold=mat(0xd4ad62,.32,.68),leather=mat(0x382923,.68),stitch=mat(0xb88d5c,.62,.2),dark=mat(0x171d24,.58),skin=mat(0xd7a17e,.84),hair=mat(0x30251f,.9),suit=mat(0x26384b,.78),shirt=mat(0xf0e9dc,.72),tie=mat(0x9c493d,.62),shoe=mat(0x171b21,.48,.1);
  // Executive desk: layered walnut slab, brass inlay, apron and sculpted pedestal legs.
  boxMesh(g,0,.59,0,.88,.105,.58,wood);
@@ -612,17 +613,17 @@ function createBoss(parent,o){
  sphereMesh(person,0,.98,.16,.025,tie,[1,.7,.55]);
  // Neck, shaped head, ears, hair, eyebrows and facial features.
  cylMesh(person,0,1.015,.015,.045,.05,.10,skin,20);
- sphereMesh(person,0,1.17,.025,.125,.145,.105,skin,[1,1,1]);
- for(const x of [-.125,.125])sphereMesh(person,x,1.16,.025,.025,skin,[1,.9,.8]);
- sphereMesh(person,0,1.255,-.005,.13,hair,[1,.48,1]);
- sphereMesh(person,-.055,1.29,.055,.07,hair,[1,.45,.65]);
- sphereMesh(person,.045,1.30,.045,.075,hair,[1,.42,.62]);
+ ell(person,0,1.17,.025,.125,.145,.105,skin);
+ for(const x of [-.125,.125])ell(person,x,1.16,.025,.025,.04,.02,skin);
+ ell(person,0,1.255,-.005,.13,.062,.13,hair);
+ ell(person,-.055,1.29,.055,.07,.032,.045,hair);
+ ell(person,.045,1.30,.045,.075,.032,.045,hair);
  for(const x of [-.047,.047]){
   boxMesh(person,x,1.19,.12,.028,.012,hair);
-  sphereMesh(person,x,1.165,.126,.012,mat(0x26313b),[1,1,.45]);
-  sphereMesh(person,x,1.166,.132,.005,mat(0xf5eee5),[1,1,.4]);
+  ell(person,x,1.165,.126,.012,.012,.005,mat(0x26313b));
+  ell(person,x,1.166,.132,.005,.005,.002,mat(0xf5eee5));
  }
- sphereMesh(person,0,1.135,.139,.014,.027,.018,skin);
+ ell(person,0,1.135,.139,.014,.027,.018,skin);
  boxMesh(person,0,1.095,.128,.038,.006,.006,mat(0x81564b));
  // Arms rest on the desk; hands and cuffs are visible just behind its front edge.
  for(const side of [-1,1]){

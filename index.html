@@ -1479,7 +1479,7 @@ async function dev3dLoad(){
  const loadGLB=(key,path)=>new Promise(resolve=>gltf.load(path,g=>{const root=g.scene||g.scenes?.[0];if(root){dev3dNormalize(root,.72);dev3dState.assets[key]=root;dev3dState.assets[key+":clips"]=g.animations||[];}resolve();},undefined,e=>{console.error(path,e);resolve();}));
  Promise.all([loadFurniture,loadGLB("character:boss","models/lowpoly_old_man.glb"),loadGLB("character:employee","models/Typing.glb")]).then(()=>{dev3dState.ready=true;dev3dState.loading=false;dev3dStatus("Модели загружены · подиум 1×1 клетка");dev3dRenderLibrary();dev3dRenderParts();dev3dRenderPreview();threeSceneSignature="";if(typeof rebuildThreeScene==="function"&&floorPageActive)rebuildThreeScene();});
 }
-function dev3dOpen(){if(!devUnlocked)return;dev3dState.parts=(dev3dPresets[dev3dState.type]||[]).map(p=>({...p}));dev3dRenderParts();$("dev3dModal").classList.add("show");$("dev3dModal").setAttribute("aria-hidden","false");dev3dInitView();dev3dLoad();}
+function dev3dOpen(){if(!devUnlocked)return;dev3dState.parts=(dev3dPresets[dev3dState.type]||[]).map(p=>({...p}));if(dev3dState.type==="ceo"&&dev3dState.parts.length)dev3dEnsureBossPart(dev3dState.parts);dev3dRenderParts();$("dev3dModal").classList.add("show");$("dev3dModal").setAttribute("aria-hidden","false");dev3dInitView();dev3dLoad();}
 function dev3dClose(){$("dev3dModal").classList.remove("show");$("dev3dModal").setAttribute("aria-hidden","true");}
 function dev3dRenderLibrary(){
  const box=$("dev3dLibrary");if(!box)return;box.innerHTML="";
@@ -1505,7 +1505,7 @@ function dev3dEditSelected(action){
 }
 function dev3dRenderPreview(){
  if(!dev3dState.root||!dev3dState.ready)return;while(dev3dState.root.children.length){const o=dev3dState.root.children[0];dev3dState.root.remove(o);}dev3dState.previewObjects=[];
- dev3dState.parts.forEach((p,i)=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;const placed=dev3dPlace(obj,p);placed.traverse(n=>{n.userData.dev3dPartIndex=i;});placed.userData.dev3dPartIndex=i;dev3dState.root.add(placed);dev3dState.previewObjects.push(placed);});
+ dev3dState.mixer=null;dev3dState.parts.forEach((p,i)=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;const placed=dev3dPlace(obj,p);placed.traverse(n=>{n.userData.dev3dPartIndex=i;});placed.userData.dev3dPartIndex=i;dev3dState.root.add(placed);dev3dState.previewObjects.push(placed);if(String(p.asset).startsWith("character:")){const clip=dev3dAnimationClipFor(p.asset,obj);if(clip){dev3dState.mixer=new THREE.AnimationMixer(obj);dev3dState.mixer.clipAction(clip).reset().play();}}});
  dev3dState.root.position.set(0,0,0);let b=new THREE.Box3().setFromObject(dev3dState.root),size=b.getSize(new THREE.Vector3());const m=.012,fits=b.min.x>=-.5-m&&b.max.x<=.5+m&&b.min.z>=-.5-m&&b.max.z<=.5+m;dev3dStatus((fits?"В пределах клетки 1×1":"ВЫХОД ЗА ГРАНИЦЫ КЛЕТКИ")+" · X "+size.x.toFixed(2)+" × Z "+size.z.toFixed(2));
  const n=$("dev3dSelectedName");if(n)n.textContent=dev3dState.parts[dev3dState.selected]?"Выбран: "+dev3dState.parts[dev3dState.selected].name:"Выберите предмет на сцене";
 }
@@ -1517,14 +1517,49 @@ function dev3dApply(){
  save();syncPlayer(false);threeSceneSignature="";if(typeof rebuildThreeScene==="function")rebuildThreeScene();draw();toast("Пресеты сохранены и применены в игре");
 }
 function dev3dCopy(){const payload=JSON.stringify(dev3dPresets,null,2);const done=()=>toast("Скопировано!");if(navigator.clipboard?.writeText)navigator.clipboard.writeText(payload).then(done).catch(()=>{const t=document.createElement("textarea");t.value=payload;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();done();});else{const t=document.createElement("textarea");t.value=payload;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();done();}}
+function dev3dEnsureBossPart(parts){
+ if(!parts.some(p=>p.asset==="character:boss"))parts.push({asset:"character:boss",name:"Шеф · lowpoly_old_man.glb",x:0,y:0,z:-.31,rot:0,rotX:0,rotZ:0,scale:.72});
+ return parts;
+}
+function dev3dNormalizeBoneName(name){
+ return String(name||"").split(/[|/]/).pop().replace(/mixamorig/ig,"").replace(/armature/ig,"").replace(/[^a-z0-9]/ig,"").toLowerCase();
+}
+function dev3dAnimationClipFor(asset,obj){
+ const own=dev3dState.assets[asset+":clips"]||[];
+ const fallback=asset==="character:boss"?(dev3dState.assets["character:employee:clips"]||[]):[];
+ const source=own.length?own:fallback,clip=source[0];if(!clip||!obj)return null;
+ const nodes=[];obj.traverse(n=>{if(n.name)nodes.push(n);});
+ const exact=new Map();nodes.forEach(n=>{const k=dev3dNormalizeBoneName(n.name);if(k&&!exact.has(k))exact.set(k,n);});
+ const tracks=[];
+ clip.tracks.forEach(track=>{
+  const dot=track.name.lastIndexOf(".");if(dot<1)return;
+  const sourceName=track.name.slice(0,dot),key=dev3dNormalizeBoneName(sourceName);
+  let target=exact.get(key);
+  if(!target&&key){const matches=nodes.filter(n=>{const k=dev3dNormalizeBoneName(n.name);return k&&(k.endsWith(key)||key.endsWith(k));});if(matches.length===1)target=matches[0];}
+  if(target){const copy=track.clone();copy.name=target.name+track.name.slice(dot);tracks.push(copy);}
+ });
+ const ratio=tracks.length/Math.max(1,clip.tracks.length);
+ if(!tracks.length||ratio<.45){console.warn("Typing animation rig mismatch",asset,tracks.length,clip.tracks.length);return null;}
+ console.info("Character animation retargeted",asset,tracks.length+"/"+clip.tracks.length);
+ return new THREE.AnimationClip(clip.name||"Typing",clip.duration,tracks);
+}
 function dev3dUsePreset(parent,o,key){
- const preset=dev3dPresets[key];if(!preset?.length||!dev3dState.ready)return null;
+ const stored=dev3dPresets[key];if(!stored?.length||!dev3dState.ready)return null;
+ const preset=(key==="ceo"?dev3dEnsureBossPart(stored.map(p=>({...p}))):stored);
  const group=new THREE.Group();parent.add(group);
- preset.forEach(p=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;const placed=dev3dPlace(obj,p);group.add(placed);if(String(p.asset).startsWith("character:")){const clips=dev3dState.assets[p.asset+":clips"]||dev3dState.assets["character:employee:clips"]||[];const clip=clips[0],boneNames=new Set();obj.traverse(n=>{if(n.isBone)boneNames.add(n.name);});const compatible=!!clip&&clip.tracks.some(t=>boneNames.has(t.name.split(".")[0].split(":").pop()));if(compatible){const mixer=new THREE.AnimationMixer(obj);mixer.clipAction(clip).play();dev3dGameMixers.push(mixer);group.userData.animationMixer=mixer;}else{const rig={phase:0,arms:[],heads:[]};obj.traverse(n=>{if(n.isBone&&/(hand|wrist|forearm|arm)/i.test(n.name))rig.arms.push(n);if(n.isBone&&/(head|neck)/i.test(n.name))rig.heads.push(n);});if(rig.arms.length||rig.heads.length)dev3dProceduralRigs.push(rig);group.userData.proceduralCharacter=true;}}});
+ preset.forEach(p=>{
+  const obj=dev3dCloneAsset(p.asset);if(!obj)return;
+  const placed=dev3dPlace(obj,p);group.add(placed);
+  if(String(p.asset).startsWith("character:")){
+   const clip=dev3dAnimationClipFor(p.asset,obj);
+   if(clip){const mixer=new THREE.AnimationMixer(obj);mixer.clipAction(clip).reset().play();dev3dGameMixers.push(mixer);group.userData.animationMixer=mixer;}
+   else{const rig={phase:Math.random()*Math.PI*2,arms:[],heads:[]};obj.traverse(n=>{if(n.isBone&&/(hand|wrist|forearm|arm)/i.test(n.name))rig.arms.push(n);if(n.isBone&&/(head|neck)/i.test(n.name))rig.heads.push(n);});if(rig.arms.length||rig.heads.length)dev3dProceduralRigs.push(rig);group.userData.proceduralCharacter=true;}
+  }
+ });
  group.position.set(o.x+.5,0,o.y+.5);group.rotation.y=(Number(o.rot)||0)*Math.PI/2;return group;
 }
 
-function rebuildThreeScene(){const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"boss":g=createBoss(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;}if(g){g.userData.object=o;if(o.type==="desk"){const worker=createWorker3D(threeFurnitureGroup,o);threeWorkerGroups.set(o,worker);}}});floor.forEach(o=>{const key=o.type==="boss"?"ceo":o.type==="desk"?"desk_"+Math.max(1,Math.min(4,Number(o.level)||1)):o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});}
+function rebuildThreeScene(){dev3dGameMixers.forEach(m=>m.stopAllAction());dev3dGameMixers.length=0;dev3dProceduralRigs.length=0;const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"boss":g=createBoss(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;}if(g){g.userData.object=o;if(o.type==="desk"){const worker=createWorker3D(threeFurnitureGroup,o);threeWorkerGroups.set(o,worker);}}});floor.forEach(o=>{const key=o.type==="boss"?"ceo":o.type==="desk"?"desk_"+Math.max(1,Math.min(4,Number(o.level)||1)):o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});}
 function updateThreeCamera(){if(!threeCamera)return;const n=currentGridSize(),span=n+5,aspect=Math.max(.5,threeWidth/Math.max(1,threeHeight));threeCamera.left=-span*aspect*.5;threeCamera.right=span*aspect*.5;threeCamera.top=span*.5;threeCamera.bottom=-span*.5;threeCamera.zoom=cameraZoom;const center=new THREE.Vector3(n/2+cameraOffsetX*.018+threePanX,0,n/2+cameraOffsetY*.018+threePanZ),d=span*1.75;threeCamera.position.copy(center).add(new THREE.Vector3(d,d,d));threeCamera.lookAt(center);threeCamera.updateProjectionMatrix();}
 function fitLargeFloorCamera(){
  const n=currentGridSize(),aspect=Math.max(.42,threeWidth/Math.max(1,threeHeight));

@@ -1466,6 +1466,56 @@ function dev3dInitView(){
 function dev3dCloneAsset(asset){const src=dev3dState.assets[asset];if(!src)return null;const obj=asset.startsWith("character:")&&THREE.SkeletonUtils?THREE.SkeletonUtils.clone(src):src.clone(true);return obj;}
 function dev3dNormalize(obj,target=.84){obj.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(obj),size=b.getSize(new THREE.Vector3()),factor=target/Math.max(size.x,size.z,.0001);obj.scale.multiplyScalar(factor);obj.updateMatrixWorld(true);b.setFromObject(obj);const c=b.getCenter(new THREE.Vector3());obj.position.x-=c.x;obj.position.z-=c.z;obj.position.y-=b.min.y;obj.userData.dev3dPlacementOffset={x:obj.position.x,y:obj.position.y,z:obj.position.z};return obj;}
 function dev3dPlace(obj,p){const pivot=new THREE.Group();pivot.name="dev3dRotationPivot";pivot.add(obj);pivot.position.set(Number(p.x)||0,Number(p.y)||0,Number(p.z)||0);pivot.rotation.order="XYZ";pivot.rotation.set(THREE.MathUtils.degToRad(Number(p.rotX)||0),THREE.MathUtils.degToRad(Number(p.rot)||0),THREE.MathUtils.degToRad(Number(p.rotZ)||0));pivot.scale.setScalar(Number(p.scale)||1);return pivot;}
+function dev3dBuildBossOnTypingSkeleton(root){
+ if(!root)return root;
+ const bones=[];root.traverse(n=>{if(n.isBone)bones.push(n);else if(n.isMesh){n.visible=false;n.castShadow=false;n.receiveShadow=false;}});
+ if(!bones.length){console.warn("Typing.glb has no usable skeleton bones");return root;}
+ const mat=(color,rough=.78,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+ const suit=mat(0x263b55),suitLight=mat(0x3b5877),shirt=mat(0xe9e6dc),skin=mat(0xc98f70),skinLight=mat(0xe0aa88),hair=mat(0x37302b),shoe=mat(0x171c24,.65),tie=mat(0x9b3e39),gold=mat(0xb18a50,.4,.55);
+ const sphere=(parent,material,pos,scale,segments=16)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,12),material);m.position.copy(pos);m.scale.copy(scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
+ const segment=(bone,child,material,radius)=>{
+  const v=child.position.clone(),len=v.length();if(len<.0001)return;
+  const pivot=new THREE.Group();pivot.position.copy(v).multiplyScalar(.5);pivot.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.clone().normalize());bone.add(pivot);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(radius*.78,radius,len*.78,12),material);shaft.castShadow=true;shaft.receiveShadow=true;pivot.add(shaft);
+  sphere(pivot,material,new THREE.Vector3(0,-len*.39,0),new THREE.Vector3(radius,radius,radius),12);
+  sphere(pivot,material,new THREE.Vector3(0,len*.39,0),new THREE.Vector3(radius*.82,radius*.82,radius*.82),12);
+ };
+ const name=b=>String(b.name||"").toLowerCase();
+ bones.forEach(b=>{
+  const n=name(b),children=b.children.filter(c=>c.isBone);
+  let material=suit,radius=.026;
+  if(/finger|thumb|index|middle|ring|pinky|hand|wrist/.test(n)){material=skinLight;radius=/finger|thumb|index|middle|ring|pinky/.test(n)?.008:.025;}
+  else if(/foot|toe|ankle/.test(n)){material=shoe;radius=.027;}
+  else if(/leg|thigh|calf|shin|knee/.test(n)){material=suit;radius=.043;}
+  else if(/arm|shoulder|forearm|elbow/.test(n)){material=suitLight;radius=.034;}
+  else if(/neck|head/.test(n)){material=skin;radius=.04;}
+  children.forEach(c=>segment(b,c,material,radius));
+  if(/hips|pelvis/.test(n))sphere(b,suit,new THREE.Vector3(0,0,0),new THREE.Vector3(.105,.075,.075));
+  if(/spine|chest|torso/.test(n)){
+   sphere(b,suit,new THREE.Vector3(0,0,0),new THREE.Vector3(.115,.145,.082));
+   sphere(b,shirt,new THREE.Vector3(0,.005,.073),new THREE.Vector3(.052,.105,.018));
+   const knot=sphere(b,tie,new THREE.Vector3(0,.065,.094),new THREE.Vector3(.014,.018,.009),12);
+   const tieBody=new THREE.Mesh(new THREE.ConeGeometry(.018,.105,4),tie);tieBody.position.set(0,-.005,.093);tieBody.rotation.x=Math.PI;tieBody.castShadow=true;b.add(tieBody);
+   [-1,1].forEach(side=>{const lapel=new THREE.Mesh(new THREE.BoxGeometry(.025,.12,.012),suitLight);lapel.position.set(side*.043,.015,.094);lapel.rotation.z=side*.22;lapel.castShadow=true;b.add(lapel);});
+  }
+  if(/head/.test(n)){
+   sphere(b,skin,new THREE.Vector3(0,0,0),new THREE.Vector3(.085,.105,.078),20);
+   sphere(b,hair,new THREE.Vector3(0,.072,-.008),new THREE.Vector3(.087,.047,.08),18);
+   sphere(b,hair,new THREE.Vector3(0,.035,-.055),new THREE.Vector3(.082,.035,.04),16);
+   [-1,1].forEach(side=>{
+    sphere(b,skinLight,new THREE.Vector3(side*.083,-.005,0),new THREE.Vector3(.018,.028,.018),12);
+    sphere(b,shirt,new THREE.Vector3(side*.032,.012,.068),new THREE.Vector3(.014,.011,.008),12);
+    sphere(b,shoe,new THREE.Vector3(side*.032,.012,.075),new THREE.Vector3(.006,.007,.004),10);
+    sphere(b,hair,new THREE.Vector3(side*.032,.039,.071),new THREE.Vector3(.022,.007,.009),10);
+   });
+   sphere(b,skinLight,new THREE.Vector3(0,-.025,.078),new THREE.Vector3(.017,.023,.02),12);
+  }
+ });
+ root.userData.generatedBossOnTypingRig=true;
+ root.userData.typingSkeletonBoneCount=bones.length;
+ console.info("CEO character generated on Typing.glb skeleton",bones.length,"bones");
+ return root;
+}
 async function dev3dLoad(){
  if(dev3dState.ready||dev3dState.loading)return;dev3dState.loading=true;dev3dStatus("Загрузка FBX/GLB-моделей…");
  try{const [fbxModule,gltfModule,skeletonModule]=await Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/FBXLoader.js"),import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js"),import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/utils/SkeletonUtils.js")]);THREE.FBXLoader=fbxModule.FBXLoader;THREE.GLTFLoader=gltfModule.GLTFLoader;THREE.SkeletonUtils={clone:skeletonModule.clone};}catch(error){dev3dState.loading=false;dev3dStatus("Ошибка загрузки FBX/GLTF-загрузчиков: "+error.message);console.error(error);return;}
@@ -1476,8 +1526,11 @@ async function dev3dLoad(){
   root.updateMatrixWorld(true);const found=[];let meshIndex=0;root.traverse(o=>{if(o.isMesh&&o.geometry){const key=String(meshIndex++).padStart(4,"0")+":"+(o.name||"mesh");o.updateWorldMatrix(true,false);const clone=o.clone(false);clone.geometry=o.geometry;clone.material=o.material;clone.applyMatrix4(o.matrixWorld);const wrap=new THREE.Group();wrap.add(clone);dev3dNormalize(wrap,.72);dev3dState.assets["furniture:"+key]=wrap;found.push({key:"furniture:"+key,name:o.name||o.parent?.name||("Предмет "+(found.length+1))});}});
   dev3dState.names=found;resolve();
  },undefined,e=>{console.error(e);resolve();}));
- const loadGLB=(key,path)=>new Promise(resolve=>gltf.load(path,g=>{const root=g.scene||g.scenes?.[0];if(root){if(key==="character:boss")dev3dNormalizeCharacter(root,1.05);else dev3dNormalize(root,.72);dev3dState.assets[key]=root;dev3dState.assets[key+":clips"]=g.animations||[];}resolve();},undefined,e=>{console.error(path,e);resolve();}));
- Promise.all([loadFurniture,loadGLB("character:boss","models/lowpoly_old_man.glb"),loadGLB("character:employee","models/Typing.glb")]).then(()=>{dev3dState.ready=true;dev3dState.loading=false;dev3dStatus("Модели загружены · подиум 1×1 клетка");dev3dRenderLibrary();dev3dRenderParts();dev3dRenderPreview();threeSceneSignature="";if(typeof rebuildThreeScene==="function"&&floorPageActive)rebuildThreeScene();});
+ const loadGLB=(key,path)=>new Promise(resolve=>gltf.load(path,g=>{const root=g.scene||g.scenes?.[0];if(root){dev3dNormalize(root,.72);dev3dState.assets[key]=root;dev3dState.assets[key+":clips"]=g.animations||[];}resolve();},undefined,e=>{console.error(path,e);resolve();}));
+ Promise.all([loadFurniture,loadGLB("character:employee","models/Typing.glb")]).then(()=>{
+  const typing=dev3dState.assets["character:employee"];
+  if(typing&&THREE.SkeletonUtils){const boss=THREE.SkeletonUtils.clone(typing);dev3dBuildBossOnTypingSkeleton(boss);dev3dState.assets["character:boss"]=boss;dev3dState.assets["character:boss:clips"]=dev3dState.assets["character:employee:clips"]||[];}
+  dev3dState.ready=true;dev3dState.loading=false;dev3dStatus("Модели загружены · подиум 1×1 клетка");dev3dRenderLibrary();dev3dRenderParts();dev3dRenderPreview();threeSceneSignature="";if(typeof rebuildThreeScene==="function"&&floorPageActive)rebuildThreeScene();});
 }
 function dev3dOpen(){if(!devUnlocked)return;dev3dState.parts=(dev3dPresets[dev3dState.type]||[]).map(p=>({...p}));if(dev3dState.type==="ceo"&&dev3dState.parts.length)dev3dEnsureBossPart(dev3dState.parts);dev3dRenderParts();$("dev3dModal").classList.add("show");$("dev3dModal").setAttribute("aria-hidden","false");dev3dInitView();dev3dLoad();}
 function dev3dClose(){$("dev3dModal").classList.remove("show");$("dev3dModal").setAttribute("aria-hidden","true");}
@@ -1640,11 +1693,9 @@ function dev3dUsePreset(parent,o,key){
   const chairPart=placedParts.find(x=>/chair/i.test(x.part.name||x.part.asset));
   dev3dAttachCharacterToChair(group,placedParts);
   if(char){
-   const controller=dev3dCreateTypingController(char.obj,keyPart?.placed,mousePart?.placed);
    const clip=dev3dAnimationClipFor("character:boss",char.obj);
-   if(clip){const mixer=new THREE.AnimationMixer(char.obj);mixer.clipAction(clip).reset().play();dev3dGameMixers.push(mixer);controller.mixer=mixer;}
-   dev3dTypingControllers.push(controller);
-   group.userData.typingController=controller;
+   if(clip){const mixer=new THREE.AnimationMixer(char.obj);mixer.clipAction(clip).reset().play();dev3dGameMixers.push(mixer);group.userData.typingMixer=mixer;}
+   else{const controller=dev3dCreateTypingController(char.obj,keyPart?.placed,mousePart?.placed);dev3dTypingControllers.push(controller);group.userData.typingController=controller;}
    group.userData.characterObject=char.placed;
 
   }else{

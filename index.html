@@ -572,6 +572,30 @@ function createServer(parent,o){
  // Side intake louvers and rear cable-management bundle.
  for(let side of [-1,1])for(let i=0;i<8;i++)boxMesh(g,side*.321,.35+i*.095,-.02,.009,.012,.34,frame);
  for(let i=0;i<5;i++)lineMesh(g,new THREE.Vector3(-.22+i*.11,.18,-.33),new THREE.Vector3(-.22+i*.11,.08,-.43),.009,leds[i%3]);
+ // Precision rack detailing: captive screws, asset labels and redundant network patch panel.
+ const labelMat=mat(0xd5e0e4,.58,.12),labelInk=mat(0x26343b,.7),port=mat(0x050d14,.4,.3),fiber=mat(0x18232c,.72);
+ for(let i=0;i<4;i++){
+  const y=.27+i*.255;
+  for(const x of [-.225,.225])for(const yy of [y-.085,y+.085])sphereMesh(g,x,yy,.414,.006,frame,[1,1,.45]);
+  boxMesh(g,-.105,y+.084,.414,.12,.018,.006,labelMat);
+  for(let k=0;k<3;k++)boxMesh(g,-.14+k*.035,y+.084,.418,.018,.004,.003,labelInk);
+ }
+ // Dual vertical cable guides and fibre bundles visible through the cabinet side.
+ for(const x of [-.285,.285]){
+  boxMesh(g,x,.76,-.18,.025,1.02,.08,dark);
+  for(let k=0;k<6;k++)boxMesh(g,x,.35+k*.145,-.225,.032,.012,.012,frame);
+ }
+ // Rear patch field: individual RJ45 sockets with paired link/activity LEDs.
+ boxMesh(g,0,.18,-.326,.43,.18,.018,dark);
+ for(let row=0;row<2;row++)for(let col=0;col<8;col++){
+  const x=-.17+col*.048,y=.145+row*.055;
+  boxMesh(g,x,y,-.339,.034,.035,.008,port);
+  boxMesh(g,x,y+.018,-.345,.018,.004,.003,frame);
+  sphereMesh(g,x-.009,y-.022,-.345,.004,leds[(col+row)%3]);
+ }
+ // Feet and rack-mount rail perforations.
+ for(const x of [-.25,.25])for(const z of [-.24,.24])cylMesh(g,x,.012,z,.035,.035,.025,dark,16);
+ for(let i=0;i<10;i++)sphereMesh(g,-.286,.25+i*.095,.374,.005,frame,[1,1,.5]);
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
 function createBoss(parent,o){
@@ -683,6 +707,26 @@ function createMeeting(parent,o){
  // Slim cable channel under the tabletop and discreet brass fasteners.
  boxMesh(g,0,.44,0,.48,.035,.08,chair);
  for(const x of [-.36,.36])sphereMesh(g,x,.565,0,.012,edge);
+ // Individual conference microphones, gooseneck stems and illuminated mute rings.
+ const micBase=mat(0x18232b,.34,.62),micStem=mat(0x8b9da5,.28,.78),micHead=mat(0x202c35,.42,.5);
+ for(const [x,z] of [[-.29,-.12],[.29,-.12],[-.29,.13],[.29,.13]]){
+  C(g,x,.585,z,.025,.025,.014,micBase,20);
+  lineMesh(g,new THREE.Vector3(x,.59,z),new THREE.Vector3(x,.675,z-.025),.006,micStem);
+  lineMesh(g,new THREE.Vector3(x,.675,z-.025),new THREE.Vector3(x,.69,z-.045),.006,micStem);
+  SphericalConferenceMic(g,x,.695,z-.045,micHead,accent);
+ }
+ // Branded delegate nameplates and individual water glasses.
+ const plaque=mat(0x273641,.3,.58),plaqueText=mat(0xd9c18e,.4,.35);
+ for(const [x,z] of [[-.30,-.26],[.30,-.26],[-.30,.25],[.30,.25]]){
+  boxMesh(g,x,.59,z,.12,.018,.045,plaque);
+  boxMesh(g,x,.601,z+.002,.065,.003,.006,plaqueText);
+  const glassCup=new THREE.Mesh(new THREE.CylinderGeometry(.018,.022,.055,18,1,true),new THREE.MeshStandardMaterial({color:0xb9dce4,roughness:.12,metalness:.08,transparent:true,opacity:.38,side:THREE.DoubleSide}));
+  glassCup.position.set(x*.72,.615,z*.55);g.add(glassCup);
+  C(g,x*.72,.644,z*.55,.018,.018,.004,mat(0x9ac9d7,.15,.05,{transparent:true,opacity:.45}),18);
+ }
+ // Table edge stitching and a slim under-table cable raceway.
+ for(let i=0;i<24;i++){const a=i*Math.PI/12;const x=Math.cos(a)*.438,z=Math.sin(a)*.274;sphereMesh(g,x,.555,z,.004,plaqueText,[1,.6,1]);}
+ boxMesh(g,0,.405,-.01,.34,.025,.06,dark);
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
 function createSecurity(parent,o){
@@ -721,6 +765,37 @@ function createSecurity(parent,o){
  cylMesh(g,0,.10,.40,.025,.03,.20,metal,12);
  for(let i=0;i<4;i++){const a=i*Math.PI/2;lineMesh(g,new THREE.Vector3(0,.025,.40),new THREE.Vector3(Math.cos(a)*.15,.025,.40+Math.sin(a)*.15),.012,dark);}
  sphereMesh(g,.39,.48,.29,.025,screens[1]);
+ // Additional operator-grade controls and security hardware.
+ const keyMat=mat(0x9aaab1,.35,.55),red=mat(0xff5a54,.24,.12,{emissive:0xb51e20,emissiveIntensity:.85}),green=mat(0x42e0a8,.24,.12,{emissive:0x129c6c,emissiveIntensity:.85});
+ // Trackball, precision mouse and illuminated emergency response controls.
+ boxMesh(g,.205,.755,.19,.105,.018,.10,dark);
+ SphericalSecurityBall(g,.205,.786,.19,.027,metal);
+ const mouse=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),metal);mouse.position.set(-.22,.78,.20);mouse.scale.set(.035,.018,.052);g.add(mouse);
+ lineMesh(g,new THREE.Vector3(-.22,.79,.17),new THREE.Vector3(-.22,.80,.13),.004,dark);
+ for(let i=0;i<3;i++){
+  C(g,.31+i*.045,.76,.235,.016,.016,.012,i===0?red:i===1?green:screens[2],16);
+ }
+ // Badge reader with RFID contact area and a hanging access card.
+ boxMesh(g,-.37,.53,.29,.075,.13,.035,dark);
+ boxMesh(g,-.37,.55,.311,.048,.07,.006,metal);
+ sphereMesh(g,-.37,.57,.318,.012,green,[1,1,.4]);
+ boxMesh(g,-.37,.45,.315,.035,.045,.006,mat(0xe1e8e8));
+ // Compact radio handset, coiled lead and clip.
+ boxMesh(g,-.34,.78,.13,.09,.045,.16,dark);
+ lineMesh(g,new THREE.Vector3(-.34,.80,.20),new THREE.Vector3(-.34,.91,.20),.009,metal);
+ for(let i=0;i<4;i++)sphereMesh(g,-.34,.93+i*.022,.20,.012,i===0?red:screens[i%3]);
+ for(let i=0;i<5;i++)lineMesh(g,new THREE.Vector3(-.38,.77-i*.008,.08),new THREE.Vector3(-.38,.765-i*.008,.12),.003,metal);
+ // Front console identity plate, warning stripe and cabinet fasteners.
+ boxMesh(g,0,.40,.278,.32,.09,.012,dark);
+ boxMesh(g,0,.42,.286,.25,.035,.006,metal);
+ boxMesh(g,0,.42,.291,.12,.008,.003,green);
+ for(let x of [-.41,.41])for(let y of [.18,.58])sphereMesh(g,x,y,.29,.008,metal,[1,1,.5]);
+ // Monitor anti-glare hoods and fine lower bezel controls.
+ for(let i=0;i<3;i++){
+  const x=(i-1)*.255;
+  boxMesh(g,x,1.095,-.08,.24,.018,.055,dark);
+  for(let k=0;k<3;k++)sphereMesh(g,x-.06+k*.06,.815,-.025,.004,k===0?green:metal,[1,1,.5]);
+ }
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
 function createWorker3D(parent,desk){

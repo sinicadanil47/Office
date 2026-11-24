@@ -1377,8 +1377,7 @@ function dev3dRenderPreview(){
 function dev3dPresetKey(type){return type;}
 function dev3dApply(){
  dev3dPresets[dev3dPresetKey(dev3dState.type)]=dev3dState.parts.map(p=>({...p}));localStorage.setItem("office_custom_presets",JSON.stringify(dev3dPresets));
- if(dev3dState.type==="ceo")state.layout=state.layout.map(o=>o.type==="boss"?o:o);
- else if(dev3dState.type.startsWith("desk_"))state.layout=state.layout.map(o=>o.type==="desk"&&Number(o.level)===Number(dev3dState.type.slice(-1))?o:o);
+ if(dev3dState.type.startsWith("desk_"))state.layout=state.layout.map(o=>o.type==="desk"&&Number(o.level)===Number(dev3dState.type.slice(-1))?o:o);
  save();syncPlayer(false);threeSceneSignature="";if(typeof rebuildThreeScene==="function")rebuildThreeScene();draw();toast("Пресеты сохранены и применены в игре");
 }
 function dev3dCopy(){const payload=JSON.stringify(dev3dPresets,null,2);const done=()=>toast("Скопировано!");if(navigator.clipboard?.writeText)navigator.clipboard.writeText(payload).then(done).catch(()=>{const t=document.createElement("textarea");t.value=payload;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();done();});else{const t=document.createElement("textarea");t.value=payload;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();done();}}
@@ -2005,7 +2004,7 @@ function beginMovePreview(index){
  moveMode=false;$("moveBtn").classList.remove("active");state.sellMode=false;state.selected=null;closeShop();
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);}
  threePreviewGroup=new THREE.Group();threeRoot.add(threePreviewGroup);
- const makers={desk:createDesk,coffee:createCoffee,server:createServer,boss:(p,o)=>createBoss(p,o,false),meeting:createMeeting,security:createSecurity};
+ const makers={desk:createDesk,coffee:createCoffee,server:createServer,meeting:createMeeting,security:createSecurity};
  const ghost=makers[o.type](threePreviewGroup,{...o});
  ghost.traverse(obj=>{if(!obj.isMesh||!obj.material)return;const wasArray=Array.isArray(obj.material),src=wasArray?obj.material:[obj.material];const cloned=src.map(m=>{const c=m.clone();c.transparent=true;c.opacity=.76;c.depthWrite=false;c.side=THREE.DoubleSide;c.userData.previewBaseColor=c.color?.clone?.()||new THREE.Color(0xffffff);return c;});obj.material=wasArray?cloned:cloned[0];obj.castShadow=false;obj.receiveShadow=false;obj.renderOrder=3;});
  const frameMat=new THREE.MeshBasicMaterial({color:0x35e3bb,transparent:true,opacity:.34,side:THREE.DoubleSide,depthWrite:false});

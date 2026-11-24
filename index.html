@@ -727,62 +727,30 @@ function createMeeting(parent,o){
  boxMesh(g,0,.405,-.01,.34,.025,.06,dark);
  g.scale.x=1.85;g.position.set(o.x+1,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
-function createSecurity(parent,o){
- const g=new THREE.Group();parent.add(g);
- const shell=mat(0x263b50,.42,.52),edge=mat(0x879aa6,.3,.72),dark=mat(0x0b1722,.42,.3),rubber=mat(0x151f29,.8),seat=mat(0x263b50,.72,.16),screenM=[0x20a9db,0x24c6ad,0x748cf5].map(c=>mat(c,.2,.15,{emissive:c,emissiveIntensity:.82})),white=mat(0xd8e3e7,.45,.2),red=mat(0xff554e,.22,.1,{emissive:0xd51c28,emissiveIntensity:1}),green=mat(0x40e5a8,.22,.1,{emissive:0x0eaa70,emissiveIntensity:1});
- const B=(x,y,z,w,h,d,m)=>boxMesh(g,x,y,z,w,h,d,m);
- const S=(x,y,z,r,m)=>sphereMesh(g,x,y,z,r,m);
- // Reinforced command desk, raised console shelf and brushed-metal perimeter.
- B(0,.34,0,.94,.58,.58,shell);B(0,.65,0,.98,.055,.62,edge);B(0,.69,0,.94,.025,.58,dark);
- B(0,.37,.30,.90,.56,.025,edge);B(0,.37,.318,.84,.51,.012,shell);
- for(const x of [-.43,.43]){B(x,.36,.28,.025,.48,.025,dark);for(let i=0;i<5;i++)B(x,.18+i*.075,.30,.028,.012,.008,edge);}
- // Three articulated surveillance displays with layered bezels and individual camera tiles.
- for(let i=0;i<3;i++){
-  const x=(i-1)*.275;
-  B(x,1.005,-.105,.265,.34,.055,dark);B(x,1.005,-.071,.239,.31,.012,edge);B(x,1.005,-.062,.218,.286,.008,screenM[i]);
-  // Multi-camera grid and subtle scanline overlays.
-  for(let row=0;row<2;row++)for(let col=0;col<3;col++){
-   const xx=x-.071+col*.071,yy=1.045-row*.085;
-   B(xx,yy,-.056,.061,.068,.003,i===0?mat(0x17445b,.55):i===1?mat(0x185449,.55):mat(0x293b70,.55));
-   B(xx,yy-.025,-.052,.044,.002,.002,white);
-   S(xx+.019,yy+.022,-.051,.004,i===1?green:screenM[i]);
-  }
-  const ret=new THREE.Mesh(new THREE.RingGeometry(.018,.021,20),new THREE.MeshBasicMaterial({color:0xe4fbff,transparent:true,opacity:.85,side:THREE.DoubleSide}));ret.position.set(x,1.0,-.05);g.add(ret);
-  B(x,.80,-.105,.035,.12,.045,edge);B(x,.735,-.105,.15,.025,.12,dark);
-  for(let k=0;k<3;k++)S(x-.055+k*.055,.72,-.04,.004,k===0?green:white);
- }
- // Raised central status mast and CCTV network overview panel.
- B(0,1.235,-.12,.34,.045,.18,dark);B(0,1.238,-.023,.25,.012,.012,green);
- for(let i=0;i<5;i++)S(-.095+i*.047,1.238,-.014,.008,[green,screenM[0],green,red,green][i]);
- // Full-width keyboard with individual keycaps, numpad and wrist rest.
- B(-.04,.735,.15,.43,.022,.18,dark);
- for(let row=0;row<4;row++)for(let col=0;col<14;col++){
-  const x=-.235+col*.03,z=.09+row*.035;
-  B(x,.751,z,.023,.008,.025,(row===0&&col===13)?red:edge);
- }
- B(-.04,.714,.25,.43,.018,.035,rubber);
- // Trackball, mouse, radio handset and tactile emergency response console.
- B(.31,.745,.16,.13,.025,.15,dark);S(.31,.766,.16,.035,edge);S(.31,.783,.16,.021,white);
- for(let i=0;i<4;i++){const x=.22+i*.055;const m=i===0?red:i===1?green:screenM[2];const btn=new THREE.Mesh(new THREE.CylinderGeometry(.018,.02,.016,20),m);btn.position.set(x,.755,.275);g.add(btn);}
- B(-.36,.76,.15,.105,.04,.17,dark);B(-.36,.785,.15,.07,.012,.11,edge);
- for(let i=0;i<4;i++)S(-.36,.80+i*.021,.15,.009,i===0?red:screenM[i%3]);
- // RFID badge reader and secure-access indicator at the console corner.
- B(-.405,.51,.30,.075,.15,.035,dark);B(-.405,.52,.321,.052,.095,.008,edge);S(-.405,.55,.328,.012,green);
- B(-.405,.445,.324,.035,.035,.006,white);
- // Operator chair with padded back, armrests, gas lift and five-spoke caster base.
- const back=B(0,.56,.49,.29,.36,.085,seat);back.rotation.x=-.08;
- B(0,.34,.43,.30,.085,.25,seat);
- for(const x of [-.19,.19]){B(x,.43,.42,.045,.045,.20,edge);B(x,.39,.43,.065,.035,.19,seat);}
- const post=new THREE.Mesh(new THREE.CylinderGeometry(.022,.03,.22,16),edge);post.position.set(0,.19,.43);g.add(post);
- for(let i=0;i<5;i++){const a=i*Math.PI*2/5;lineMesh(g,new THREE.Vector3(0,.07,.43),new THREE.Vector3(Math.cos(a)*.19,.07,.43+Math.sin(a)*.19),.016,dark);S(Math.cos(a)*.19,.045,.43+Math.sin(a)*.19,.027,rubber);}
- // Cable ducts, front asset plate and chassis fasteners.
- B(0,.12,-.22,.56,.07,.12,dark);B(0,.39,.335,.31,.07,.012,edge);B(0,.40,.344,.18,.018,.005,green);
- for(const x of [-.45,.45])for(const y of [.18,.56])S(x,y,.32,.008,edge);
- // Small CCTV camera indicator and directional antenna.
- B(.42,.91,-.18,.06,.12,.06,dark);S(.42,.92,-.145,.025,screenM[0]);
- lineMesh(g,new THREE.Vector3(.42,.98,-.18),new THREE.Vector3(.42,1.12,-.18),.008,edge);
- g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+function createSecurityDeskModel(){
+const group=new THREE.Group();
+const deskDarkMat=new THREE.MeshStandardMaterial({color:0x1e242b,roughness:.55,metalness:.25}),deskTrimMat=new THREE.MeshStandardMaterial({color:0x3b4452,roughness:.4,metalness:.45}),chromeMat=new THREE.MeshStandardMaterial({color:0xcbd5e1,roughness:.25,metalness:.8}),chairSeatMat=new THREE.MeshStandardMaterial({color:0x262d36,roughness:.65}),chairAccentMat=new THREE.MeshStandardMaterial({color:0x2563eb,roughness:.5}),ledBlueMat=new THREE.MeshStandardMaterial({color:0x38bdf8,emissive:0x0ea5e9,emissiveIntensity:.9});
+function createCctvScreenTexture(mode){const canvas=document.createElement('canvas');canvas.width=128;canvas.height=96;const ctx=canvas.getContext('2d');ctx.fillStyle=mode===3?'#071912':'#081426';ctx.fillRect(0,0,128,96);ctx.strokeStyle=mode===3?'#10b981':'#38bdf8';ctx.lineWidth=2;ctx.strokeRect(4,4,120,88);if(mode===3){ctx.beginPath();ctx.arc(64,48,32,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(64,48,16,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#34d399';ctx.fillRect(72,34,5,5);ctx.fillStyle='#ef4444';ctx.fillRect(48,56,5,5);}else{ctx.fillStyle='#1e3a5f';ctx.fillRect(14,24,100,56);ctx.fillStyle='#0f294a';ctx.fillRect(24,38,34,28);ctx.fillRect(70,32,32,34);ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(16,14,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e2e8f0';ctx.font='bold 10px monospace';ctx.fillText('CAM-0'+(mode+1),24,17);}const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;return tex;}
+const deskW=.8,deskH=.44,deskD=.44,deskZ=-.14,legGeo=new THREE.BoxGeometry(.14,deskH,deskD-.04);
+[-deskW/2+.09,deskW/2-.09].forEach(x=>{const m=new THREE.Mesh(legGeo,deskDarkMat);m.position.set(x,deskH/2,deskZ);m.castShadow=true;m.receiveShadow=true;group.add(m);});
+const back=new THREE.Mesh(new THREE.BoxGeometry(deskW-.16,deskH-.06,.04),deskTrimMat);back.position.set(0,deskH/2,deskZ-deskD/2+.04);group.add(back);
+const topH=.036,top=new THREE.Mesh(new THREE.BoxGeometry(deskW,topH,deskD),deskTrimMat);top.position.set(0,deskH+topH/2,deskZ);top.castShadow=true;top.receiveShadow=true;group.add(top);
+const strip=new THREE.Mesh(new THREE.BoxGeometry(deskW-.04,.012,.012),ledBlueMat);strip.position.set(0,deskH+.01,deskZ+deskD/2+.002);group.add(strip);const surfaceY=deskH+topH;
+const rack=new THREE.Group();rack.position.set(0,surfaceY,deskZ-.09);const post=new THREE.Mesh(new THREE.CylinderGeometry(.018,.024,.34,12),chromeMat);post.position.set(0,.17,-.03);rack.add(post);const base=new THREE.Mesh(new THREE.BoxGeometry(.16,.014,.12),deskDarkMat);base.position.set(0,.007,-.02);rack.add(base);
+const monW=.25,monH=.16,monD=.022,screenGeo=new THREE.PlaneGeometry(monW-.024,monH-.024);
+[{x:-.145,y:.105,z:.01,rotY:.16,mode:0},{x:.145,y:.105,z:.01,rotY:-.16,mode:1},{x:-.145,y:.285,z:0,rotY:.16,rotX:.08,mode:2},{x:.145,y:.285,z:0,rotY:-.16,rotX:.08,mode:3}].forEach(c=>{const mg=new THREE.Group();mg.position.set(c.x,c.y,c.z);mg.rotation.y=c.rotY;if(c.rotX)mg.rotation.x=c.rotX;const bezel=new THREE.Mesh(new THREE.BoxGeometry(monW,monH,monD),deskDarkMat);bezel.castShadow=true;mg.add(bezel);const tex=createCctvScreenTexture(c.mode),sm=new THREE.MeshStandardMaterial({map:tex,emissive:0xffffff,emissiveMap:tex,emissiveIntensity:.7,roughness:.2}),screen=new THREE.Mesh(screenGeo,sm);screen.position.z=monD/2+.001;mg.add(screen);rack.add(mg);});group.add(rack);
+const keyboard=new THREE.Mesh(new THREE.BoxGeometry(.24,.012,.085),deskDarkMat);keyboard.position.set(-.04,surfaceY+.006,deskZ+.09);group.add(keyboard);
+const ctrl=new THREE.Mesh(new THREE.BoxGeometry(.14,.022,.10),deskDarkMat);ctrl.position.set(.19,surfaceY+.011,deskZ+.08);group.add(ctrl);const joy=new THREE.Mesh(new THREE.CylinderGeometry(.012,.008,.045,10),chromeMat);joy.position.set(.21,surfaceY+.038,deskZ+.08);group.add(joy);
+[0x22c55e,0x3b82f6,0xef4444].forEach((c,i)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.014,.008,.014),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:.8}));m.position.set(.15+i*.022,surfaceY+.024,deskZ+.055);group.add(m);});
+const dock=new THREE.Mesh(new THREE.BoxGeometry(.06,.03,.06),deskDarkMat);dock.position.set(-.28,surfaceY+.015,deskZ+.07);group.add(dock);const radio=new THREE.Mesh(new THREE.BoxGeometry(.038,.095,.026),deskTrimMat);radio.position.set(-.28,surfaceY+.062,deskZ+.07);group.add(radio);const antenna=new THREE.Mesh(new THREE.CylinderGeometry(.003,.004,.07,6),deskDarkMat);antenna.position.set(-.27,surfaceY+.135,deskZ+.07);group.add(antenna);
+const chair=new THREE.Group();chair.position.set(0,0,.18);const hub=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,.22,10),chromeMat);hub.position.y=.13;chair.add(hub);
+for(let i=0;i<5;i++){const an=i/5*Math.PI*2,l=new THREE.Mesh(new THREE.BoxGeometry(.024,.02,.16),deskDarkMat);l.position.set(Math.sin(an)*.08,.025,Math.cos(an)*.08);l.rotation.y=an;chair.add(l);}
+const seat=new THREE.Mesh(new THREE.BoxGeometry(.28,.045,.26),chairSeatMat);seat.position.y=.25;seat.castShadow=true;chair.add(seat);const backrest=new THREE.Mesh(new THREE.BoxGeometry(.26,.30,.045),chairSeatMat);backrest.position.set(0,.42,.11);backrest.rotation.x=-.1;backrest.castShadow=true;chair.add(backrest);const stripe=new THREE.Mesh(new THREE.BoxGeometry(.08,.24,.05),chairAccentMat);stripe.position.set(0,.42,.112);stripe.rotation.x=-.1;chair.add(stripe);
+[-.15,.15].forEach(x=>{const sup=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.02),chromeMat);sup.position.set(x,.30,.02);chair.add(sup);const pad=new THREE.Mesh(new THREE.BoxGeometry(.032,.018,.16),deskDarkMat);pad.position.set(x,.36,.02);chair.add(pad);});group.add(chair);
+const glow=new THREE.PointLight(0x38bdf8,.5,1.2);glow.position.set(0,surfaceY+.18,deskZ+.06);group.add(glow);
+const box=new THREE.Box3().setFromObject(group),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());group.children.forEach(child=>{child.position.x-=center.x;child.position.z-=center.z;child.position.y-=box.min.y;});const maxHoriz=Math.max(size.x,size.z);if(maxHoriz>.85)group.scale.setScalar(.85/maxHoriz);return group;
 }
+function createSecurity(parent,o){const g=createSecurityDeskModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
 function createWorker3D(parent,desk){
  // Refined isometric office character: natural proportions, tailored clothing,
  // layered hair and a restrained face. The articulated rig/API stays unchanged.

@@ -819,71 +819,44 @@ function createCEODeskModel(){
 }
 function createCEO(parent,o){const g=createCEODeskModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;}
 
-function createServer(parent,o){
- const g=new THREE.Group();parent.add(g);
- const frame=mat(0x71818b,.34,.72),body=mat(0x263541,.46,.55),dark=mat(0x09131c,.58,.28),panel=mat(0x172630,.48,.38),steel=mat(0xa5b3b9,.3,.72),glass=mat(0x548094,.18,.5,{transparent:true,opacity:.22}),rubber=mat(0x111a20,.86),led=[0x43e2bc,0x45aaf5,0xffc15c,0xff6573].map(c=>mat(c,.22,.12,{emissive:c,emissiveIntensity:1.45}));
- const B=(x,y,z,w,h,d,m)=>boxMesh(g,x,y,z,w,h,d,m);
- const S=(x,y,z,r,m)=>sphereMesh(g,x,y,z,r,m);
- // Compact 42U-style cabinet with a reinforced frame and recessed plinth.
- B(0,.055,0,.72,.09,.70,rubber);B(0,.105,0,.70,.045,.68,steel);
- B(0,.755,0,.66,1.25,.64,body);
- B(0,1.405,0,.72,.055,.70,frame);
- for(const x of [-.315,.315])for(const z of [-.29,.29])B(x,.755,z,.038,1.27,.038,frame);
- B(0,.13,.0,.67,.035,.65,dark);
- // Glass front door, gasket, hinges and long pull handle.
- B(0,.77,.333,.59,1.14,.018,frame);B(0,.77,.347,.55,1.095,.009,glass);
- B(-.267,.77,.357,.012,1.04,.012,body);B(.267,.77,.357,.012,1.04,.012,body);
- B(.235,.78,.365,.018,.28,.025,steel);
- for(const y of [.27,1.25])for(const x of [-.28,.28])S(x,y,.365,.009,steel);
- // Six independently mounted hot-swap compute blades.
- for(let i=0;i<6;i++){
-  const y=.255+i*.174;
-  B(0,y,.377,.49,.15,.035,panel);
-  B(-.13,y,.398,.19,.105,.009,dark);
-  for(let k=0;k<9;k++)B(-.205+k*.019,y,.405,.007,.075,.004,frame);
-  B(.105,y,.399,.22,.11,.009,body);
-  for(let k=0;k<4;k++){
-   B(.035+k*.048,y,.408,.032,.075,.006,dark);
-   B(.035+k*.048,y-.002,.413,.018,.004,.003,steel);
+
+function createServerRackModel(){
+ const group=new THREE.Group();
+ const rackFrameMat=new THREE.MeshStandardMaterial({color:0x111827,roughness:.45,metalness:.55});
+ const bladeMat=new THREE.MeshStandardMaterial({color:0x1f2937,roughness:.35,metalness:.65});
+ const glassDoorMat=new THREE.MeshPhysicalMaterial({color:0x0f172a,transparent:true,opacity:.35,roughness:.15,metalness:.1});
+ const cableBlueMat=new THREE.MeshStandardMaterial({color:0x0284c7,roughness:.5});
+ const cableOrangeMat=new THREE.MeshStandardMaterial({color:0xea580c,roughness:.5});
+ const rackW=.36,rackH=.88,rackD=.48,ledMeshes=[];
+ [-.20,.20].forEach((rx,rIdx)=>{
+  const rack=new THREE.Group();rack.position.set(rx,0,0);
+  const cabinet=new THREE.Mesh(new THREE.BoxGeometry(rackW,rackH,rackD),rackFrameMat);cabinet.position.y=rackH/2;cabinet.castShadow=true;cabinet.receiveShadow=true;rack.add(cabinet);
+  const vent=new THREE.Mesh(new THREE.BoxGeometry(rackW-.06,.02,rackD-.06),new THREE.MeshStandardMaterial({color:0x374151,metalness:.7}));vent.position.y=rackH+.01;rack.add(vent);
+  for(let u=0;u<7;u++){
+   const uy=.12+u*.105,unit=new THREE.Mesh(new THREE.BoxGeometry(rackW-.05,.075,.03),bladeMat);unit.position.set(0,uy,rackD/2+.005);rack.add(unit);
+   [0x22c55e,0x38bdf8,0xf59e0b].forEach((col,lIdx)=>{
+    const ledMat=new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.9});
+    const led=new THREE.Mesh(new THREE.BoxGeometry(.016,.012,.01),ledMat);led.position.set(-.11+lIdx*.032,uy+.012,rackD/2+.022);rack.add(led);
+    ledMeshes.push({mat:ledMat,phase:rIdx*3+u*1.3+lIdx*.7});
+   });
   }
-  B(.215,y,.407,.018,.10,.009,frame);
-  S(.222,y-.027,.416,.008,led[i%4]);S(.222,y+.025,.416,.006,led[(i+1)%4]);
-  B(0,y-.078,.401,.47,.008,.008,steel);
- }
- // Dual high-static-pressure cooling fans behind perforated grills.
- for(const x of [-.17,.17]){
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(.066,.009,10,32),steel);ring.position.set(x,1.34,.365);g.add(ring);
-  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.052,.052,.018,24),dark);hub.rotation.x=Math.PI/2;hub.position.set(x,1.34,.36);g.add(hub);
-  for(let k=0;k<8;k++){const a=k*Math.PI/4;lineMesh(g,new THREE.Vector3(x,1.34,.38),new THREE.Vector3(x+Math.cos(a)*.056,1.34+Math.sin(a)*.056,.38),.005,frame);}
- }
- // Top management display, power switch and service label.
- B(0,1.455,.13,.32,.025,.16,dark);B(0,1.458,.215,.23,.008,.008,led[0]);
- for(let i=0;i<3;i++)S(-.09+i*.09,1.455,.225,.009,led[i]);
- B(-.22,1.455,.12,.08,.018,.09,steel);
- // Side ventilation grilles and vertical cable-management ducts.
- for(const side of [-1,1]){
-  B(side*.337,.77,-.04,.012,.88,.34,dark);
-  for(let i=0;i<13;i++)B(side*.345,.38+i*.064,-.04,.008,.009,.27,steel);
-  B(side*.32,.76,-.245,.025,1.05,.055,panel);
-  for(let i=0;i<7;i++)B(side*.325,.35+i*.135,-.28,.03,.012,.012,steel);
- }
- // Rear dual power distribution and individual copper/fibre uplinks.
- B(0,.18,-.331,.42,.16,.018,dark);
- for(let row=0;row<2;row++)for(let col=0;col<8;col++){
-  const x=-.17+col*.048,y=.145+row*.055;
-  B(x,y,-.345,.031,.032,.008,rubber);B(x,y+.018,-.351,.017,.004,.003,steel);
-  S(x-.009,y-.02,-.352,.004,led[(col+row)%4]);
- }
- for(let i=0;i<5;i++)lineMesh(g,new THREE.Vector3(-.22+i*.11,.12,-.35),new THREE.Vector3(-.22+i*.11,.045,-.42),.009,i%2?led[1]:led[0]);
- // Rack-unit numbering, captive screws and anti-vibration feet.
- const tag=mat(0xd8e0e2,.62,.1);
- for(let i=0;i<6;i++){
-  const y=.255+i*.174;B(-.265,y,.373,.035,.035,.006,tag);
-  for(const x of [-.29,.29])S(x,y,.377,.005,steel);
- }
- for(const x of [-.25,.25])for(const z of [-.23,.23]){const foot=new THREE.Mesh(new THREE.CylinderGeometry(.035,.04,.035,16),rubber);foot.position.set(x,.018,z);g.add(foot);}
- g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+  const door=new THREE.Mesh(new THREE.BoxGeometry(rackW-.02,rackH-.04,.012),glassDoorMat);door.position.set(0,rackH/2,rackD/2+.032);rack.add(door);
+  group.add(rack);
+ });
+ const bridge=new THREE.Mesh(new THREE.BoxGeometry(.76,.03,.18),rackFrameMat);bridge.position.set(0,rackH+.03,-.05);group.add(bridge);
+ const cable1=new THREE.Mesh(new THREE.BoxGeometry(.55,.018,.035),cableBlueMat);cable1.position.set(0,rackH+.048,-.07);group.add(cable1);
+ const cable2=new THREE.Mesh(new THREE.BoxGeometry(.55,.018,.035),cableOrangeMat);cable2.position.set(0,rackH+.048,-.02);group.add(cable2);
+ const glow=new THREE.PointLight(0x38bdf8,.55,1.4);glow.position.set(0,.45,.32);group.add(glow);
+ group.userData.updateAnimation=time=>{for(const item of ledMeshes)item.mat.emissiveIntensity=.25+((Math.sin(time*7+item.phase)+1)*.5)*1.1;};
+ const bounds=new THREE.Box3().setFromObject(group),center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3());
+ group.children.forEach(c=>{c.position.x-=center.x;c.position.z-=center.z;c.position.y-=bounds.min.y;});
+ const maxHoriz=Math.max(size.x,size.z);if(maxHoriz>.85)group.scale.setScalar(.85/maxHoriz);
+ return group;
 }
+function createServer(parent,o){
+ const g=createServerRackModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
+}
+
 // Normalize a furniture diorama to a predictable square footprint and floor contact.
 function normalizeFurnitureModel(model,targetFootprint=0.86){
  const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
@@ -893,64 +866,38 @@ function normalizeFurnitureModel(model,targetFootprint=0.86){
  model.position.x-=center.x;model.position.z-=center.z;model.position.y-=fitted.min.y;
  return model;
 }
-function createMeeting(parent,o){
- const g=new THREE.Group();parent.add(g);
- const wood=mat(0x765039,.48,.16),edge=mat(0xd0b28b,.34,.48),chair=mat(0x344b64,.62,.18),leather=mat(0x26384b,.7),metal=mat(0x8798a1,.32,.68),screen=mat(0x102b38,.18,.25,{emissive:0x087e9b,emissiveIntensity:.48}),paper=mat(0xf0eee6,.85),dark=mat(0x17232c,.52,.35),accent=mat(0x43c9c2,.25,.2,{emissive:0x128b85,emissiveIntensity:.5});
- // Oval boardroom table with a bevelled walnut top and central inlay.
- const top=new THREE.Mesh(new THREE.CylinderGeometry(.46,.46,.09,48),wood);top.scale.set(1,.72,.62);top.position.y=.51;top.castShadow=true;top.receiveShadow=true;g.add(top);
- const inlay=new THREE.Mesh(new THREE.CylinderGeometry(.445,.445,.012,48),edge);inlay.scale.set(1,.72,.62);inlay.position.y=.562;g.add(inlay);
- const inner=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.009,48),wood);inner.scale.set(1,.72,.62);inner.position.y=.571;g.add(inner);
- // Twin pedestal supports and weighted feet.
- for(const x of [-.22,.22]){boxMesh(g,x,.27,0,.12,.38,.14,metal);boxMesh(g,x,.075,0,.24,.045,.28,chair);}
- // Four detailed conference chairs, two along each side.
- for(const [x,z,rot] of [[-.29,-.39,0],[.29,-.39,0],[-.29,.39,Math.PI],[.29,.39,Math.PI]]){
-  const c=new THREE.Group();g.add(c);c.position.set(x,.02,z);c.rotation.y=rot;
-  boxMesh(c,0,.25,-.045,.19,.30,.075,leather);
-  boxMesh(c,0,.39,-.045,.17,.08,.065,chair);
-  boxMesh(c,0,.12,.025,.19,.07,.20,leather);
-  for(const sx of [-.12,.12]){
-   lineMesh(c,new THREE.Vector3(sx,.08,.02),new THREE.Vector3(sx,.28,.05),.012,metal);
-   boxMesh(c,sx,.23,.065,.045,.035,.16,chair);
-  }
-  cylMesh(c,0,.035,0,.025,.03,.08,metal,12);
-  for(let k=0;k<4;k++){const a=k*Math.PI/2;lineMesh(c,new THREE.Vector3(0,.025,0),new THREE.Vector3(Math.cos(a)*.105,.025,Math.sin(a)*.105),.009,metal);}
- }
- // Speakerphone puck with radial microphone ports.
- cylMesh(g,0,.59,-.03,.075,.075,.025,chair,32);
- cylMesh(g,0,.607,-.03,.055,.055,.009,dark,32);
- for(let i=0;i<8;i++){const a=i*Math.PI/4;sphereMesh(g,Math.cos(a)*.041,.615,-.03+Math.sin(a)*.041,.004,accent);}
- sphereMesh(g,0,.617,-.03,.012,accent);
- // Shared presentation tablet, stylus, folders and loose documents.
- boxMesh(g,.0,.595,-.21,.24,.018,.15,dark);
- boxMesh(g,.0,.606,-.21,.21,.009,.12,screen);
- boxMesh(g,-.29,.585,.02,.13,.012,.18,paper);
- for(let i=0;i<3;i++)boxMesh(g,-.29,.594+i*.003,.02,.12,.002,.16,i===2?mat(0xb7c4c4):paper);
- lineMesh(g,new THREE.Vector3(.22,.59,.13),new THREE.Vector3(.34,.59,.20),.008,metal);
- // Slim cable channel under the tabletop and discreet brass fasteners.
- boxMesh(g,0,.44,0,.48,.035,.08,chair);
- for(const x of [-.36,.36])sphereMesh(g,x,.565,0,.012,edge);
- // Individual conference microphones, gooseneck stems and illuminated mute rings.
- const micBase=mat(0x18232b,.34,.62),micStem=mat(0x8b9da5,.28,.78),micHead=mat(0x202c35,.42,.5);
- for(const [x,z] of [[-.29,-.12],[.29,-.12],[-.29,.13],[.29,.13]]){
-  cylMesh(g,x,.585,z,.025,.025,.014,micBase,20);
-  lineMesh(g,new THREE.Vector3(x,.59,z),new THREE.Vector3(x,.675,z-.025),.006,micStem);
-  lineMesh(g,new THREE.Vector3(x,.675,z-.025),new THREE.Vector3(x,.69,z-.045),.006,micStem);
-  sphereMesh(g,x,.695,z-.045,.012,micHead,[1,.8,.8]);sphereMesh(g,x,.695,z-.058,.004,accent,[1,1,.5]);
- }
- // Branded delegate nameplates and individual water glasses.
- const plaque=mat(0x273641,.3,.58),plaqueText=mat(0xd9c18e,.4,.35);
- for(const [x,z] of [[-.30,-.26],[.30,-.26],[-.30,.25],[.30,.25]]){
-  boxMesh(g,x,.59,z,.12,.018,.045,plaque);
-  boxMesh(g,x,.601,z+.002,.065,.003,.006,plaqueText);
-  const glassCup=new THREE.Mesh(new THREE.CylinderGeometry(.018,.022,.055,18,1,true),new THREE.MeshStandardMaterial({color:0xb9dce4,roughness:.12,metalness:.08,transparent:true,opacity:.38,side:THREE.DoubleSide}));
-  glassCup.position.set(x*.72,.615,z*.55);g.add(glassCup);
-  cylMesh(g,x*.72,.644,z*.55,.018,.018,.004,mat(0x9ac9d7,.15,.05,{transparent:true,opacity:.45}),18);
- }
- // Table edge stitching and a slim under-table cable raceway.
- for(let i=0;i<24;i++){const a=i*Math.PI/12;const x=Math.cos(a)*.438,z=Math.sin(a)*.274;sphereMesh(g,x,.555,z,.004,plaqueText,[1,.6,1]);}
- boxMesh(g,0,.405,-.01,.34,.025,.06,dark);
- g.scale.x=1.85;g.position.set(o.x+1,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+
+function createMeetingRoomModel(){
+ const group=new THREE.Group();
+ const woodMat=new THREE.MeshStandardMaterial({color:0x5c3a21,roughness:.45,metalness:.1});
+ const glassTopMat=new THREE.MeshPhysicalMaterial({color:0xbae6fd,transparent:true,opacity:.42,roughness:.12,metalness:.1});
+ const chromeMat=new THREE.MeshStandardMaterial({color:0xd1d5db,roughness:.25,metalness:.85});
+ const chairLeatherMat=new THREE.MeshStandardMaterial({color:0x1e293b,roughness:.55});
+ const paperMat=new THREE.MeshStandardMaterial({color:0xf8fafc,roughness:.8});
+ const tableW=.68,tableH=.38,tableD=.44;
+ const frameTop=new THREE.Mesh(new THREE.BoxGeometry(tableW,.032,tableD),woodMat);frameTop.position.y=tableH+.016;frameTop.castShadow=true;frameTop.receiveShadow=true;group.add(frameTop);
+ const glassInlay=new THREE.Mesh(new THREE.BoxGeometry(tableW-.18,.036,tableD-.16),glassTopMat);glassInlay.position.y=tableH+.017;group.add(glassInlay);
+ [-.24,.24].forEach(px=>{const pillar=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,tableH,12),chromeMat);pillar.position.set(px,tableH/2,0);pillar.castShadow=true;group.add(pillar);const foot=new THREE.Mesh(new THREE.BoxGeometry(.06,.016,tableD-.10),chromeMat);foot.position.set(px,.008,0);group.add(foot);});
+ const surfaceY=tableH+.035;
+ const speakerBase=new THREE.Mesh(new THREE.CylinderGeometry(.045,.055,.016,12),chromeMat);speakerBase.position.set(0,surfaceY+.008,0);group.add(speakerBase);
+ const speakerLed=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.018,12),new THREE.MeshStandardMaterial({color:0x22c55e,emissive:0x22c55e,emissiveIntensity:.7}));speakerLed.position.set(0,surfaceY+.009,0);group.add(speakerLed);
+ [{x:-.17,z:-.14,r:.08},{x:.17,z:-.14,r:-.06},{x:-.17,z:.14,r:-.05},{x:.17,z:.14,r:.1}].forEach(d=>{const sheet=new THREE.Mesh(new THREE.BoxGeometry(.09,.004,.065),paperMat);sheet.position.set(d.x,surfaceY+.002,d.z);sheet.rotation.y=d.r;group.add(sheet);});
+ [{x:-.17,z:-.27,rotY:0},{x:.17,z:-.27,rotY:0},{x:-.17,z:.27,rotY:Math.PI},{x:.17,z:.27,rotY:Math.PI}].forEach(c=>{
+  const ch=new THREE.Group();ch.position.set(c.x,0,c.z);ch.rotation.y=c.rotY;
+  const seatY=.21,leg=new THREE.Mesh(new THREE.CylinderGeometry(.015,.018,seatY,8),chromeMat);leg.position.y=seatY/2;ch.add(leg);
+  const base=new THREE.Mesh(new THREE.BoxGeometry(.14,.012,.14),chromeMat);base.position.y=.006;ch.add(base);
+  const seat=new THREE.Mesh(new THREE.BoxGeometry(.19,.032,.18),chairLeatherMat);seat.position.y=seatY;seat.castShadow=true;ch.add(seat);
+  const back=new THREE.Mesh(new THREE.BoxGeometry(.18,.21,.028),chairLeatherMat);back.position.set(0,seatY+.12,-.075);back.castShadow=true;ch.add(back);group.add(ch);
+ });
+ const bounds=new THREE.Box3().setFromObject(group),center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3());
+ group.children.forEach(c=>{c.position.x-=center.x;c.position.z-=center.z;c.position.y-=bounds.min.y;});
+ const maxHoriz=Math.max(size.x,size.z);if(maxHoriz>.86)group.scale.setScalar(.86/maxHoriz);
+ return group;
 }
+function createMeeting(parent,o){
+ const g=createMeetingRoomModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
+}
+
 function createSecurityOfficerCharacter(){
  const officer=createOfficeCharacter({isBoss:false,variantIndex:0});
  officer.userData.isSecurity=true;

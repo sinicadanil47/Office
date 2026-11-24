@@ -344,11 +344,11 @@ function buyExpansion(){
 }
 
 const CYBER_ATTACKS=[
- {type:"ddos",name:"DDoS-атака",danger:"Низкий / слабый",description:"Поток вредоносного трафика перегружает сетевую инфраструктуру компании."},
- {type:"server_hack",name:"Взлом сервера",danger:"Высокий",description:"Злоумышленники получили доступ к корпоративному серверу и пытаются вывести средства."},
- {type:"data_theft",name:"Кража данных",danger:"Средний",description:"Обнаружена утечка конфиденциальных данных и клиентской информации."},
- {type:"ransomware",name:"Атака шифровальщика",danger:"Средний / слабый",description:"Вредоносное ПО пытается зашифровать рабочую станцию одного из IT-сотрудников."},
- {type:"fraud",name:"Финансовое мошенничество",danger:"Критический",description:"Зафиксирована подмена финансовых реквизитов и попытка крупного несанкционированного списания."}
+ {type:"ddos",weight:25,name:"DDoS-атака",danger:"Низкий / слабый",description:"Поток вредоносного трафика перегружает сетевую инфраструктуру компании."},
+ {type:"server_hack",weight:15,name:"Взлом сервера",danger:"Высокий",description:"Злоумышленники получили доступ к корпоративному серверу и пытаются вывести средства."},
+ {type:"data_theft",weight:20,name:"Кража данных",danger:"Средний",description:"Обнаружена утечка конфиденциальных данных и клиентской информации."},
+ {type:"ransomware",weight:30,name:"Атака шифровальщика",danger:"Средний / слабый",description:"Вредоносное ПО пытается зашифровать рабочую станцию одного из IT-сотрудников."},
+ {type:"fraud",weight:10,name:"Финансовое мошенничество",danger:"Критический",description:"Зафиксирована подмена финансовых реквизитов и попытка крупного несанкционированного списания."}
 ];
 const CYBER_TWO_HOURS=7200000,CYBER_ONE_HOUR=3600000,CYBER_SHIELD_TIME=1800000;
 let cyberModal=null,cyberModalKey="";
@@ -368,7 +368,7 @@ function cyberQuotePrices(){
  return {quotedBalance:balance,emergencyRate:rate,emergencyCost:Math.round(balance*rate),reinforcedCost:Math.round(balance*.05)};
 }
 function cyberCreateThreat(stage,attackAt){
- const def=CYBER_ATTACKS[Math.floor(Math.random()*CYBER_ATTACKS.length)],t={...def,stage,createdAt:Date.now(),attackAt,expiresAt:stage==="early_warning"?attackAt:Date.now()+30000,dismissed:false,damagePct:0,prestigePct:0};
+ const roll=Math.random()*CYBER_ATTACKS.reduce((n,a)=>n+a.weight,0);let cursor=0,def=CYBER_ATTACKS[0];for(const candidate of CYBER_ATTACKS){cursor+=candidate.weight;if(roll<cursor){def=candidate;break;}}const t={...def,stage,createdAt:Date.now(),attackAt,expiresAt:stage==="early_warning"?attackAt:Date.now()+30000,dismissed:false,damagePct:0,prestigePct:0};
  if(t.type==="server_hack")t.damagePct=10+Math.random()*2;
  if(t.type==="fraud")t.damagePct=15+Math.random()*5;
  if(t.type==="data_theft")t.prestigePct=5+Math.random()*5;
@@ -410,7 +410,7 @@ function cyberRenderModal(){
   panel.querySelector("#cyberIgnore").onclick=()=>cyberChoose("ignore");
  }
  const remain=t.stage==="early_warning"?Math.max(0,t.attackAt-Date.now()):Math.max(0,t.expiresAt-Date.now());
- const countdown=panel.querySelector("#cyberCountdown");if(countdown)countdown.textContent=Math.ceil(remain/1000)+" сек.";
+ const countdown=panel.querySelector("#cyberCountdown");if(countdown)countdown.textContent=Math.ceil(remain/1000)+" сек.";const emergency=panel.querySelector("#cyberEmergency"),reinforced=panel.querySelector("#cyberReinforced");if(emergency)emergency.disabled=state.balance<t.emergencyCost;if(reinforced)reinforced.disabled=state.balance<t.reinforcedCost;
  el.classList.add("show");
 }
 function cyberRecord(outcome,detail){
@@ -437,7 +437,7 @@ function cyberApplyConsequences(t,occurredAt=Date.now()){
   else detail="Нет доступных IT-столов для блокировки.";
  }
  state.balance=Math.max(0,state.balance);state.prestige=Math.max(-basePrestigeFor(state.layout),state.prestige);
- cyberFinishThreat("damage",detail,false,occurredAt);toast("Кибератака: "+detail);save();syncPlayer(false);updateUI();
+ cyberFinishThreat("damage",detail,false,occurredAt);toast("Кибератака: "+detail);
 }
 function cyberBeginResponse(){
  const t=cyberSecurityState.activeThreat;if(!t)return;
@@ -2374,7 +2374,7 @@ function tick(now){gameFrameId=0;spawnVip();
 window.addEventListener("resize",resize);
 document.addEventListener("visibilitychange",()=>{if(document.hidden){save();if(gameFrameId){cancelAnimationFrame(gameFrameId);gameFrameId=0;}}else{last=performance.now();scheduleGameLoop();if(floorPageActive)draw();}});
 updateUI();renderTop();renderCompanies();addFeed();resize();renderAllFurniturePreviews();scheduleGameLoop();$("hudPlayer").textContent=player;dev3dLoad();$("page-floor").querySelector(".stats").querySelectorAll(".stat").forEach(el=>$("hudStats").appendChild(el));$("topHud").appendChild($("page-floor").querySelector(".view-banner"));document.body.appendChild(canvas);document.body.appendChild($("shop"));document.body.appendChild($("upgradeCard"));resize();
-loadPlayer().then(async()=>{state.layout.forEach(o=>{if(!o.id)o.id=makeCyberObjectId();});cyberTick();setInterval(cyberTick,1000);await refreshLeaderboard();renderTop();renderCompanies();const nowOffline=Date.now(),offlineStart=Math.max(previousVisit,nowOffline-28800000),elapsed=Math.max(0,(nowOffline-offlineStart)/1000),inc=incomeFor(state.layout);if(elapsed>60&&inc>0){const cuts=[offlineStart,nowOffline],ddosEnd=cyberSecurityState.activeDebuffs.ddosUntil||0;if(ddosEnd>offlineStart&&ddosEnd<nowOffline)cuts.push(ddosEnd);Object.values(cyberSecurityState.activeDebuffs.blockedDesks||{}).forEach(until=>{if(until>offlineStart&&until<nowOffline)cuts.push(until);});cuts.sort((a,b)=>a-b);offlineReward=0;for(let k=0;k<cuts.length-1;k++){const a=cuts[k],b=cuts[k+1],mid=(a+b)/2;offlineReward+=incomeFor(state.layout,floorTier,mid)*((b-a)/1000)*.5;}$("offlineText").textContent="Офис работал без вас "+Math.floor(elapsed/60)+" мин и принёс "+money(offlineReward)+".";$("offlineModal").classList.add("show");}localSave();fitLargeFloorCamera();resize();});
+loadPlayer().then(async()=>{state.layout.forEach(o=>{if(!o.id)o.id=makeCyberObjectId();});cyberTick();setInterval(cyberTick,1000);await refreshLeaderboard();renderTop();renderCompanies();const nowOffline=Date.now(),offlineStart=Math.max(previousVisit,nowOffline-28800000),elapsed=Math.max(0,(nowOffline-offlineStart)/1000),inc=incomeFor(state.layout);if(elapsed>60&&inc>0){const cuts=[offlineStart,nowOffline],ddosEnd=cyberSecurityState.activeDebuffs.ddosUntil||0;if(ddosEnd>offlineStart&&ddosEnd<nowOffline)cuts.push(ddosEnd);Object.values(cyberSecurityState.activeDebuffs.blockedDesks||{}).forEach(until=>{if(until>offlineStart&&until<nowOffline)cuts.push(until);});cuts.sort((a,b)=>a-b);offlineReward=elapsed*inc*.5;$("offlineText").textContent="Офис работал без вас "+Math.floor(elapsed/60)+" мин и принёс "+money(offlineReward)+".";$("offlineModal").classList.add("show");}localSave();fitLargeFloorCamera();resize();});
 $("claimOffline").addEventListener("click",()=>{state.balance+=offlineReward;state.totalEarned+=offlineReward;offlineReward=0;$("offlineModal").classList.remove("show");save();syncPlayer(false);updateUI();haptic();});
 window.addEventListener("pagehide",()=>localSave());
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)cyberTick();});

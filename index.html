@@ -1892,7 +1892,7 @@ function updateBuildPreviewVisual(){
  const p=buildPreviewState,valid=buildFootprintValid(p.type,p.x,p.y,p.rot,p.movingObject||null)&&(p.movingObject||devFreeBuild||state.balance>=TYPES[p.type].cost);
  p.valid=valid;
  if(p.ghost){const anchor=furnitureCenter({type:p.type,x:p.x,y:p.y,rot:p.rot});p.ghost.position.set(anchor.x,0,anchor.z);p.ghost.rotation.y=p.rot*Math.PI/2;p.ghost.traverse(o=>{if(!o.isMesh||!o.material)return;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m.userData.previewBaseColor)m.userData.previewBaseColor=m.color.clone();m.color.copy(m.userData.previewBaseColor).lerp(new THREE.Color(valid?0x43e6c1:0xff4d61),.2);});});}
- if(p.frame){p.frame.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),.018,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.frame.material.color.setHex(valid?0x35e3bb:0xff4358);p.frame.material.opacity=valid?.34:.42;}if(p.outline)p.outline.material.color.setHex(valid?0x8effe5:0xff8290);
+ if(p.frame){p.frame.position.set(anchor.x,.018,anchor.z);p.frame.rotation.y=p.rot*Math.PI/2;p.frame.material.color.setHex(valid?0x35e3bb:0xff4358);p.frame.material.opacity=valid?.34:.42;}if(p.outline){p.outline.position.set(anchor.x,.025,anchor.z);p.outline.rotation.y=p.rot*Math.PI/2;p.outline.material.color.setHex(valid?0x8effe5:0xff8290);}
  const cost=p.movingObject?"БЕСПЛАТНО · перемещение":(devFreeBuild?"БЕСПЛАТНО":money(TYPES[p.type].cost));
  $("buildPreviewInfo").textContent=TYPES[p.type].name+" · "+cost+" · клетка "+(p.x+1)+", "+(p.y+1)+(valid?" · доступно":" · недоступно");
  $("previewAccept").disabled=!valid;

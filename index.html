@@ -1723,7 +1723,7 @@ class OfficeCharacterController{
  constructor({character,deskGroup,scene,getCoffeeMachineGroup}){this.character=character;this.deskGroup=deskGroup;this.scene=scene;this.getCoffeeMachineGroup=getCoffeeMachineGroup;this.phase="working";this.timer=14+Math.random()*16;this.speed=.9;this.target=new THREE.Vector3();this.queuedCoffee=null;}
  queueForCoffee(coffee){if(!coffee)return;const q=coffee.userData.breakQueue||(coffee.userData.breakQueue={waiting:[],active:null});if(!q.waiting.includes(this)&&q.active!==this)q.waiting.push(this);this.queuedCoffee=coffee;this.phase="queued";}
  releaseCoffee(){const coffee=this.queuedCoffee;if(!coffee)return;const q=coffee.userData.breakQueue;if(q){q.waiting=q.waiting.filter(c=>c!==this);if(q.active===this)q.active=null;}this.queuedCoffee=null;}
- update(dt,time){if(!this.character?.parent||!this.deskGroup?.parent)return;const brokenDesk=this.deskGroup.userData.object?.type==="desk"&&typeof sysadminIsBroken==="function"&&sysadminIsBroken(this.deskGroup.userData.object);if(brokenDesk){if(this.character.parent!==this.deskGroup)this.forceDock();this.character.userData.state="wait";this.character.userData.update(time);this.phase="broken";return;}if(this.phase==="broken"){this.phase="working";this.timer=18;this.character.userData.state="sit";}this.character.userData.update(time);this.timer-=dt;
+ update(dt,time){if(!this.character?.parent||!this.deskGroup?.parent)return;const brokenDesk=this.deskGroup.userData.object?.type==="desk"&&typeof sysadminIsBroken==="function"&&sysadminIsBroken(this.deskGroup.userData.object);if(brokenDesk){if(this.character.parent!==this.deskGroup)this.forceDock();this.character.userData.state="wait";this.character.userData.update(time);this.phase="broken";return;}if(this.phase==="broken"){this.phase="working";this.timer=18;this.character.userData.state="work";}this.character.userData.update(time);this.timer-=dt;
  if(this.phase==="working"&&this.timer<=0){const coffee=this.getCoffeeMachineGroup?.();if(!coffee){this.timer=12;return;}this.queueForCoffee(coffee);}
  if(this.phase==="queued"){const coffee=this.queuedCoffee;if(!coffee||!coffee.parent){this.releaseCoffee();this.timer=5;this.phase="working";return;}const q=coffee.userData.breakQueue;if(!q.active&&q.waiting[0]===this)q.active=this;if(q.active===this){const p=this.character.getWorldPosition(new THREE.Vector3());this.scene.attach(this.character);this.character.position.set(p.x,0,p.z);this.character.userData.state="walk";this.character.userData.setHasCup(false);this.target.set(0,0,.58);coffee.localToWorld(this.target);this.target.y=0;this.phase="to_coffee";}}
  else if(this.phase==="to_coffee"&&this.move(this.target,dt)){const coffee=this.queuedCoffee;if(!coffee||!coffee.parent){this.startReturn();return;}const p=coffee.getWorldPosition(new THREE.Vector3());this.character.lookAt(p.x,0,p.z);coffee.userData.takeBrewCup?.();this.character.userData.setHasCup(true);this.character.userData.state="drink";this.phase="drinking";this.timer=3.5;}
@@ -2534,13 +2534,13 @@ class SysadminRepairController{
     this.character.userData.setRepairingTool?.(false);this.targetDesk=null;this.returnToSeat();
    }
   }else if(this.phase==="coffeeTo"&&this.move(dt)){
-   this.character.userData.state="coffee";this.timer=5;this.phase="coffeePause";
+   this.character.userData.setHasCup?.(true);this.character.userData.state="drink";this.timer=5;this.phase="coffeePause";
   }else if(this.phase==="coffeePause"){
    this.timer-=dt;if(this.timer<=0)this.returnToSeat();
   }else if(this.phase==="return"&&this.move(dt)){
    this.deskGroup.attach(this.character);this.character.position.copy(this.deskGroup.userData.seatLocalPos);
    this.character.rotation.set(0,this.deskGroup.userData.seatLocalRotY||0,0);
-   this.character.userData.state="sit";this.targetDesk=null;this.coffeeGroup=null;this.phase="idle";
+   this.character.userData.setHasCup?.(false);this.character.userData.state="sit";this.targetDesk=null;this.coffeeGroup=null;this.phase="idle";
   }
  }
  dispose(){if(this.character?.parent!==this.deskGroup)this.character.parent?.remove(this.character);}

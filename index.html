@@ -97,10 +97,11 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 <div class="section-head"><h2>Строительство</h2><span>ВЫБЕРИТЕ ОБЪЕКТ</span></div>
 <div class="shop" id="shop">
 <div class="expansion-card"><div class="expansion-copy" id="shopExpansionStatus">Переезд на следующий этаж</div><button class="primary" id="expandShopBtn" type="button">📐 Расширить этаж</button></div>
+<button class="item" data-type="boss"><canvas class="sprite-preview" data-sprite="boss" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button>
 <button class="item" data-type="desk"><canvas class="sprite-preview" data-sprite="desk" data-preview-type="desk" data-level="1" width="56" height="56" aria-hidden="true"></canvas><b>IT-стол · уровень 1</b><small>Программист · +$25/сек</small><strong>$500</strong><span class="desk-level-strip">L1 → L2 → L3 → L4+</span></button>
 <button class="item" data-type="coffee"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>Кофе команде · +25% дохода соседних IT-столов</small><strong>$800</strong></button>
 <button class="item" data-type="server"><canvas class="sprite-preview" data-sprite="server" width="56" height="56" aria-hidden="true"></canvas><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
-<button class="item" data-type="boss"><canvas class="sprite-preview" data-sprite="boss" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button><button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
+<!-- executive desk pinned near the top of the build catalog --><button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
 </div>
 <div class="tools"><button class="tool-btn" id="rotateBtn">↻ Повернуть (90°)</button><button class="tool-btn" id="sellBtn">⌫ Режим продажи</button></div>
 </section>
@@ -641,7 +642,7 @@ function createBoss(parent,o){
  }
  const torso=new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(.125,-.235),new THREE.Vector2(.145,-.18),new THREE.Vector2(.17,-.04),new THREE.Vector2(.19,.12),new THREE.Vector2(.155,.235),new THREE.Vector2(.09,.255)],28),suit);
  torso.position.set(0,.915,0);torso.castShadow=true;torso.receiveShadow=true;person.add(torso);
- S(person,0,.92,.126,.082,.205,.027,shirt);
+ S(person,0,.92,.126,.082,shirt,[1,2.5,.33]);
  B(person,-.075,.995,.153,.055,.22,.018,suit).rotation.z=-.24;B(person,.075,.995,.153,.055,.22,.018,suit).rotation.z=.24;
  B(person,0,.925,.158,.022,.15,.012,tie);
  cylMesh(person,0,1.175,.012,.043,.047,.09,skin,20);

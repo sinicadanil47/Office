@@ -414,7 +414,7 @@ function cyberRenderModal(){
  const countdown=panel.querySelector("#cyberCountdown");if(countdown)countdown.textContent=Math.ceil(remain/1000)+" сек.";const emergency=panel.querySelector("#cyberEmergency"),reinforced=panel.querySelector("#cyberReinforced");if(emergency)emergency.disabled=state.balance<t.emergencyCost;if(reinforced)reinforced.disabled=state.balance<t.reinforcedCost;
  el.classList.add("show");
 }
-function cyberResultNotification(success,message){const el=document.createElement("div");el.className="cyber-result "+(success?"success":"failure");el.textContent=(success?"ЗАЩИТА УСПЕШНА · ":"ПРОРЫВ · ")+String(message||"");document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add("show"));setTimeout(()=>{el.classList.remove("show");setTimeout(()=>el.remove(),260);},4300);}
+function cyberResultNotification(success,message){cyberEnsureModal();const el=document.createElement("div");el.className="cyber-result "+(success?"success":"failure");el.textContent=(success?"ЗАЩИТА УСПЕШНА · ":"ПРОРЫВ · ")+String(message||"");document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add("show"));setTimeout(()=>{el.classList.remove("show");setTimeout(()=>el.remove(),260);},4300);}
 function cyberRecord(outcome,detail){
  const t=cyberSecurityState.activeThreat;if(!t)return;
  cyberSecurityState.incidentHistory.push({timestamp:Date.now(),type:t.type,name:t.name,outcome,detail:String(detail||"")});
@@ -445,7 +445,7 @@ function cyberBeginResponse(){
  const t=cyberSecurityState.activeThreat;if(!t)return;
  const wasEarly=t.stage==="early_warning";t.stage="response";t.dismissed=false;t.expiresAt=wasEarly?t.attackAt+30000:Date.now()+30000;Object.assign(t,cyberQuotePrices());
  const shield=cyberSecurityState.activeDebuffs;
- if((shield.shieldUntil||0)>Date.now()&&(shield.shieldCharges||0)>0){shield.shieldCharges=0;shield.shieldUntil=0;cyberFinishThreat("reflected","Усиленный щит бесплатно заблокировал атаку!");return;}
+ if((shield.shieldUntil||0)>Date.now()&&(shield.shieldCharges||0)>0){shield.shieldCharges=0;shield.shieldUntil=0;cyberFinishThreat("reflected","Усиленный щит бесплатно заблокировал атаку!",true,t.attackAt||Date.now());return;}
  if(cyberSecurityLevel()>=3&&(t.type==="ddos"||t.type==="ransomware")){cyberFinishThreat("reflected","Отдел безопасности автоматически отразил атаку!",true,wasEarly?t.attackAt:Date.now());return;}
  if(Date.now()>=t.expiresAt){cyberApplyConsequences(t,t.expiresAt);return;}
  cyberPlayAlarm();toast("Обнаружена кибератака: "+t.name);cyberRenderModal();save();

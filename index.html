@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0B1120">
 <title>Корпоративный небоскрёб</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js">
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#0B1120;--panel:#151F32;--panel2:#1b2940;--line:#2a3a55;--gold:#F59E0B;--green:#10B981;--red:#ef4444;--text:#eef3fb;--muted:#8fa0b8}
@@ -102,6 +103,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 <button class="item" data-type="coffee"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>Кофе команде · +25% дохода соседних IT-столов</small><strong>$800</strong></button>
 <button class="item" data-type="server"><canvas class="sprite-preview" data-sprite="server" width="56" height="56" aria-hidden="true"></canvas><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
 <button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита · киберзащита</small><strong>$4 000</strong></button>
+<button class="item" data-type="sysadmin"><canvas class="sprite-preview" data-sprite="sysadmin" width="56" height="56" aria-hidden="true"></canvas><b>Рабочее место сисадмина</b><small>Автоматически чинит сломанные ПК в офисе · +$18/сек · +12 престижа</small><strong>$3 200</strong></button>
 <button class="item" data-type="ceo"><canvas class="sprite-preview" data-sprite="ceo" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>Шеф · +$140/сек · +45 престижа · VIP-контракты</small><strong>$6 500</strong></button>
 </div>
 <div class="tools"><button class="tool-btn" id="rotateBtn">↻ Повернуть (90°)</button><button class="tool-btn" id="sellBtn">⌫ Режим продажи</button></div>
@@ -199,6 +201,7 @@ const TYPES={
  meeting:{name:"Переговорная",cost:3500,base:110,prestige:20,icon:"meeting"},
  security:{name:"Отдел безопасности",cost:4000,base:80,prestige:30,protection:25,icon:"security"},
  ceo:{name:"Стол руководителя",cost:6500,base:140,prestige:45,icon:"ceo"},
+ sysadmin:{name:"Рабочее место сисадмина",cost:3200,base:18,prestige:12,icon:"sysadmin"},
 };
 
 const SPRITE_SVG={
@@ -1720,7 +1723,7 @@ class OfficeCharacterController{
  constructor({character,deskGroup,scene,getCoffeeMachineGroup}){this.character=character;this.deskGroup=deskGroup;this.scene=scene;this.getCoffeeMachineGroup=getCoffeeMachineGroup;this.phase="working";this.timer=14+Math.random()*16;this.speed=.9;this.target=new THREE.Vector3();this.queuedCoffee=null;}
  queueForCoffee(coffee){if(!coffee)return;const q=coffee.userData.breakQueue||(coffee.userData.breakQueue={waiting:[],active:null});if(!q.waiting.includes(this)&&q.active!==this)q.waiting.push(this);this.queuedCoffee=coffee;this.phase="queued";}
  releaseCoffee(){const coffee=this.queuedCoffee;if(!coffee)return;const q=coffee.userData.breakQueue;if(q){q.waiting=q.waiting.filter(c=>c!==this);if(q.active===this)q.active=null;}this.queuedCoffee=null;}
- update(dt,time){if(!this.character?.parent||!this.deskGroup?.parent)return;this.character.userData.update(time);this.timer-=dt;
+ update(dt,time){if(!this.character?.parent||!this.deskGroup?.parent)return;const brokenDesk=this.deskGroup.userData.object?.type==="desk"&&typeof sysadminIsBroken==="function"&&sysadminIsBroken(this.deskGroup.userData.object);if(brokenDesk){if(this.character.parent!==this.deskGroup)this.forceDock();this.character.userData.state="wait";this.character.userData.update(time);this.phase="broken";return;}if(this.phase==="broken"){this.phase="working";this.timer=18;this.character.userData.state="work";}this.character.userData.update(time);this.timer-=dt;
  if(this.phase==="working"&&this.timer<=0){const coffee=this.getCoffeeMachineGroup?.();if(!coffee){this.timer=12;return;}this.queueForCoffee(coffee);}
  if(this.phase==="queued"){const coffee=this.queuedCoffee;if(!coffee||!coffee.parent){this.releaseCoffee();this.timer=5;this.phase="working";return;}const q=coffee.userData.breakQueue;if(!q.active&&q.waiting[0]===this)q.active=this;if(q.active===this){const p=this.character.getWorldPosition(new THREE.Vector3());this.scene.attach(this.character);this.character.position.set(p.x,0,p.z);this.character.userData.state="walk";this.character.userData.setHasCup(false);this.target.set(0,0,.58);coffee.localToWorld(this.target);this.target.y=0;this.phase="to_coffee";}}
  else if(this.phase==="to_coffee"&&this.move(this.target,dt)){const coffee=this.queuedCoffee;if(!coffee||!coffee.parent){this.startReturn();return;}const p=coffee.getWorldPosition(new THREE.Vector3());this.character.lookAt(p.x,0,p.z);coffee.userData.takeBrewCup?.();this.character.userData.setHasCup(true);this.character.userData.state="drink";this.phase="drinking";this.timer=3.5;}
@@ -1771,6 +1774,14 @@ function renderThreeScene(){
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
  threePreviewGroup?.traverse(node=>{const character=node.userData?.character||node.userData?.worker;if(character?.userData?.update)character.userData.update(now);});
  threeOfficeControllers.forEach(controller=>controller.update(frameDt,now));
+ sysadminControllers.forEach(controller=>controller.update(frameDt,now));
+ if(Date.now()>=sysadminNextBreakAt){
+  const candidates=currentLayout().filter(o=>o.type==="desk"&&!sysadminIsBroken(o));
+  if(candidates.length){const chosen=candidates[Math.floor(Math.random()*candidates.length)];sysadminSetBroken(chosen,true);const dg=threeFurnitureGroup?.children.find(g=>g.userData.object===chosen);if(dg)sysadminPaintDesk(dg,true);sysadminNotify("⚠️ Сломался ПК на рабочем месте!");}
+  sysadminNextBreakAt=Date.now()+45000+Math.random()*45000;
+ }
+ threeFurnitureGroup?.children.forEach(dg=>{const o=dg.userData.object;if(o?.type==="desk"&&sysadminIsBroken(o)){sysadminPaintDesk(dg,true);if(dg.userData.character)dg.userData.character.userData.state="wait";}});
+
  threeFurnitureGroup?.children.forEach(deskGroup=>{if(deskGroup.userData.updateCyberAlert){deskGroup.userData.setCyberAlert?.(!!cyberSecurityState.activeThreat&&!state.viewing);deskGroup.userData.updateCyberAlert(now);}const obj=deskGroup.userData.object;if(obj?.type==="desk"&&deskGroup.userData.cyberLockIndicator){const until=cyberSecurityState.activeDebuffs.blockedDesks?.[obj.id]||0;deskGroup.userData.cyberLockIndicator.visible=until>Date.now();}});
  threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});
  threeFloorGroup?.traverse(o=>{if(o.userData.dustMote){o.position.y=o.userData.baseY+Math.sin(now*1.7+o.userData.baseX)*.035;o.position.x=o.userData.baseX+Math.sin(now*.7+o.userData.baseY)*.045;}});
@@ -2259,7 +2270,7 @@ function beginBuildPreview(type){
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);}
  threePreviewGroup=new THREE.Group();threeRoot.add(threePreviewGroup);
  const p={type,x:cell.x,y:cell.y,rot:0,valid:false,ghost:null,frame:null,outline:null};buildPreviewState=p;
- const obj={type,x:p.x,y:p.y,rot:0,level:1};const makers={desk:createDesk,ceo:createCEO,coffee:createCoffee,server:createServer,meeting:createMeeting,security:createSecurity};
+ const obj={type,x:p.x,y:p.y,rot:0,level:1};const makers={desk:createDesk,ceo:createCEO,coffee:createCoffee,server:createServer,meeting:createMeeting,security:createSecurity,sysadmin:createSysadminFurniture};
  p.ghost=makers[type](threePreviewGroup,obj);
  p.ghost.traverse(o=>{if(!o.isMesh||!o.material)return;const wasArray=Array.isArray(o.material),src=wasArray?o.material:[o.material];const cloned=src.map(m=>{const c=m.clone();c.transparent=true;c.opacity=.76;c.depthWrite=false;c.side=THREE.DoubleSide;c.userData.previewBaseColor=c.color?.clone?.()||new THREE.Color(0xffffff);if(c.emissive)c.emissive.lerp(new THREE.Color(0x173d38),.12);return c;});o.material=wasArray?cloned:cloned[0];o.castShadow=false;o.receiveShadow=false;o.renderOrder=3;});
  const fm=new THREE.MeshBasicMaterial({color:0x35e3bb,transparent:true,opacity:.34,side:THREE.DoubleSide,depthWrite:false});
@@ -2273,7 +2284,8 @@ function beginMovePreview(index){
  moveMode=false;$("moveBtn").classList.remove("active");state.sellMode=false;state.selected=null;closeShop();
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);}
  threePreviewGroup=new THREE.Group();threeRoot.add(threePreviewGroup);
- const makers={desk:createDesk,ceo:createCEO,coffee:createCoffee,server:createServer,meeting:createMeeting,security:createSecurity};
+ const sysadminController=sysadminControllers.get(o);if(sysadminController)sysadminController.forceDock();
+ const makers={desk:createDesk,ceo:createCEO,coffee:createCoffee,server:createServer,meeting:createMeeting,security:createSecurity,sysadmin:createSysadminFurniture};
  const ghost=makers[o.type](threePreviewGroup,{...o});
  ghost.traverse(obj=>{if(!obj.isMesh||!obj.material)return;const wasArray=Array.isArray(obj.material),src=wasArray?obj.material:[obj.material];const cloned=src.map(m=>{const c=m.clone();c.transparent=true;c.opacity=.76;c.depthWrite=false;c.side=THREE.DoubleSide;c.userData.previewBaseColor=c.color?.clone?.()||new THREE.Color(0xffffff);return c;});obj.material=wasArray?cloned:cloned[0];obj.castShadow=false;obj.receiveShadow=false;obj.renderOrder=3;});
  const frameMat=new THREE.MeshBasicMaterial({color:0x35e3bb,transparent:true,opacity:.34,side:THREE.DoubleSide,depthWrite:false});
@@ -2383,6 +2395,192 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden)cyberTick(
 setInterval(()=>syncPlayer(false),15000);setInterval(refreshLeaderboard,20000);
 setInterval(dividends,10000);setInterval(addFeed,6500);
 })();
+
+
+/* SYSADMIN + COMPUTER BREAKDOWN SYSTEM */
+
+function sysadminTryManualRepair(event){
+ if(state.viewing||!threeCamera||!threeFurnitureGroup)return;
+ const rect=canvas.getBoundingClientRect();threePointer.x=((event.clientX-rect.left)/rect.width)*2-1;threePointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
+ threeRaycaster.setFromCamera(threePointer,threeCamera);
+ const hits=threeRaycaster.intersectObjects(threeFurnitureGroup.children,true);
+ for(const hit of hits){
+  let node=hit.object;while(node&&node.parent!==threeFurnitureGroup)node=node.parent;
+  const desk=node?.userData?.object;if(!desk||desk.type!=="desk"||!sysadminIsBroken(desk))continue;
+  if(currentLayout().some(o=>o.type==="sysadmin")){sysadminNotify("Сисадмин уже направляется на ремонт.");return;}
+  const price=150*Math.max(1,Math.min(4,Number(desk.level)||1));
+  if(state.balance<price){sysadminNotify("Недостаточно средств для ремонта: $"+price);return;}
+  if(!confirm("Починить компьютер вручную за $"+price+"?"))return;
+  state.balance-=price;sysadminSetBroken(desk,false);sysadminPaintDesk(node,false);if(node.userData.character)node.userData.character.userData.state="work";
+  save();updateUI();sysadminNotify("Компьютер починен. Списано $"+price);return;
+ }
+}
+canvas.addEventListener("click",sysadminTryManualRepair);
+
+let sysadminBrokenDesks = {};
+let sysadminNextBreakAt = Date.now() + 45000 + Math.random()*45000;
+const sysadminControllers = new Map();
+function sysadminPersist(){try{localStorage.setItem("office_broken_desks_v1",JSON.stringify(sysadminBrokenDesks));}catch(e){}}
+try{sysadminBrokenDesks=JSON.parse(localStorage.getItem("office_broken_desks_v1")||"{}")||{};}catch(e){sysadminBrokenDesks={};}
+function sysadminDeskKey(o){return String(o.id||[floorTier,o.x,o.y,o.level].join("_"));}
+function sysadminIsBroken(o){return !!sysadminBrokenDesks[sysadminDeskKey(o)];}
+function sysadminSetBroken(o,value){
+ const key=sysadminDeskKey(o);
+ if(value)sysadminBrokenDesks[key]={floor:Number(floorTier)||0,at:Date.now()};
+ else delete sysadminBrokenDesks[key];
+ sysadminPersist();save();updateUI();
+}
+function sysadminNotify(msg){if(typeof toast==="function")toast(msg);else console.info(msg);}
+function createSysadminCharacter(){
+ const c=createOfficeCharacter({isBoss:false,variantIndex:2});
+ c.userData.isSysadmin=true;
+ const torso=c.children?.[0]?.children?.[1];
+ if(torso){
+  torso.traverse(n=>{if(n.isMesh&&n.material){n.material=n.material.clone();if(n.geometry?.type==="BoxGeometry"&&n.position.y>.05){n.material.color?.setHex(0xea580c);}}});
+ }
+ const tool=new THREE.Group(),handle=new THREE.Mesh(new THREE.CylinderGeometry(.009,.009,.055,8),new THREE.MeshStandardMaterial({color:0xea580c})),shaft=new THREE.Mesh(new THREE.CylinderGeometry(.002,.002,.07,6),new THREE.MeshStandardMaterial({color:0xcbd5e1,metalness:.8}));
+ shaft.position.y=.06;tool.add(handle,shaft);tool.position.set(.13,-.1,.02);tool.visible=false;c.add(tool);
+ c.userData.setRepairingTool=v=>tool.visible=!!v;
+ const base=c.userData.update;c.userData.update=function(t){if(c.userData.state==="repair"){tool.visible=true;if(base)base(t);const body=c.children?.[0]?.children?.[1];if(body)body.rotation.x=.18;}else{tool.visible=false;if(base)base(t);}};
+ return c;
+}
+function createSysadminDeskModel(){
+ const g=new THREE.Group(),dark=new THREE.MeshStandardMaterial({color:0x27272a,roughness:.55,metalness:.25}),topMat=new THREE.MeshStandardMaterial({color:0x3f3f46,roughness:.45,metalness:.3}),orange=new THREE.MeshStandardMaterial({color:0xea580c,emissive:0xea580c,emissiveIntensity:.3}),metal=new THREE.MeshStandardMaterial({color:0xcbd5e1,metalness:.8,roughness:.25});
+ const box=(w,h,d,m,x,y,z)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);q.position.set(x,y,z);q.castShadow=true;g.add(q);return q;};
+ box(.8,.04,.44,topMat,0,.44,-.1);box(.22,.42,.4,dark,.27,.21,-.1);box(.8,.014,.014,orange,0,.47,.125);
+ box(.34,.19,.025,dark,-.1,.64,-.13);
+ const cv=document.createElement("canvas");cv.width=128;cv.height=96;const x=cv.getContext("2d");x.fillStyle="#08111e";x.fillRect(0,0,128,96);x.strokeStyle="#f97316";x.strokeRect(4,4,120,88);x.fillStyle="#22c55e";[14,46].forEach(a=>x.fillRect(a,18,22,14));x.fillStyle="#ef4444";x.fillRect(78,18,22,14);x.fillStyle="#38bdf8";[96,72,84].forEach((w,i)=>x.fillRect(14,44+i*14,w,5));
+ const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;const screen=new THREE.Mesh(new THREE.PlaneGeometry(.31,.16),new THREE.MeshStandardMaterial({map:tex,emissive:0xffffff,emissiveMap:tex,emissiveIntensity:.65}));screen.position.set(-.1,.64,-.114);g.add(screen);
+ box(.18,.08,.2,dark,.24,.52,-.08);box(.22,.012,.08,metal,-.1,.47,.06);
+ const chair=new THREE.Group();chair.position.set(-.08,0,.18);box(.24,.04,.22,dark,-.08,.24,.18);box(.23,.25,.035,dark,-.08,.39,.27);
+ const admin=createSysadminCharacter();admin.position.set(-.08,.26,.17);admin.rotation.y=Math.PI;g.add(chair,admin);
+ g.userData.character=admin;g.userData.seatLocalPos=admin.position.clone();g.userData.seatLocalRotY=Math.PI;
+ const bounds=new THREE.Box3().setFromObject(g),center=bounds.getCenter(new THREE.Vector3()),min=bounds.min.y;
+ g.children.forEach(c=>{c.position.x-=center.x;c.position.z-=center.z;c.position.y-=min;});
+ g.userData.seatLocalPos.x-=center.x;g.userData.seatLocalPos.z-=center.z;g.userData.seatLocalPos.y-=min;
+ const size=bounds.getSize(new THREE.Vector3()),factor=.84/Math.max(size.x,size.z);if(factor<1)g.scale.setScalar(factor);
+ return g;
+}
+function createSysadminFurniture(parent,o){
+ const g=createSysadminDeskModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);
+ g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
+}
+function sysadminMakeMarker(dg){
+ if(dg.userData.breakMarker)return;
+ const marker=new THREE.Group();marker.position.set(0,1.03,.02);
+ const red=new THREE.MeshStandardMaterial({color:0xef2222,emissive:0xff0000,emissiveIntensity:1.8});
+ const plate=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),red);marker.add(plate);
+ const ex=new THREE.Mesh(new THREE.BoxGeometry(.018,.11,.018),new THREE.MeshBasicMaterial({color:0xffffff}));ex.position.y=.005;marker.add(ex);
+ const dot=new THREE.Mesh(new THREE.BoxGeometry(.018,.018,.018),new THREE.MeshBasicMaterial({color:0xffffff}));dot.position.y=-.04;marker.add(dot);
+ dg.add(marker);dg.userData.breakMarker=marker;
+ const warning=new THREE.Mesh(new THREE.PlaneGeometry(.28,.2),new THREE.MeshBasicMaterial({color:0xff2020,transparent:true,opacity:.38,side:THREE.DoubleSide}));
+ warning.position.set(0,.74,.2);dg.add(warning);dg.userData.breakGlow=warning;
+}
+function sysadminPaintDesk(dg,broken){
+ sysadminMakeMarker(dg);dg.userData.breakMarker.visible=broken;dg.userData.breakGlow.visible=broken;
+ if(dg.userData.character){dg.userData.character.userData.state=broken?"wait":"work";}
+ dg.traverse(n=>{if(n.isMesh&&n.material&&n.material.emissive){if(!n.userData.sysadminOrigEmissive){n.userData.sysadminOrigEmissive=n.material.emissive.getHex();n.userData.sysadminOrigIntensity=n.material.emissiveIntensity;}if(broken&&n.position.y>.55){n.material.emissive.setHex(0xff0000);n.material.emissiveIntensity=1.6;}else if(n.userData.sysadminOrigEmissive!==undefined){n.material.emissive.setHex(n.userData.sysadminOrigEmissive);n.material.emissiveIntensity=n.userData.sysadminOrigIntensity;}}});
+}
+class SysadminRepairController{
+ constructor(character,deskGroup,scene){
+  this.character=character;this.deskGroup=deskGroup;this.scene=scene;this.targetDesk=null;
+  this.phase="idle";this.timer=0;this.target=new THREE.Vector3();this.speed=1.25;
+  this.nextCoffeeAt=Date.now()+60000+Math.random()*60000;this.coffeeGroup=null;
+ }
+ move(dt){
+  const dx=this.target.x-this.character.position.x,dz=this.target.z-this.character.position.z,d=Math.hypot(dx,dz);
+  if(d<.055)return true;
+  this.character.rotation.y=Math.atan2(dx,dz);
+  const step=Math.min(d,this.speed*dt);this.character.position.x+=dx/d*step;this.character.position.z+=dz/d*step;
+  return false;
+ }
+ seatTarget(){const p=this.deskGroup.userData.seatLocalPos.clone();this.deskGroup.localToWorld(p);return p;}
+ returnToSeat(){this.phase="return";this.target.copy(this.seatTarget());this.character.userData.state="walk";}
+ startRepair(desk){
+  const dg=threeFurnitureGroup?.children.find(g=>g.userData.object===desk);if(!dg)return false;
+  this.targetDesk=desk;this.scene.attach(this.character);this.character.position.y=0;
+  const p=dg.getWorldPosition(new THREE.Vector3());this.target.set(p.x+.48,0,p.z+.18);
+  this.character.userData.state="walk";this.phase="toDesk";return true;
+ }
+ startCoffee(){
+  const coffee=threeFurnitureGroup?.children.find(g=>g.userData.object?.type==="coffee");if(!coffee)return false;
+  this.coffeeGroup=coffee;this.scene.attach(this.character);this.character.position.y=0;
+  const p=coffee.getWorldPosition(new THREE.Vector3());this.target.set(p.x+.42,0,p.z+.36);
+  this.character.userData.state="walk";this.phase="coffeeTo";this.nextCoffeeAt=Date.now()+90000+Math.random()*60000;return true;
+ }
+ update(dt,time){
+  if(!this.character?.parent||!this.deskGroup?.parent)return;
+  const broken=currentLayout().find(o=>o.type==="desk"&&sysadminIsBroken(o));
+  // A breakdown has priority over a coffee break: interrupt coffee immediately.
+  if(broken&&this.phase.startsWith("coffee")){
+   this.phase="idle";this.character.userData.state="walk";
+   if(this.character.parent!==this.deskGroup)this.deskGroup.attach(this.character);
+   this.character.position.copy(this.deskGroup.userData.seatLocalPos);
+   this.character.rotation.set(0,this.deskGroup.userData.seatLocalRotY||0,0);
+  }
+  if(this.phase==="idle"){
+   if(broken){this.startRepair(broken);return;}
+   if(Date.now()>=this.nextCoffeeAt){this.startCoffee();return;}
+   return;
+  }
+  if(this.phase==="toDesk"&&this.move(dt)){
+   const dg=threeFurnitureGroup?.children.find(g=>g.userData.object===this.targetDesk);
+   if(dg){const p=dg.getWorldPosition(new THREE.Vector3());this.character.lookAt(p.x,0,p.z);}
+   this.character.userData.state="repair";this.character.userData.setRepairingTool?.(true);this.timer=4;this.phase="repair";
+  }else if(this.phase==="repair"){
+   this.timer-=dt;
+   if(this.timer<=0){
+    sysadminSetBroken(this.targetDesk,false);
+    const dg=threeFurnitureGroup?.children.find(g=>g.userData.object===this.targetDesk);if(dg)sysadminPaintDesk(dg,false);
+    this.character.userData.setRepairingTool?.(false);this.targetDesk=null;this.returnToSeat();
+   }
+  }else if(this.phase==="coffeeTo"&&this.move(dt)){
+   this.character.userData.setHasCup?.(true);this.character.userData.state="drink";this.timer=5;this.phase="coffeePause";
+  }else if(this.phase==="coffeePause"){
+   this.timer-=dt;if(this.timer<=0)this.returnToSeat();
+  }else if(this.phase==="return"&&this.move(dt)){
+   this.deskGroup.attach(this.character);this.character.position.copy(this.deskGroup.userData.seatLocalPos);
+   this.character.rotation.set(0,this.deskGroup.userData.seatLocalRotY||0,0);
+   this.character.userData.setHasCup?.(false);this.character.userData.state="sit";this.targetDesk=null;this.coffeeGroup=null;this.phase="idle";
+  }
+ }
+ forceDock(){if(!this.character||!this.deskGroup)return;if(this.character.parent!==this.deskGroup)this.deskGroup.attach(this.character);this.character.position.copy(this.deskGroup.userData.seatLocalPos);this.character.rotation.set(0,this.deskGroup.userData.seatLocalRotY||0,0);this.character.userData.setRepairingTool?.(false);this.character.userData.setHasCup?.(false);this.character.userData.state="sit";this.phase="idle";this.targetDesk=null;this.coffeeGroup=null;}
+ dispose(){if(this.character?.parent!==this.deskGroup)this.character.parent?.remove(this.character);}
+}
+const _sysadminIncomeFor=incomeFor;
+incomeFor=function(layout,tier=floorTier,at=Date.now()){
+ let total=_sysadminIncomeFor(layout,tier,at),lost=0;
+ const broken=layout.filter(o=>o.type==="desk"&&sysadminIsBroken(o));
+ broken.forEach(d=>{
+  let adjacentBonus=0;
+  layout.forEach(o=>{if(o===d)return;const dist=Math.abs(o.x-d.x)+Math.abs(o.y-d.y);if(dist<=1){if(o.type==="coffee")adjacentBonus+=.25*(1+Math.max(0,Math.min(3,(Number(o.level)||1)-1))*.2);if(o.type==="server")adjacentBonus+=.15*(1+Math.max(0,(o.level||1)-1)*.1);}});
+  lost+=25+25*adjacentBonus;
+ });
+ const mult=FLOORS[Math.max(0,Math.min(4,Number(tier)||0))].incomeMult;
+ if(layout===state.layout&&(cyberSecurityState.activeDebuffs.ddosUntil||0)>at)lost*=.7;
+ return Math.max(0,total-lost*mult);
+};
+const _sysadminLocalSave=localSave;
+localSave=function(){_sysadminLocalSave();sysadminPersist();};
+const _sysadminRebuild=rebuildThreeScene;
+rebuildThreeScene=function(){
+ sysadminControllers.forEach(c=>c.dispose());sysadminControllers.clear();
+ _sysadminRebuild();
+ const floor=currentLayout();
+ floor.forEach(o=>{
+  if(o.type==="desk"){
+   const dg=threeFurnitureGroup.children.find(g=>g.userData.object===o);
+   if(dg)sysadminPaintDesk(dg,sysadminIsBroken(o));
+  }
+  if(o.type==="sysadmin"){
+   const dg=createSysadminFurniture(threeFurnitureGroup,o);
+   const character=dg.userData.character;
+   if(character)sysadminControllers.set(o,new SysadminRepairController(character,dg,threeScene));
+  }
+ });
+};
+
+
 </script>
 </body>
 </html>

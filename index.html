@@ -1542,9 +1542,9 @@ function dev3dAimBone(bone,child,targetWorld,restQ){
 }
 function dev3dCreateTypingController(character,keyboard,mouse){
  const bones=[];character.traverse(n=>{if(n.isBone)bones.push(n);});
- const find=(re,side)=>bones.find(b=>re.test(b.name)&&(!side|| (side==="L"?/(left|_l\\b|\\.l)/i.test(b.name):/(right|_r\\b|\\.r)/i.test(b.name))));
+ const find=(re,side)=>bones.find(b=>re.test(b.name)&&(!side|| (side==="L"?/(left|_l\b|\.l)/i.test(b.name):/(right|_r\b|\.r)/i.test(b.name))));
  const arms=["L","R"].map(side=>{
-  const upper=find(/upper.?arm|arm.?upper|shoulder/i,side),lower=find(/forearm|lower.?arm/i,side),hand=find(/hand|wrist/i,side);
+  const upper=find(/upper.?arm|arm.?upper|shoulder|leftarm|rightarm/i,side),lower=find(/forearm|lower.?arm/i,side),hand=find(/hand|wrist/i,side);
   if(!upper||!lower||!hand)return null;
   const upperChild=upper.children.find(n=>n.isBone)||lower,lowerChild=lower.children.find(n=>n.isBone)||hand;
   return {side,upper,lower,hand,upperChild,lowerChild,upperRest:upper.quaternion.clone(),lowerRest:lower.quaternion.clone(),handRest:hand.quaternion.clone()};
@@ -1554,7 +1554,7 @@ function dev3dCreateTypingController(character,keyboard,mouse){
  const rig={character,keyboard,mouse,arms,fingerRest,clock:0,action:"typing"};
  rig.update=(dt)=>{
   rig.clock+=dt;const t=rig.clock,cycle=(t%7.2),usingMouse=cycle>4.7&&cycle<6.15;
-  const kb=keyboard?keyboard.position:new THREE.Vector3(-.05,.45,-.15),ms=mouse?mouse.position:new THREE.Vector3(.05,.5,-.2);
+  const kb=keyboard?keyboard.getWorldPosition(new THREE.Vector3()):new THREE.Vector3(-.05,.45,-.15),ms=mouse?mouse.getWorldPosition(new THREE.Vector3()):new THREE.Vector3(.05,.5,-.2);
   arms.forEach((a,index)=>{
    const side=a.side==="L"?-1:1;
    const target=(usingMouse&&a.side==="R")?new THREE.Vector3(ms.x+.012,ms.y+.045,ms.z+.012):new THREE.Vector3(kb.x+side*.075,kb.y+.045,kb.z+.018);
@@ -1567,7 +1567,7 @@ function dev3dCreateTypingController(character,keyboard,mouse){
    a.hand.quaternion.copy(a.handRest);
    if(usingMouse&&a.side==="R")a.hand.rotateX(.08+Math.sin(t*10)*.035);
   });
-  fingerRest.forEach((f,i)=>{const flex=usingMouse&&/(right|_r|\\.r)/i.test(f.bone.name)?0.08:.16+Math.sin(t*15+f.phase)*.12;f.bone.quaternion.copy(f.q);f.bone.rotateX(flex);});
+  fingerRest.forEach((f,i)=>{const flex=usingMouse&&/(right|_r|\.r)/i.test(f.bone.name)?0.08:.16+Math.sin(t*15+f.phase)*.12;f.bone.quaternion.copy(f.q);f.bone.rotateX(flex);});
   rig.action=usingMouse?"mouse":"typing";
  };
  return rig;

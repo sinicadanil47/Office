@@ -1577,8 +1577,14 @@ function dev3dNormalizeBoneName(name){
 }
 function dev3dAnimationClipFor(asset,obj){
  const own=dev3dState.assets[asset+":clips"]||[];
- const fallback=asset==="character:boss"?(dev3dState.assets["character:employee:clips"]||[]):[];
- const source=own.length?own:fallback,clip=source[0];if(!clip||!obj)return null;
+ const typingSource=dev3dState.assets["character:employee:clips"]||[];
+ // CEO must never use the boss model's embedded idle/walk clip.
+ // Its only authored body animation comes from Typing.glb.
+ const source=asset==="character:boss"?typingSource:own;
+ if(!source.length||!obj)return null;
+ const clip=asset==="character:boss"
+  ?(source.find(c=>/typ|keyboard|computer/i.test(c.name||""))||source[0])
+  :source.find(c=>!/walk|run|locomotion/i.test(c.name||""))||source[0];
  const nodes=[];obj.traverse(n=>{if(n.name)nodes.push(n);});
  const exact=new Map();nodes.forEach(n=>{const k=dev3dNormalizeBoneName(n.name);if(k&&!exact.has(k))exact.set(k,n);});
  const tracks=[];
@@ -1590,8 +1596,8 @@ function dev3dAnimationClipFor(asset,obj){
   if(target){const copy=track.clone();copy.name=target.name+track.name.slice(dot);tracks.push(copy);}
  });
  const ratio=tracks.length/Math.max(1,clip.tracks.length);
- if(!tracks.length||ratio<.45){console.warn("Typing animation rig mismatch",asset,tracks.length,clip.tracks.length);return null;}
- console.info("Character animation retargeted",asset,tracks.length+"/"+clip.tracks.length);
+ if(!tracks.length||ratio<.45){console.warn("Typing.glb animation rig mismatch",asset,tracks.length,clip.tracks.length);return null;}
+ console.info("Character animation retargeted from "+(asset==="character:boss"?"Typing.glb":"asset"),clip.name,tracks.length+"/"+clip.tracks.length);
  return new THREE.AnimationClip(clip.name||"Typing",clip.duration,tracks);
 }
 function dev3dAttachCharacterToChair(parent,placedParts){

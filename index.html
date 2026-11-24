@@ -728,7 +728,7 @@ function createMeeting(parent,o){
  // Table edge stitching and a slim under-table cable raceway.
  for(let i=0;i<24;i++){const a=i*Math.PI/12;const x=Math.cos(a)*.438,z=Math.sin(a)*.274;sphereMesh(g,x,.555,z,.004,plaqueText,[1,.6,1]);}
  boxMesh(g,0,.405,-.01,.34,.025,.06,dark);
- return finishFurnitureModel(g,o,{x:1.86,z:.86});
+ g.scale.x=1.85;return finishFurnitureModel(g,o,{x:1.86,z:.86});
 }
 function createSecurity(parent,o){
  const g=new THREE.Group();parent.add(g);

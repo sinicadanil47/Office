@@ -2447,7 +2447,16 @@ function createSysadminDeskModel(){
  const cv=document.createElement("canvas");cv.width=128;cv.height=96;const x=cv.getContext("2d");x.fillStyle="#08111e";x.fillRect(0,0,128,96);x.strokeStyle="#f97316";x.strokeRect(4,4,120,88);x.fillStyle="#22c55e";[14,46].forEach(a=>x.fillRect(a,18,22,14));x.fillStyle="#ef4444";x.fillRect(78,18,22,14);x.fillStyle="#38bdf8";[96,72,84].forEach((w,i)=>x.fillRect(14,44+i*14,w,5));
  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;const screen=new THREE.Mesh(new THREE.PlaneGeometry(.31,.16),new THREE.MeshStandardMaterial({map:tex,emissive:0xffffff,emissiveMap:tex,emissiveIntensity:.65}));screen.position.set(-.1,.64,-.114);g.add(screen);
  box(.18,.08,.2,dark,.24,.52,-.08);box(.22,.012,.08,metal,-.1,.47,.06);
- const chair=new THREE.Group();chair.position.set(-.08,0,.18);box(.24,.04,.22,dark,-.08,.24,.18);box(.23,.25,.035,dark,-.08,.39,.27);
+ const chair=new THREE.Group();chair.position.set(-.08,0,.18);
+ // Ножка и пятилучевое основание офисного кресла сисадмина
+ const chairPost=new THREE.Mesh(new THREE.CylinderGeometry(.018,.025,.17,12),metal);chairPost.position.set(0,.145,0);chair.add(chairPost);
+ const chairHub=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.018,12),dark);chairHub.position.y=.055;chair.add(chairHub);
+ for(let i=0;i<5;i++){
+  const a=i*Math.PI*2/5,leg=new THREE.Mesh(new THREE.BoxGeometry(.145,.018,.026),dark);
+  leg.position.set(Math.cos(a)*.075,.045,Math.sin(a)*.075);leg.rotation.y=-a;chair.add(leg);
+  const wheel=new THREE.Mesh(new THREE.SphereGeometry(.018,8,6),metal);
+  wheel.position.set(Math.cos(a)*.145,.025,Math.sin(a)*.145);chair.add(wheel);
+ }box(.24,.04,.22,dark,-.08,.24,.18);box(.23,.25,.035,dark,-.08,.39,.27);
  const admin=createSysadminCharacter();admin.position.set(-.08,.26,.17);admin.rotation.y=Math.PI;g.add(chair,admin);
  g.userData.character=admin;g.userData.seatLocalPos=admin.position.clone();g.userData.seatLocalRotY=Math.PI;
  const bounds=new THREE.Box3().setFromObject(g),center=bounds.getCenter(new THREE.Vector3()),min=bounds.min.y;

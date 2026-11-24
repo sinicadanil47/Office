@@ -2284,7 +2284,8 @@ function beginMovePreview(index){
  moveMode=false;$("moveBtn").classList.remove("active");state.sellMode=false;state.selected=null;closeShop();
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);}
  threePreviewGroup=new THREE.Group();threeRoot.add(threePreviewGroup);
- const makers={desk:createDesk,ceo:createCEO,coffee:createCoffee,server:createServer,meeting:createMeeting,security:createSecurity};
+ const sysadminController=sysadminControllers.get(o);if(sysadminController)sysadminController.forceDock();
+ const makers={desk:createDesk,ceo:createCEO,coffee:createCoffee,server:createServer,meeting:createMeeting,security:createSecurity,sysadmin:createSysadminFurniture};
  const ghost=makers[o.type](threePreviewGroup,{...o});
  ghost.traverse(obj=>{if(!obj.isMesh||!obj.material)return;const wasArray=Array.isArray(obj.material),src=wasArray?obj.material:[obj.material];const cloned=src.map(m=>{const c=m.clone();c.transparent=true;c.opacity=.76;c.depthWrite=false;c.side=THREE.DoubleSide;c.userData.previewBaseColor=c.color?.clone?.()||new THREE.Color(0xffffff);return c;});obj.material=wasArray?cloned:cloned[0];obj.castShadow=false;obj.receiveShadow=false;obj.renderOrder=3;});
  const frameMat=new THREE.MeshBasicMaterial({color:0x35e3bb,transparent:true,opacity:.34,side:THREE.DoubleSide,depthWrite:false});
@@ -2543,6 +2544,7 @@ class SysadminRepairController{
    this.character.userData.setHasCup?.(false);this.character.userData.state="sit";this.targetDesk=null;this.coffeeGroup=null;this.phase="idle";
   }
  }
+ forceDock(){if(!this.character||!this.deskGroup)return;if(this.character.parent!==this.deskGroup)this.deskGroup.attach(this.character);this.character.position.copy(this.deskGroup.userData.seatLocalPos);this.character.rotation.set(0,this.deskGroup.userData.seatLocalRotY||0,0);this.character.userData.setRepairingTool?.(false);this.character.userData.setHasCup?.(false);this.character.userData.state="sit";this.phase="idle";this.targetDesk=null;this.coffeeGroup=null;}
  dispose(){if(this.character?.parent!==this.deskGroup)this.character.parent?.remove(this.character);}
 }
 const _sysadminIncomeFor=incomeFor;

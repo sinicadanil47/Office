@@ -424,7 +424,7 @@ function createDesk(parent,o){
  // Stereo speakers flanking the monitor.
  for(const x of [-.25,.25]){B(g,x,.55,-.12,.055,.16,.07,M(lv>=3?0x253d4d:0x343c43,.55,.22));S(g,x,.57,-.08,.019,.035,.009,glow);}
  // Ergonomic chair: padded seat, back, lumbar panel, armrests, gas lift and five casters.
- const chair=new THREE.Group();g.add(chair);chair.position.set(0,0,.66);
+ const chair=new THREE.Group();g.add(chair);chair.position.set(0,0,.66);chair.rotation.y=Math.PI;
  const upholstery=M([0x4a5360,0x344d66,0x235a65,0x263b52][lv-1],.86,.06);
  B(chair,0,.39,0,.37,.095,.37,upholstery);B(chair,0,.445,.015,.32,.018,.31,edge);
  const back=new THREE.Group();chair.add(back);back.position.set(0,.68,-.135);back.rotation.x=-.12;

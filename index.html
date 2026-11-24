@@ -466,11 +466,11 @@ function createITWorkerModel(variantIndex=0){
  B(worker,.16,.06,.12,pants,0,.03,0);
  const torsoGroup=new THREE.Group();torsoGroup.position.set(0,.06,0);torsoGroup.rotation.x=.08;B(torsoGroup,.18,.22,.11,shirt,0,.11,0);
  const headGroup=new THREE.Group();headGroup.position.set(0,.25,.01);B(headGroup,.13,.13,.13,skin,0,.065,0);B(headGroup,.138,.045,.142,hair,0,.125,-.004);B(headGroup,.136,.09,.03,hair,0,.075,-.062);torsoGroup.add(headGroup);
- const leftArm=new THREE.Group();leftArm.position.set(-.11,.19,.01);const lu=B(leftArm,.045,.11,.045,shirt,0,-.04,.03);lu.rotation.x=-.65;B(leftArm,.04,.04,.13,skin,.015,-.075,.11);torsoGroup.add(leftArm);
- const rightArm=new THREE.Group();rightArm.position.set(.11,.19,.01);const ru=B(rightArm,.045,.11,.045,shirt,0,-.04,.03);ru.rotation.x=-.65;B(rightArm,.04,.04,.13,skin,-.015,-.075,.11);torsoGroup.add(rightArm);worker.add(torsoGroup);
+ const leftArm=new THREE.Group();leftArm.position.set(-.11,.25,.01);const lu=B(leftArm,.045,.11,.045,shirt,0,-.04,.03);lu.rotation.x=-.65;B(leftArm,.04,.04,.13,skin,.015,-.075,.11);torsoGroup.add(leftArm);
+ const rightArm=new THREE.Group();rightArm.position.set(.11,.25,.01);const ru=B(rightArm,.045,.11,.045,shirt,0,-.04,.03);ru.rotation.x=-.65;B(rightArm,.04,.04,.13,skin,-.015,-.075,.11);torsoGroup.add(rightArm);worker.add(torsoGroup);
  [-.05,.05].forEach(x=>{B(worker,.055,.05,.15,pants,x,.025,.09);B(worker,.05,.18,.05,pants,x,-.08,.15);B(worker,.054,.035,.085,shoes,x,-.175,.168);});
  worker.userData.animParts={leftArm,rightArm,headGroup,torsoGroup,phase:variantIndex*1.7};
- worker.userData.updateAnimation=function(time){const p=worker.userData.animParts,t=time*8+p.phase;p.leftArm.position.y=.19+Math.sin(t)*.008;p.leftArm.rotation.x=Math.cos(t*1.3)*.06;p.rightArm.position.y=.19+Math.cos(t*1.1)*.008;p.rightArm.rotation.x=Math.sin(t*1.4)*.06;p.headGroup.rotation.y=Math.sin(time*1.2+p.phase)*.08;p.headGroup.rotation.x=.12+Math.cos(time*2.1+p.phase)*.03;};
+ worker.userData.updateAnimation=function(time){const p=worker.userData.animParts,t=time*8+p.phase;p.leftArm.position.y=.25+Math.sin(t)*.008;p.leftArm.rotation.x=Math.cos(t*1.3)*.06;p.rightArm.position.y=.25+Math.cos(t*1.1)*.008;p.rightArm.rotation.x=Math.sin(t*1.4)*.06;p.headGroup.rotation.y=Math.sin(time*1.2+p.phase)*.08;p.headGroup.rotation.x=.12+Math.cos(time*2.1+p.phase)*.03;};
  return worker;
 }
 function createITDeskModel(level=1,workerVariant=0){

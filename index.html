@@ -598,85 +598,86 @@ function createServer(parent,o){
 }
 function createBoss(parent,o){
  const g=new THREE.Group();parent.add(g);
- const wood=mat(0x302019,.34,.24),woodTop=mat(0x65452f,.38,.2),gold=mat(0xd4ad62,.3,.68),leather=mat(0x38251f,.72,.08),leatherHi=mat(0x56382e,.68,.1),stitch=mat(0xb88d5c,.62,.2),dark=mat(0x171d24,.58),skin=mat(0xd7a17e,.84),hair=mat(0x30251f,.9),suit=mat(0x26384b,.78),shirt=mat(0xf0e9dc,.72),tie=mat(0x9c493d,.62),shoe=mat(0x171b21,.48,.1),paper=mat(0xf5f1e8,.92),ink=mat(0x263d50,.55,.18);
+ const wood=mat(0x38271f,.38,.18),woodTop=mat(0x765039,.42,.16),gold=mat(0xd1ad72,.32,.62),leather=mat(0x332722,.76,.06),leatherHi=mat(0x594137,.72,.08),stitch=mat(0xb88d5c,.62,.2),dark=mat(0x171d24,.58),skin=mat(0xd7a17e,.84),hair=mat(0x30251f,.9),suit=mat(0x26384b,.78),shirt=mat(0xf0e9dc,.72),tie=mat(0x9c493d,.62),shoe=mat(0x171b21,.48,.1),paper=mat(0xf5f1e8,.92),ink=mat(0x263d50,.55,.18);
  const B=(p,x,y,z,w,h,d,m)=>boxMesh(p,x,y,z,w,h,d,m);
  const S=(p,x,y,z,r,m,sc)=>sphereMesh(p,x,y,z,r,m,sc);
- // Executive desk: walnut body, brass perimeter and substantial paneled pedestals.
- B(g,0,.59,0,.88,.105,.58,wood);B(g,0,.65,0,.90,.025,.60,gold);B(g,0,.672,0,.86,.018,.56,woodTop);B(g,0,.515,-.015,.72,.10,.42,wood);
- for(const x of [-.37,.37]){
-  B(g,x,.29,-.015,.075,.47,.48,wood);B(g,x,.29,.235,.08,.47,.018,gold);
-  for(let i=0;i<3;i++)B(g,x,.20+i*.105,.247,.042,.012,.009,gold);
+ // Executive desk rebuilt to the same 0.48 m working height and footprint as the IT desks.
+ B(g,0,.405,0,.88,.075,.56,wood);B(g,0,.448,0,.90,.018,.575,gold);B(g,0,.463,0,.86,.014,.545,woodTop);
+ B(g,0,.345,-.015,.72,.075,.40,wood);
+ for(const x of [-.36,.36]){
+  B(g,x,.205,-.015,.075,.36,.46,wood);B(g,x,.205,.222,.078,.36,.014,gold);
+  for(let i=0;i<3;i++)B(g,x,.12+i*.085,.232,.04,.01,.008,gold);
+  B(g,x,.025,-.015,.09,.035,.48,dark);
  }
- // High-backed padded leather executive chair with stitched upholstery and five-star base.
- const chair=new THREE.Group();g.add(chair);chair.position.set(0,0,-.29);
- B(chair,0,.91,-.025,.37,.58,.115,leather);
- B(chair,0,.91,.038,.32,.49,.025,leatherHi);
- B(chair,0,1.225,-.025,.29,.105,.12,leather);
- B(chair,0,.65,.055,.39,.12,.34,leather);B(chair,0,.682,.055,.34,.045,.29,leatherHi);
+ // Matching premium executive chair: seat height, back and overall scale follow the employee chairs.
+ const chair=new THREE.Group();g.add(chair);chair.position.set(0,0,-.32);
+ B(chair,0,.405,-.015,.39,.095,.37,leather);
+ B(chair,0,.455,.005,.35,.018,.32,leatherHi);
+ const back=new THREE.Group();chair.add(back);back.position.set(0,.69,-.145);back.rotation.x=-.10;
+ B(back,0,0,0,.39,.49,.105,leather);B(back,0,.015,.055,.335,.39,.018,leatherHi);
+ B(back,0,.205,.005,.32,.075,.11,leather);
+ for(let i=0;i<8;i++){const y=-.18+i*.052;lineMesh(back,new THREE.Vector3(-.145,y,.067),new THREE.Vector3(.145,y,.067),.0025,stitch);}
  for(const side of [-1,1]){
-  const arm=B(chair,side*.235,.735,-.005,.075,.065,.30,leather);arm.rotation.x=-.08;
-  B(chair,side*.235,.773,-.005,.08,.018,.29,stitch);
-  cylMesh(chair,side*.235,.36,-.02,.018,.022,.27,gold,12);
+  B(chair,side*.235,.555,-.005,.075,.055,.28,leather);
+  B(chair,side*.235,.588,-.005,.08,.014,.27,stitch);
+  lineMesh(chair,new THREE.Vector3(side*.235,.36,-.02),new THREE.Vector3(side*.235,.12,-.02),.018,gold);
  }
- cylMesh(chair,0,.17,.04,.035,.045,.24,gold,16);
- for(let i=0;i<5;i++){const a=i*Math.PI*2/5;lineMesh(chair,new THREE.Vector3(0,.045,.04),new THREE.Vector3(Math.cos(a)*.22,.045,.04+Math.sin(a)*.22),.018,dark);S(chair,Math.cos(a)*.22,.035,.04+Math.sin(a)*.22,.035,dark);}
- for(let i=0;i<7;i++){const y=.73+i*.052;lineMesh(chair,new THREE.Vector3(-.135,y,.052),new THREE.Vector3(.135,y,.052),.0025,stitch);}
- // Seated manager in a tailored suit, positioned naturally behind the desktop.
+ cylMesh(chair,0,.19,.025,.035,.04,.25,gold,16);
+ for(let i=0;i<5;i++){const ang=i*Math.PI*2/5,dx=Math.cos(ang)*.22,dz=.025+Math.sin(ang)*.22;lineMesh(chair,new THREE.Vector3(0,.045,.025),new THREE.Vector3(dx,.045,dz),.018,dark);S(chair,dx,.035,dz,.034,dark);}
+ // Seated manager uses the same body dimensions and anatomical landmarks as createWorker3D.
  const person=new THREE.Group();g.add(person);person.position.set(0,0,-.235);
- for(const x of [-.09,.09]){
-  const thigh=B(person,x,.39,.04,.105,.20,.24,suit);thigh.rotation.x=-.18;
-  B(person,x,.245,.19,.085,.22,.09,suit);B(person,x,.13,.265,.11,.065,.16,shoe);B(person,x,.095,.29,.11,.018,.16,dark);
+ const trousers=mat(0x202d3b,.86),sole=mat(0x111820,.7);
+ S(person,0,.755,-.012,.145,trousers,[1,.72,.86]);
+ for(const x of [-.075,.075]){
+  const thigh=B(person,x,.675,.045,.105,.20,.22,suit);thigh.rotation.x=-.12;
+  B(person,x,.515,.105,.085,.16,.09,trousers);
+  S(person,x,.455,.16,.052,shoe,[1,.65,1.65]);S(person,x,.43,.16,.053,sole,[1,.18,1.65]);
  }
- const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.145,.28,6,16),suit);torso.position.set(0,.79,.02);torso.scale.set(1,.9,.72);torso.castShadow=true;person.add(torso);
- B(person,0,.81,.13,.105,.28,.025,shirt);
- const lapelL=B(person,-.065,.87,.145,.055,.22,.018,suit);lapelL.rotation.z=-.24;
- const lapelR=B(person,.065,.87,.145,.055,.22,.018,suit);lapelR.rotation.z=.24;
- B(person,0,.88,.16,.025,.17,.012,tie);S(person,0,.98,.16,.025,tie,[1,.7,.55]);
- cylMesh(person,0,1.015,.015,.045,.05,.10,skin,20);
- const headPivot=new THREE.Group();person.add(headPivot);headPivot.position.set(0,1.17,.025);
- S(headPivot,0,0,0,.125,skin,[1,1.16,.84]);
- S(headPivot,0,.085,-.02,.13,hair,[1,.48,1]);
- S(headPivot,-.055,.12,.025,.07,hair,[1,.38,.8]);S(headPivot,.045,.13,.02,.075,hair,[1,.38,.8]);
- for(const x of [-.047,.047]){B(headPivot,x,.015,.103,.028,.012,.009,hair);S(headPivot,x,-.005,.11,.012,mat(0x26313b));S(headPivot,x,-.004,.118,.005,mat(0xf5eee5));}
- S(headPivot,0,-.035,.112,.014,skin,[.8,1.3,.8]);B(headPivot,0,-.07,.105,.038,.006,.006,mat(0x81564b));
- // Paperwork: several offset sheets, visible ruled lines, checkboxes and a signature.
- const papers=new THREE.Group();g.add(papers);papers.position.set(-.075,.687,.155);
+ const torso=new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(.125,-.235),new THREE.Vector2(.145,-.18),new THREE.Vector2(.17,-.04),new THREE.Vector2(.19,.12),new THREE.Vector2(.155,.235),new THREE.Vector2(.09,.255)],28),suit);
+ torso.position.set(0,.915,0);torso.castShadow=true;torso.receiveShadow=true;person.add(torso);
+ S(person,0,.92,.126,.082,.205,.027,shirt);
+ B(person,-.075,.995,.153,.055,.22,.018,suit).rotation.z=-.24;B(person,.075,.995,.153,.055,.22,.018,suit).rotation.z=.24;
+ B(person,0,.925,.158,.022,.15,.012,tie);
+ cylMesh(person,0,1.175,.012,.043,.047,.09,skin,20);
+ const headPivot=new THREE.Group();person.add(headPivot);headPivot.position.set(0,1.365,.035);
+ S(headPivot,0,0,0,.151,skin,[1,1.0,.92]);
+ S(headPivot,0,.078,-.025,.154,hair,[1,.72,.9]);
+ S(headPivot,-.055,.105,.075,.073,hair,[1,.42,.75]);S(headPivot,.04,.125,.06,.074,hair,[1,.36,.72]);
+ for(const x of [-.057,.057]){S(headPivot,x,.018,.128,.021,mat(0xfaf8f1),[1,1.25,.35]);S(headPivot,x,.015,.137,.009,mat(0x536f78),[1,1.3,.4]);S(headPivot,x,.014,.141,.004,mat(0x25282b));}
+ S(headPivot,0,-.018,.142,.014,skin,[.8,1.4,.8]);B(headPivot,0,-.085,.13,.038,.006,.006,mat(0x81564b));
+ // Papers and laptop rest on the standardized desktop surface.
+ const papers=new THREE.Group();g.add(papers);papers.position.set(-.07,.478,.145);
  for(let i=0;i<3;i++)B(papers,.012+i*.008,i*.003,-.006-i*.006,.255,.003,.185,i===2?paper:mat(0xd9d5ca,.9));
- const writingLines=[];
- for(let row=0;row<6;row++){
-  const line=B(papers,-.018,.012,.055-row*.021,.16,.0018,.002,mat(0x9ba9b2,.8));
-  writingLines.push(line);
- }
+ const writingLines=[];for(let row=0;row<6;row++)writingLines.push(B(papers,-.018,.012,.055-row*.021,.16,.0018,.002,mat(0x9ba9b2,.8)));
  for(let row=0;row<3;row++)B(papers,-.105,.013,.045-row*.043,.012,.002,.012,mat(0x688a92,.55));
  B(papers,.075,.014,-.055,.07,.002,.002,ink);
  const signature=new THREE.Mesh(new THREE.TorusGeometry(.022,.0025,5,18,Math.PI*1.35),ink);signature.position.set(.08,.016,-.052);signature.rotation.x=Math.PI/2;papers.add(signature);
- // Open laptop at the manager's right, with keyboard, trackpad and illuminated display.
- const laptop=new THREE.Group();g.add(laptop);laptop.position.set(.265,.685,-.105);laptop.rotation.y=-.12;
+ const laptop=new THREE.Group();g.add(laptop);laptop.position.set(.265,.478,-.105);laptop.rotation.y=-.12;
  B(laptop,0,.008,.025,.205,.014,.145,dark);B(laptop,0,.017,.025,.195,.006,.135,gold);
  for(let row=0;row<4;row++)for(let col=0;col<8;col++)B(laptop,-.073+col*.021,.022,-.012+row*.021,.014,.002,.012,mat(0x9aa8b1,.5,.3));
  B(laptop,0,.023,.073,.052,.002,.027,mat(0x87959c,.55,.25));
  const screenFrame=B(laptop,0,.105,-.047,.205,.15,.012,dark);screenFrame.rotation.x=-.18;
  const screenGlass=B(laptop,0,.108,-.039,.184,.126,.004,mat(0x12394b,.2,.16,{emissive:0x087b9d,emissiveIntensity:.55}));screenGlass.rotation.x=-.18;
  for(let i=0;i<4;i++)B(laptop,-.062+i*.041,.105,-.036,.027,.003,.004,mat(i===0?0x38c9bc:0x77a9bb,.3,.15,{emissive:i===0?0x087b78:0x16465a,emissiveIntensity:.65}));
- // Articulated right arm, hand and pen: the forearm moves over the documents while writing.
- const rightArm=new THREE.Group();person.add(rightArm);rightArm.position.set(.17,.79,.12);
- const upper=B(rightArm,0,-.055,.015,.085,.17,.09,suit);upper.rotation.z=-.2;
- const fore=B(rightArm,.015,-.105,.13,.072,.075,.19,suit);fore.rotation.x=-.12;
- B(rightArm,.015,-.15,.225,.066,.032,.065,shirt);
- const hand=S(rightArm,.015,-.15,.265,.042,skin,[1,.72,.72]);
- const pen=new THREE.Group();rightArm.add(pen);pen.position.set(.035,-.148,.292);pen.rotation.x=.28;pen.rotation.z=-.25;
+ // Arms follow the employee shoulder height and reach the shared desk plane.
+ const makeArm=(side)=>{const arm=new THREE.Group();person.add(arm);arm.position.set(side*.165,1.055,.006);
+  const upper=B(arm,side*.008,-.105,.035,.085,.205,.09,suit);upper.rotation.z=-side*.08;
+  const fore=new THREE.Group();arm.add(fore);fore.position.set(side*.018,-.235,.045);
+  B(fore,-side*.012,-.145,.105,.068,.205,.075,suit);
+  B(fore,-side*.012,-.245,.19,.064,.035,.055,shirt);
+  S(fore,-side*.012,-.27,.22,.032,skin,[1,.8,.9]);
+  return arm;
+ };
+ const rightArm=makeArm(1),leftArm=makeArm(-1);
+ const pen=new THREE.Group();rightArm.add(pen);pen.position.set(.01,-.265,.255);pen.rotation.x=.28;pen.rotation.z=-.25;
  cylMesh(pen,0,0,0,.005,.005,.115,ink,8);S(pen,0,-.058,0,.005,gold);
- const leftArm=new THREE.Group();person.add(leftArm);leftArm.position.set(-.17,.79,.12);
- const leftUpper=B(leftArm,0,-.055,.015,.085,.17,.09,suit);leftUpper.rotation.z=.2;
- B(leftArm,-.015,-.105,.13,.072,.075,.19,suit);B(leftArm,-.015,-.15,.225,.066,.032,.065,shirt);S(leftArm,-.015,-.15,.265,.042,skin,[1,.72,.72]);
- // Desk lamp and warm pool of light on the paperwork.
  const lamp=new THREE.Group();g.add(lamp);lamp.position.set(-.34,0,-.13);
- cylMesh(lamp,0,.675,0,.052,.06,.022,dark,20);cylMesh(lamp,0,.698,0,.042,.047,.016,gold,20);
- lineMesh(lamp,new THREE.Vector3(0,.71,0),new THREE.Vector3(.035,.88,0),.012,gold);
- lineMesh(lamp,new THREE.Vector3(.035,.88,0),new THREE.Vector3(.095,.99,.025),.01,gold);
- const shade=new THREE.Mesh(new THREE.ConeGeometry(.085,.09,20,1,true),gold);shade.position.set(.10,1.0,.025);shade.rotation.z=-.35;lamp.add(shade);
- const lampLight=new THREE.PointLight(0xffc77a,.22,1.1,2);lampLight.position.set(.10,.92,.04);lamp.add(lampLight);
- B(g,0,.43,.30,.28,.065,.012,gold);B(g,0,.43,.309,.23,.038,.006,woodTop);
+ cylMesh(lamp,0,.49,0,.052,.06,.022,dark,20);cylMesh(lamp,0,.513,0,.042,.047,.016,gold,20);
+ lineMesh(lamp,new THREE.Vector3(0,.525,0),new THREE.Vector3(.035,.70,0),.012,gold);
+ lineMesh(lamp,new THREE.Vector3(.035,.70,0),new THREE.Vector3(.095,.81,.025),.01,gold);
+ const shade=new THREE.Mesh(new THREE.ConeGeometry(.085,.09,20,1,true),gold);shade.position.set(.10,.82,.025);shade.rotation.z=-.35;lamp.add(shade);
+ const lampLight=new THREE.PointLight(0xffc77a,.22,1.1,2);lampLight.position.set(.10,.74,.04);lamp.add(lampLight);
+ B(g,0,.285,.30,.28,.045,.012,gold);B(g,0,.285,.309,.23,.026,.006,woodTop);
  g.userData.bossAnimation={rightArm,leftArm,headPivot,pen,laptop,papers,writingLines,lampLight,phase:Math.random()*Math.PI*2};
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }

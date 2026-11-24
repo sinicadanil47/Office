@@ -195,6 +195,8 @@ const TYPES={
  desk:{name:"IT-стол",cost:500,base:25,icon:"desk"},
  coffee:{name:"Кофемашина",cost:800,base:0,icon:"coffee"},
  server:{name:"Серверная стойка",cost:2000,base:90,icon:"server"},
+ meeting:{name:"Переговорная",cost:3500,base:110,prestige:20,icon:"meeting"},
+ security:{name:"Отдел безопасности",cost:4000,base:80,prestige:30,icon:"security"},
 };
 
 const SPRITE_SVG={
@@ -1898,7 +1900,7 @@ function cellFromEvent(e){
 function handleRoomTap(e){
  if(state.viewing)return;const c=cellFromEvent(e);if(c.x<0||c.x>=gridSize||c.y<0||c.y>=gridSize)return;
  if(buildPreviewState){setBuildPreviewCell(c.x,c.y);return;}
- haptic();const i=state.layout.findIndex(o=>o.x===c.x&&o.y===c.y);
+ haptic();const i=state.layout.findIndex(o=>objectFootprintCells(o).some(cell=>cell.x===c.x&&cell.y===c.y));
  if(activeVip&&Date.now()<activeVip.expires&&i>=0&&state.layout[i].x===activeVip.x&&state.layout[i].y===activeVip.y){closeVipDeal();return;}
  if(state.sellMode){if(i>=0){const o=state.layout.splice(i,1)[0];state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
  if(moveMode){if(i>=0){beginMovePreview(i);}else toast("Сначала выберите установленный объект");return;}
@@ -1968,7 +1970,7 @@ function updateBuildPreviewVisual(){
  const p=buildPreviewState,valid=buildFootprintValid(p.type,p.x,p.y,p.rot,p.movingObject||null)&&(p.movingObject||devFreeBuild||state.balance>=TYPES[p.type].cost);
  p.valid=valid;
  if(p.ghost){p.ghost.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),0,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.ghost.rotation.y=p.rot*Math.PI/2;p.ghost.traverse(o=>{if(!o.isMesh||!o.material)return;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m.userData.previewBaseColor)m.userData.previewBaseColor=m.color.clone();m.color.copy(m.userData.previewBaseColor).lerp(new THREE.Color(valid?0x43e6c1:0xff4d61),.2);});});}
- if(p.frame){p.frame.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),.018,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.frame.material.color.setHex(valid?0x35e3bb:0xff4358);p.frame.material.opacity=valid?.34:.42;}if(p.outline)p.outline.material.color.setHex(valid?0x8effe5:0xff8290);
+ if(p.frame){p.frame.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),.018,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.frame.rotation.y=p.rot*Math.PI/2;p.frame.material.color.setHex(valid?0x35e3bb:0xff4358);p.frame.material.opacity=valid?.34:.42;}if(p.outline){p.outline.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),.025,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.outline.rotation.y=p.rot*Math.PI/2;p.outline.material.color.setHex(valid?0x8effe5:0xff8290);}
  const cost=p.movingObject?"БЕСПЛАТНО · перемещение":(devFreeBuild?"БЕСПЛАТНО":money(TYPES[p.type].cost));
  $("buildPreviewInfo").textContent=TYPES[p.type].name+" · "+cost+" · клетка "+(p.x+1)+", "+(p.y+1)+(valid?" · доступно":" · недоступно");
  $("previewAccept").disabled=!valid;
@@ -2008,8 +2010,8 @@ function beginMovePreview(index){
  const ghost=makers[o.type](threePreviewGroup,{...o});
  ghost.traverse(obj=>{if(!obj.isMesh||!obj.material)return;const wasArray=Array.isArray(obj.material),src=wasArray?obj.material:[obj.material];const cloned=src.map(m=>{const c=m.clone();c.transparent=true;c.opacity=.76;c.depthWrite=false;c.side=THREE.DoubleSide;c.userData.previewBaseColor=c.color?.clone?.()||new THREE.Color(0xffffff);return c;});obj.material=wasArray?cloned:cloned[0];obj.castShadow=false;obj.receiveShadow=false;obj.renderOrder=3;});
  const frameMat=new THREE.MeshBasicMaterial({color:0x35e3bb,transparent:true,opacity:.34,side:THREE.DoubleSide,depthWrite:false});
- const frame=new THREE.Mesh(new THREE.PlaneGeometry(.94,.94),frameMat);frame.rotation.x=-Math.PI/2;threePreviewGroup.add(frame);
- const outline=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(.94,.94)),new THREE.LineBasicMaterial({color:0x8effe5,transparent:true,opacity:.95}));outline.rotation.x=-Math.PI/2;threePreviewGroup.add(outline);
+ const footprintWidth=o.type==="meeting"?1.94:.94;const frame=new THREE.Mesh(new THREE.PlaneGeometry(footprintWidth,.94),frameMat);frame.rotation.x=-Math.PI/2;threePreviewGroup.add(frame);
+ const outline=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(footprintWidth,.94)),new THREE.LineBasicMaterial({color:0x8effe5,transparent:true,opacity:.95}));outline.rotation.x=-Math.PI/2;threePreviewGroup.add(outline);
  const sourceGroup=threeFurnitureGroup?.children.find(child=>child.userData.object===o)||null;
  if(sourceGroup)sourceGroup.visible=false;
  buildPreviewState={type:o.type,x:o.x,y:o.y,rot:Number(o.rot)||0,valid:true,ghost,frame,outline,movingObject:o,sourceGroup};

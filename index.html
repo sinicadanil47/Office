@@ -671,7 +671,7 @@ function createBoss(parent,o){
 }
 function createMeeting(parent,o){
  const g=new THREE.Group();parent.add(g);
- const wood=mat(0x765039,.48,.16),edge=mat(0xd0b28b,.34,.48),chair=mat(0x344b64,.62,.18),leather=mat(0x26384b,.7),metal=mat(0x8798a1,.32,.68),screen=mat(0x102b38,.18,.25,{emissive:0x087e9b,emissiveIntensity:.48}),paper=mat(0xf0eee6,.85),accent=mat(0x43c9c2,.25,.2,{emissive:0x128b85,emissiveIntensity:.5});
+ const wood=mat(0x765039,.48,.16),edge=mat(0xd0b28b,.34,.48),chair=mat(0x344b64,.62,.18),leather=mat(0x26384b,.7),metal=mat(0x8798a1,.32,.68),screen=mat(0x102b38,.18,.25,{emissive:0x087e9b,emissiveIntensity:.48}),paper=mat(0xf0eee6,.85),dark=mat(0x17232c,.52,.35),accent=mat(0x43c9c2,.25,.2,{emissive:0x128b85,emissiveIntensity:.5});
  // Oval boardroom table with a bevelled walnut top and central inlay.
  const top=new THREE.Mesh(new THREE.CylinderGeometry(.46,.46,.09,48),wood);top.scale.set(1,.72,.62);top.position.y=.51;top.castShadow=true;top.receiveShadow=true;g.add(top);
  const inlay=new THREE.Mesh(new THREE.CylinderGeometry(.445,.445,.012,48),edge);inlay.scale.set(1,.72,.62);inlay.position.y=.562;g.add(inlay);
@@ -729,71 +729,58 @@ function createMeeting(parent,o){
 }
 function createSecurity(parent,o){
  const g=new THREE.Group();parent.add(g);
- const shell=mat(0x354e65,.48,.48),dark=mat(0x0c1d30,.42,.3),metal=mat(0x8398a6,.32,.7),chair=mat(0x24364b,.7,.18),screens=[0x29b9e8,0x39d7b9,0x7e9cff].map(c=>mat(c,.2,.18,{emissive:c,emissiveIntensity:.72}));
- // Compact security operations console with a substantial cabinet and metal edge trim.
- boxMesh(g,0,.36,0,.88,.62,.52,shell);
- boxMesh(g,0,.685,0,.91,.055,.55,metal);
- boxMesh(g,0,.72,0,.88,.035,.52,dark);
- for(const x of [-.39,.39])boxMesh(g,x,.37,.27,.045,.60,.025,metal);
- // Three independent surveillance monitors with bezels, stands and camera feeds.
+ const shell=mat(0x263b50,.42,.52),edge=mat(0x879aa6,.3,.72),dark=mat(0x0b1722,.42,.3),rubber=mat(0x151f29,.8),seat=mat(0x263b50,.72,.16),screenM=[0x20a9db,0x24c6ad,0x748cf5].map(c=>mat(c,.2,.15,{emissive:c,emissiveIntensity:.82})),white=mat(0xd8e3e7,.45,.2),red=mat(0xff554e,.22,.1,{emissive:0xd51c28,emissiveIntensity:1}),green=mat(0x40e5a8,.22,.1,{emissive:0x0eaa70,emissiveIntensity:1});
+ const B=(x,y,z,w,h,d,m)=>boxMesh(g,x,y,z,w,h,d,m);
+ const S=(x,y,z,r,m)=>sphereMesh(g,x,y,z,r,m);
+ // Reinforced command desk, raised console shelf and brushed-metal perimeter.
+ B(0,.34,0,.94,.58,.58,shell);B(0,.65,0,.98,.055,.62,edge);B(0,.69,0,.94,.025,.58,dark);
+ B(0,.37,.30,.90,.56,.025,edge);B(0,.37,.318,.84,.51,.012,shell);
+ for(const x of [-.43,.43]){B(x,.36,.28,.025,.48,.025,dark);for(let i=0;i<5;i++)B(x,.18+i*.075,.30,.028,.012,.008,edge);}
+ // Three articulated surveillance displays with layered bezels and individual camera tiles.
  for(let i=0;i<3;i++){
-  const x=(i-1)*.255;
-  boxMesh(g,x,.94,-.075,.245,.29,.045,dark);
-  boxMesh(g,x,.945,-.047,.215,.245,.012,metal);
-  boxMesh(g,x,.945,-.038,.198,.224,.008,screens[i]);
-  // Feed overlays: perimeter scan lines, tracking reticle and small status bar.
-  for(let k=0;k<4;k++)boxMesh(g,x-.075+k*.05,.88,-.031,.032,.004,.003,mat(0xd2eaf1,.5,0,{transparent:true,opacity:.55}));
-  boxMesh(g,x,.84,-.03,.12,.008,.003,screens[i]);
-  const reticle=new THREE.Mesh(new THREE.RingGeometry(.025,.029,24),new THREE.MeshBasicMaterial({color:0xe1f6ff,transparent:true,opacity:.75,side:THREE.DoubleSide}));reticle.position.set(x,.96,-.029);g.add(reticle);
-  boxMesh(g,x,.77,-.075,.025,.10,.035,metal);
-  boxMesh(g,x,.715,-.075,.13,.018,.10,dark);
+  const x=(i-1)*.275;
+  B(x,1.005,-.105,.265,.34,.055,dark);B(x,1.005,-.071,.239,.31,.012,edge);B(x,1.005,-.062,.218,.286,.008,screenM[i]);
+  // Multi-camera grid and subtle scanline overlays.
+  for(let row=0;row<2;row++)for(let col=0;col<3;col++){
+   const xx=x-.071+col*.071,yy=1.045-row*.085;
+   B(xx,yy,-.056,.061,.068,.003,i===0?mat(0x17445b,.55):i===1?mat(0x185449,.55):mat(0x293b70,.55));
+   B(xx,yy-.025,-.052,.044,.002,.002,white);
+   S(xx+.019,yy+.022,-.051,.004,i===1?green:screenM[i]);
+  }
+  const ret=new THREE.Mesh(new THREE.RingGeometry(.018,.021,20),new THREE.MeshBasicMaterial({color:0xe4fbff,transparent:true,opacity:.85,side:THREE.DoubleSide}));ret.position.set(x,1.0,-.05);g.add(ret);
+  B(x,.80,-.105,.035,.12,.045,edge);B(x,.735,-.105,.15,.025,.12,dark);
+  for(let k=0;k<3;k++)S(x-.055+k*.055,.72,-.04,.004,k===0?green:white);
  }
- // Keyboard, radio handset, access-control keypad and status lights.
- boxMesh(g,0,.755,.18,.30,.018,.13,dark);
- for(let row=0;row<3;row++)for(let col=0;col<10;col++)boxMesh(g,-.13+col*.029,.768,.14+row*.035,.021,.006,.022,row===0&&col===9?screens[1]:metal);
- boxMesh(g,.34,.79,.13,.09,.035,.15,dark);
- for(let i=0;i<4;i++)sphereMesh(g,.31+i*.02,.813,.207,.006,screens[i%3]);
- boxMesh(g,-.34,.79,.13,.08,.035,.14,chair);
- lineMesh(g,new THREE.Vector3(-.34,.81,.12),new THREE.Vector3(-.36,.91,.12),.012,metal);
- for(let i=0;i<3;i++)sphereMesh(g,-.34,.94+i*.025,.12,.012,screens[i]);
- // Operator chair, seat cushion and compact swivel base.
- boxMesh(g,0,.27,.40,.25,.07,.22,chair);
- boxMesh(g,0,.49,.49,.25,.34,.07,chair);
- for(const x of [-.16,.16])boxMesh(g,x,.36,.40,.035,.06,.20,metal);
- cylMesh(g,0,.10,.40,.025,.03,.20,metal,12);
- for(let i=0;i<4;i++){const a=i*Math.PI/2;lineMesh(g,new THREE.Vector3(0,.025,.40),new THREE.Vector3(Math.cos(a)*.15,.025,.40+Math.sin(a)*.15),.012,dark);}
- sphereMesh(g,.39,.48,.29,.025,screens[1]);
- // Additional operator-grade controls and security hardware.
- const keyMat=mat(0x9aaab1,.35,.55),red=mat(0xff5a54,.24,.12,{emissive:0xb51e20,emissiveIntensity:.85}),green=mat(0x42e0a8,.24,.12,{emissive:0x129c6c,emissiveIntensity:.85});
- // Trackball, precision mouse and illuminated emergency response controls.
- boxMesh(g,.205,.755,.19,.105,.018,.10,dark);
- sphereMesh(g,.205,.786,.19,.027,metal);
- const mouse=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),metal);mouse.position.set(-.22,.78,.20);mouse.scale.set(.035,.018,.052);g.add(mouse);
- lineMesh(g,new THREE.Vector3(-.22,.79,.17),new THREE.Vector3(-.22,.80,.13),.004,dark);
- for(let i=0;i<3;i++){
-  cylMesh(g,.31+i*.045,.76,.235,.016,.016,.012,i===0?red:i===1?green:screens[2],16);
+ // Raised central status mast and CCTV network overview panel.
+ B(0,1.235,-.12,.34,.045,.18,dark);B(0,1.238,-.023,.25,.012,.012,green);
+ for(let i=0;i<5;i++)S(-.095+i*.047,1.238,-.014,.008,[green,screenM[0],green,red,green][i]);
+ // Full-width keyboard with individual keycaps, numpad and wrist rest.
+ B(-.04,.735,.15,.43,.022,.18,dark);
+ for(let row=0;row<4;row++)for(let col=0;col<14;col++){
+  const x=-.235+col*.03,z=.09+row*.035;
+  B(x,.751,z,.023,.008,.025,(row===0&&col===13)?red:edge);
  }
- // Badge reader with RFID contact area and a hanging access card.
- boxMesh(g,-.37,.53,.29,.075,.13,.035,dark);
- boxMesh(g,-.37,.55,.311,.048,.07,.006,metal);
- sphereMesh(g,-.37,.57,.318,.012,green,[1,1,.4]);
- boxMesh(g,-.37,.45,.315,.035,.045,.006,mat(0xe1e8e8));
- // Compact radio handset, coiled lead and clip.
- boxMesh(g,-.34,.78,.13,.09,.045,.16,dark);
- lineMesh(g,new THREE.Vector3(-.34,.80,.20),new THREE.Vector3(-.34,.91,.20),.009,metal);
- for(let i=0;i<4;i++)sphereMesh(g,-.34,.93+i*.022,.20,.012,i===0?red:screens[i%3]);
- for(let i=0;i<5;i++)lineMesh(g,new THREE.Vector3(-.38,.77-i*.008,.08),new THREE.Vector3(-.38,.765-i*.008,.12),.003,metal);
- // Front console identity plate, warning stripe and cabinet fasteners.
- boxMesh(g,0,.40,.278,.32,.09,.012,dark);
- boxMesh(g,0,.42,.286,.25,.035,.006,metal);
- boxMesh(g,0,.42,.291,.12,.008,.003,green);
- for(let x of [-.41,.41])for(let y of [.18,.58])sphereMesh(g,x,y,.29,.008,metal,[1,1,.5]);
- // Monitor anti-glare hoods and fine lower bezel controls.
- for(let i=0;i<3;i++){
-  const x=(i-1)*.255;
-  boxMesh(g,x,1.095,-.08,.24,.018,.055,dark);
-  for(let k=0;k<3;k++)sphereMesh(g,x-.06+k*.06,.815,-.025,.004,k===0?green:metal,[1,1,.5]);
- }
+ B(-.04,.714,.25,.43,.018,.035,rubber);
+ // Trackball, mouse, radio handset and tactile emergency response console.
+ B(.31,.745,.16,.13,.025,.15,dark);S(.31,.766,.16,.035,edge);S(.31,.783,.16,.021,white);
+ for(let i=0;i<4;i++){const x=.22+i*.055;const m=i===0?red:i===1?green:screenM[2];const btn=new THREE.Mesh(new THREE.CylinderGeometry(.018,.02,.016,20),m);btn.position.set(x,.755,.275);g.add(btn);}
+ B(-.36,.76,.15,.105,.04,.17,dark);B(-.36,.785,.15,.07,.012,.11,edge);
+ for(let i=0;i<4;i++)S(-.36,.80+i*.021,.15,.009,i===0?red:screenM[i%3]);
+ // RFID badge reader and secure-access indicator at the console corner.
+ B(-.405,.51,.30,.075,.15,.035,dark);B(-.405,.52,.321,.052,.095,.008,edge);S(-.405,.55,.328,.012,green);
+ B(-.405,.445,.324,.035,.035,.006,white);
+ // Operator chair with padded back, armrests, gas lift and five-spoke caster base.
+ const back=B(0,.56,.49,.29,.36,.085,seat);back.rotation.x=-.08;
+ B(0,.34,.43,.30,.085,.25,seat);
+ for(const x of [-.19,.19]){B(x,.43,.42,.045,.045,.20,edge);B(x,.39,.43,.065,.035,.19,seat);}
+ const post=new THREE.Mesh(new THREE.CylinderGeometry(.022,.03,.22,16),edge);post.position.set(0,.19,.43);g.add(post);
+ for(let i=0;i<5;i++){const a=i*Math.PI*2/5;lineMesh(g,new THREE.Vector3(0,.07,.43),new THREE.Vector3(Math.cos(a)*.19,.07,.43+Math.sin(a)*.19),.016,dark);S(Math.cos(a)*.19,.045,.43+Math.sin(a)*.19,.027,rubber);}
+ // Cable ducts, front asset plate and chassis fasteners.
+ B(0,.12,-.22,.56,.07,.12,dark);B(0,.39,.335,.31,.07,.012,edge);B(0,.40,.344,.18,.018,.005,green);
+ for(const x of [-.45,.45])for(const y of [.18,.56])S(x,y,.32,.008,edge);
+ // Small CCTV camera indicator and directional antenna.
+ B(.42,.91,-.18,.06,.12,.06,dark);S(.42,.92,-.145,.025,screenM[0]);
+ lineMesh(g,new THREE.Vector3(.42,.98,-.18),new THREE.Vector3(.42,1.12,-.18),.008,edge);
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
 function createWorker3D(parent,desk){

@@ -389,6 +389,7 @@ function cyberEnsureModal(){
  .cyber-overlay.show{display:flex}.cyber-panel{width:min(510px,100%);max-height:88dvh;overflow:auto;border:1px solid rgba(248,113,113,.48);border-radius:20px;background:linear-gradient(155deg,#17263b,#0b1424 72%);box-shadow:0 24px 80px #000c,0 0 35px #ef444422;padding:18px;color:#edf5ff}
  .cyber-kicker{font-size:10px;font-weight:900;letter-spacing:1.8px;color:#fca5a5}.cyber-panel h2{font-size:19px;line-height:1.2;margin:7px 0 10px;color:#fff}.cyber-threat{padding:12px;border:1px solid #41516a;border-radius:13px;background:#ffffff08}.cyber-threat b{display:block;font-size:14px}.cyber-threat small,.cyber-copy{display:block;color:#aebed2;font-size:11px;line-height:1.5;margin-top:5px}.cyber-danger{display:inline-block;margin-top:8px;padding:4px 8px;border-radius:20px;background:#7f1d1d66;color:#fecaca;font-size:10px;font-weight:800}.cyber-consequence{margin:12px 0;padding:10px;border-radius:11px;background:#0b1728;color:#e2e8f0;font-size:11px;line-height:1.5}.cyber-count{display:flex;justify-content:space-between;align-items:center;margin:12px 0;font-size:11px;color:#cbd5e1}.cyber-count strong{font-size:20px;color:#fca5a5;font-variant-numeric:tabular-nums}.cyber-actions{display:grid;grid-template-columns:1fr;gap:8px}.cyber-actions button{min-height:44px;border-radius:11px;padding:10px 12px;text-align:left;font-size:12px;font-weight:800}.cyber-actions button small{display:block;font-size:10px;font-weight:500;opacity:.82;margin-top:3px}.cyber-primary{background:linear-gradient(135deg,#9f3434,#dc4b4b);color:white}.cyber-strong{background:linear-gradient(135deg,#9a6a1d,#d59a34);color:#fff}.cyber-ignore{background:#26364d;color:#dce8f6}.cyber-actions button:disabled{opacity:.35;filter:grayscale(1)}.cyber-foot{margin-top:10px;color:#8ea2bc;font-size:9px;line-height:1.4}
  .cyber-upgrade-info{margin:9px 0;padding:10px;border-radius:10px;background:#14243a;border:1px solid #334a66}.cyber-upgrade-info b{display:block;font-size:10px;color:#93c5fd}.cyber-upgrade-info small{display:block;margin-top:5px;color:#a9bad0;font-size:9px;line-height:1.5}
+ .cyber-result{position:fixed;top:calc(18px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-12px);opacity:0;z-index:145;width:min(520px,calc(100vw - 28px));padding:12px 16px;border-radius:13px;font-size:12px;font-weight:800;line-height:1.45;text-align:center;box-shadow:0 14px 38px #000a;transition:opacity .2s,transform .2s;pointer-events:none}.cyber-result.show{opacity:1;transform:translate(-50%,0)}.cyber-result.success{background:linear-gradient(135deg,#14532d,#166534);border:1px solid #4ade80;color:#dcfce7}.cyber-result.failure{background:linear-gradient(135deg,#7f1d1d,#991b1b);border:1px solid #f87171;color:#fee2e2}
  `;document.head.appendChild(style);
  cyberModal=document.createElement("div");cyberModal.className="cyber-overlay";cyberModal.innerHTML='<div class="cyber-panel" role="dialog" aria-modal="true" aria-live="polite"></div>';document.body.appendChild(cyberModal);return cyberModal;
 }
@@ -413,6 +414,7 @@ function cyberRenderModal(){
  const countdown=panel.querySelector("#cyberCountdown");if(countdown)countdown.textContent=Math.ceil(remain/1000)+" сек.";const emergency=panel.querySelector("#cyberEmergency"),reinforced=panel.querySelector("#cyberReinforced");if(emergency)emergency.disabled=state.balance<t.emergencyCost;if(reinforced)reinforced.disabled=state.balance<t.reinforcedCost;
  el.classList.add("show");
 }
+function cyberResultNotification(success,message){const el=document.createElement("div");el.className="cyber-result "+(success?"success":"failure");el.textContent=(success?"ЗАЩИТА УСПЕШНА · ":"ПРОРЫВ · ")+String(message||"");document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add("show"));setTimeout(()=>{el.classList.remove("show");setTimeout(()=>el.remove(),260);},4300);}
 function cyberRecord(outcome,detail){
  const t=cyberSecurityState.activeThreat;if(!t)return;
  cyberSecurityState.incidentHistory.push({timestamp:Date.now(),type:t.type,name:t.name,outcome,detail:String(detail||"")});
@@ -420,7 +422,7 @@ function cyberRecord(outcome,detail){
 }
 function cyberFinishThreat(outcome,detail,notify=true,completedAt=Date.now()){
  cyberRecord(outcome,detail);cyberSecurityState.activeThreat=null;cyberSecurityState.nextAttackAt=completedAt+randomCyberDelay();cyberHideModal();save();syncPlayer(false);updateUI();
- if(notify)toast((outcome==="reflected"?"Защита успешна: ":"Киберинцидент: ")+detail);
+ if(notify)cyberResultNotification(outcome==="reflected",detail);
 }
 function cyberApplyConsequences(t,occurredAt=Date.now()){
  const now=occurredAt,mitigation=cyberFinancialMitigation();let detail="";
@@ -437,7 +439,7 @@ function cyberApplyConsequences(t,occurredAt=Date.now()){
   else detail="Нет доступных IT-столов для блокировки.";
  }
  state.balance=Math.max(0,state.balance);state.prestige=Math.max(-basePrestigeFor(state.layout),state.prestige);
- cyberFinishThreat("damage",detail,false,occurredAt);toast("Кибератака: "+detail);
+ cyberFinishThreat("damage",detail,false,occurredAt);cyberResultNotification(false,detail);
 }
 function cyberBeginResponse(){
  const t=cyberSecurityState.activeThreat;if(!t)return;
@@ -1769,7 +1771,7 @@ function renderThreeScene(){
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
  threePreviewGroup?.traverse(node=>{const character=node.userData?.character||node.userData?.worker;if(character?.userData?.update)character.userData.update(now);});
  threeOfficeControllers.forEach(controller=>controller.update(frameDt,now));
- threeFurnitureGroup?.children.forEach(deskGroup=>{if(deskGroup.userData.updateCyberAlert){deskGroup.userData.setCyberAlert?.(!!cyberSecurityState.activeThreat);deskGroup.userData.updateCyberAlert(now);}const obj=deskGroup.userData.object;if(obj?.type==="desk"&&deskGroup.userData.cyberLockIndicator){const until=cyberSecurityState.activeDebuffs.blockedDesks?.[obj.id]||0;deskGroup.userData.cyberLockIndicator.visible=until>Date.now();}});
+ threeFurnitureGroup?.children.forEach(deskGroup=>{if(deskGroup.userData.updateCyberAlert){deskGroup.userData.setCyberAlert?.(!!cyberSecurityState.activeThreat&&!state.viewing);deskGroup.userData.updateCyberAlert(now);}const obj=deskGroup.userData.object;if(obj?.type==="desk"&&deskGroup.userData.cyberLockIndicator){const until=cyberSecurityState.activeDebuffs.blockedDesks?.[obj.id]||0;deskGroup.userData.cyberLockIndicator.visible=until>Date.now();}});
  threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});
  threeFloorGroup?.traverse(o=>{if(o.userData.dustMote){o.position.y=o.userData.baseY+Math.sin(now*1.7+o.userData.baseX)*.035;o.position.x=o.userData.baseX+Math.sin(now*.7+o.userData.baseY)*.045;}});
  if(buildPreviewState)updateBuildPreviewVisual();

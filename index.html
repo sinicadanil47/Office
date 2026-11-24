@@ -531,10 +531,197 @@ function createCoffee(parent,o){
  lineMesh(g,new THREE.Vector3(-.34,.2,-.22),new THREE.Vector3(-.42,.16,-.28),.012,black);
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
-function createServer(parent,o){const g=new THREE.Group();parent.add(g);const shell=mat(0x34495c,.42,.55),glass=mat(0x5ca4bd,.2,.3,{transparent:true,opacity:.28}),dark=mat(0x0c1a29),led=mat(0x36e0c0,.25,.2,{emissive:0x13ad91,emissiveIntensity:1.4});boxMesh(g,0,.04,0,.55,1.18,.58,shell);boxMesh(g,0,.65,.298,.48,.92,.018,glass);for(let i=0;i<4;i++){boxMesh(g,0,.2+i*.22,.315,.4,.13,.018,dark);for(let j=0;j<3;j++)sphereMesh(g,-.13+j*.13,.25+i*.22,.34,.018,led);}g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
-function createBoss(parent,o){const g=new THREE.Group();parent.add(g);const wood=mat(0x35251f),gold=mat(0xd4ad62,.35,.65),leather=mat(0x4b3029);boxMesh(g,0,.58,0,.82,.12,.56,wood);boxMesh(g,0,.65,0,.84,.025,.58,gold);for(const x of [-.32,.32])boxMesh(g,x,.06,0,.06,.52,.46,wood);cylMesh(g,0,.08,.31,.16,.18,.14,leather);boxMesh(g,0,.4,.38,.34,.4,.12,leather);boxMesh(g,0,.9,-.16,.05,.32,.05,gold);sphereMesh(g,.02,1.08,-.16,.12,mat(0xffd37b,.3,.2,{emissive:0x9a6418,emissiveIntensity:.5}));g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
-function createMeeting(parent,o){const g=new THREE.Group();parent.add(g);const wood=mat(0x916a46),edge=mat(0xd0b28b),chair=mat(0x344b64);boxMesh(g,0,.4,0,.88,.1,.48,wood);boxMesh(g,0,.46,0,.9,.025,.5,edge);for(const [x,z] of [[-.36,-.38],[.36,-.38],[-.36,.38],[.36,.38]]){boxMesh(g,x,.08,z,.19,.18,.18,chair);boxMesh(g,x,.26,z-.055,.19,.28,.055,chair);}for(const x of [-.3,.3])boxMesh(g,x,.06,.0,.035,.34,.035,wood);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
-function createSecurity(parent,o){const g=new THREE.Group();parent.add(g);const shell=mat(0x354e65),dark=mat(0x0c1d30),screens=[0x29b9e8,0x39d7b9,0x7e9cff].map(c=>mat(c,.25,.2,{emissive:c,emissiveIntensity:.55}));boxMesh(g,0,.38,0,.84,.62,.5,shell);boxMesh(g,0,.72,-.02,.78,.05,.42,dark);for(let i=0;i<3;i++){const x=(i-1)*.24;boxMesh(g,x,.91,-.08,.21,.23,.035,dark);boxMesh(g,x,.92,-.057,.18,.18,.012,screens[i]);}sphereMesh(g,.32,.47,.25,.035,mat(0x4be4bb,.2,.1,{emissive:0x16a77e,emissiveIntensity:1.4}));g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
+function createServer(parent,o){
+ const g=new THREE.Group();parent.add(g);
+ const shell=mat(0x263746,.38,.62),frame=mat(0x80939d,.32,.72),dark=mat(0x08131d,.5,.28),glass=mat(0x315b70,.2,.42,{transparent:true,opacity:.32}),vent=mat(0x111e29,.72,.2),leds=[0x37e4c0,0x46a9f4,0xffbd55].map(c=>mat(c,.22,.15,{emissive:c,emissiveIntensity:1.5}));
+ // Tall rack cabinet, plinth, crown and reinforced corner rails.
+ boxMesh(g,0,.055,0,.67,.09,.68,dark);
+ boxMesh(g,0,.72,0,.62,1.27,.62,shell);
+ for(const x of [-.29,.29])for(const z of [-.285,.285])boxMesh(g,x,.72,z,.035,1.25,.035,frame);
+ boxMesh(g,0,1.365,0,.68,.055,.68,frame);
+ boxMesh(g,0,.105,0,.65,.045,.66,frame);
+ // Front glass door with substantial bevelled frame and central handle.
+ boxMesh(g,0,.75,.323,.56,1.13,.018,frame);
+ boxMesh(g,0,.75,.337,.515,1.075,.012,glass);
+ boxMesh(g,-.238,.75,.35,.012,1.04,.018,shell);
+ boxMesh(g,.238,.75,.35,.012,1.04,.018,shell);
+ boxMesh(g,.205,.78,.36,.018,.24,.025,frame);
+ // Four individual hot-swap server units, each with ventilation, bays and activity lights.
+ for(let i=0;i<4;i++){
+  const y=.27+i*.255;
+  boxMesh(g,0,y,.365,.46,.22,.035,dark);
+  boxMesh(g,-.105,y,.389,.19,.145,.012,vent);
+  for(let k=0;k<8;k++)boxMesh(g,-.18+k*.022,y,.398,.008,.095,.004,frame);
+  boxMesh(g,.105,y,.39,.19,.15,.012,shell);
+  for(let k=0;k<3;k++){
+   boxMesh(g,.045+k*.055,y,.402,.042,.095,.008,vent);
+   boxMesh(g,.045+k*.055,y-.005,.409,.025,.006,.004,frame);
+  }
+  for(let k=0;k<3;k++)sphereMesh(g,.205,y-.045+k*.045,.405,.009,leds[(i+k)%3]);
+  boxMesh(g,0,y-.105,.39,.43,.012,.012,frame);
+ }
+ // Cooling fans, fan guards, top status display and network ports.
+ for(const x of [-.17,.17]){
+  const fan=new THREE.Mesh(new THREE.TorusGeometry(.067,.009,8,28),frame);fan.position.set(x,1.28,.365);g.add(fan);
+  cylMesh(g,x,1.28,.36,.052,.052,.018,dark,24);
+  for(let k=0;k<6;k++){const a=k*Math.PI/3;lineMesh(g,new THREE.Vector3(x,1.28,.38),new THREE.Vector3(x+Math.cos(a)*.05,1.28+Math.sin(a)*.05,.38),.006,frame);}
+ }
+ boxMesh(g,0,1.43,.12,.3,.035,.18,dark);
+ boxMesh(g,0,1.435,.215,.22,.012,.008,leds[0]);
+ for(let i=0;i<4;i++)sphereMesh(g,-.12+i*.08,.19,.37,.012,leds[i%3]);
+ // Side intake louvers and rear cable-management bundle.
+ for(let side of [-1,1])for(let i=0;i<8;i++)boxMesh(g,side*.321,.35+i*.095,-.02,.009,.012,.34,frame);
+ for(let i=0;i<5;i++)lineMesh(g,new THREE.Vector3(-.22+i*.11,.18,-.33),new THREE.Vector3(-.22+i*.11,.08,-.43),.009,leds[i%3]);
+ g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+}
+function createBoss(parent,o){
+ const g=new THREE.Group();parent.add(g);
+ const wood=mat(0x35251f,.34,.24),woodTop=mat(0x60402f,.42,.18),gold=mat(0xd4ad62,.32,.68),leather=mat(0x382923,.68),stitch=mat(0xb88d5c,.62,.2),dark=mat(0x171d24,.58),skin=mat(0xd7a17e,.84),hair=mat(0x30251f,.9),suit=mat(0x26384b,.78),shirt=mat(0xf0e9dc,.72),tie=mat(0x9c493d,.62),shoe=mat(0x171b21,.48,.1);
+ // Executive desk: layered walnut slab, brass inlay, apron and sculpted pedestal legs.
+ boxMesh(g,0,.59,0,.88,.105,.58,wood);
+ boxMesh(g,0,.65,0,.90,.025,.60,gold);
+ boxMesh(g,0,.672,0,.86,.018,.56,woodTop);
+ boxMesh(g,0,.515,-.015,.72,.10,.42,wood);
+ for(const x of [-.37,.37]){boxMesh(g,x,.29,-.015,.075,.47,.48,wood);boxMesh(g,x,.29,.235,.08,.47,.018,gold);}
+ for(let i=0;i<3;i++){boxMesh(g,-.37,.22+i*.105,.255,.052,.012,.008,gold);}
+ // Leather executive chair with padded back, headrest, armrests and five-star base.
+ const chairBack=boxMesh(g,0,.91,-.265,.34,.58,.11,leather);chairBack.rotation.x=-.08;
+ boxMesh(g,0,1.235,-.27,.27,.12,.105,leather);
+ boxMesh(g,0,.66,-.20,.37,.12,.34,leather);
+ for(const x of [-.23,.23]){
+  boxMesh(g,x,.73,-.16,.075,.055,.27,gold);boxMesh(g,x,.67,-.16,.09,.045,.28,leather);
+  cylMesh(g,x,.36,-.19,.018,.022,.28,gold,12);
+ }
+ cylMesh(g,0,.17,-.18,.035,.045,.24,gold,16);
+ for(let i=0;i<5;i++){const a=i*Math.PI*2/5;lineMesh(g,new THREE.Vector3(0,.045,-.18),new THREE.Vector3(Math.cos(a)*.22,.045,-.18+Math.sin(a)*.22),.018,dark);sphereMesh(g,Math.cos(a)*.22,.035,-.18+Math.sin(a)*.22,.035,dark);}
+ // Seated 3D executive character, facing the viewer across the desktop.
+ const person=new THREE.Group();g.add(person);person.position.set(0,0,-.23);
+ // Legs are tucked under the desk; tailored trousers and polished shoes remain visible.
+ for(const x of [-.09,.09]){
+  const thigh=boxMesh(person,x,.39,.04,.105,.20,.24,suit);thigh.rotation.x=-.18;
+  const shin=boxMesh(person,x,.245,.19,.085,.22,.09,suit);
+  boxMesh(person,x,.13,.265,.11,.065,.16,shoe);
+  boxMesh(person,x,.095,.29,.11,.018,.16,dark);
+ }
+ // Torso, shoulders, shirt front and lapels.
+ const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.145,.28,6,16),suit);torso.position.set(0,.79,.02);torso.scale.set(1,.9,.72);torso.castShadow=true;person.add(torso);
+ const shirtFront=boxMesh(person,0,.81,.13,.105,.28,.025,shirt);
+ const lapelL=boxMesh(person,-.065,.87,.145,.055,.22,.018,suit);lapelL.rotation.z=-.24;
+ const lapelR=boxMesh(person,.065,.87,.145,.055,.22,.018,suit);lapelR.rotation.z=.24;
+ boxMesh(person,0,.88,.16,.025,.17,.012,tie);
+ sphereMesh(person,0,.98,.16,.025,tie,[1,.7,.55]);
+ // Neck, shaped head, ears, hair, eyebrows and facial features.
+ cylMesh(person,0,1.015,.015,.045,.05,.10,skin,20);
+ sphereMesh(person,0,1.17,.025,.125,.145,.105,skin,[1,1,1]);
+ for(const x of [-.125,.125])sphereMesh(person,x,1.16,.025,.025,skin,[1,.9,.8]);
+ sphereMesh(person,0,1.255,-.005,.13,hair,[1,.48,1]);
+ sphereMesh(person,-.055,1.29,.055,.07,hair,[1,.45,.65]);
+ sphereMesh(person,.045,1.30,.045,.075,hair,[1,.42,.62]);
+ for(const x of [-.047,.047]){
+  boxMesh(person,x,1.19,.12,.028,.012,hair);
+  sphereMesh(person,x,1.165,.126,.012,mat(0x26313b),[1,1,.45]);
+  sphereMesh(person,x,1.166,.132,.005,mat(0xf5eee5),[1,1,.4]);
+ }
+ sphereMesh(person,0,1.135,.139,.014,.027,.018,skin);
+ boxMesh(person,0,1.095,.128,.038,.006,.006,mat(0x81564b));
+ // Arms rest on the desk; hands and cuffs are visible just behind its front edge.
+ for(const side of [-1,1]){
+  const upper=boxMesh(person,side*.19,.77,.12,.09,.20,.10,suit);upper.rotation.z=side*-.28;
+  const fore=boxMesh(person,side*.20,.68,.22,.075,.07,.18,suit);
+  boxMesh(person,side*.20,.655,.29,.065,.035,.07,shirt);
+  sphereMesh(person,side*.20,.65,.32,.045,skin,[1,.7,.8]);
+  for(let k=0;k<3;k++)lineMesh(person,new THREE.Vector3(side*.20+(k-1)*.012,.65,.34),new THREE.Vector3(side*.20+(k-1)*.012,.63,.37),.004,skin);
+ }
+ // Desk accessories: executive monitor/tablet, document stack, pen and nameplate.
+ boxMesh(g,0,.715,-.12,.28,.018,.16,dark);
+ boxMesh(g,0,.76,-.12,.25,.075,.025,gold);
+ boxMesh(g,0,.765,-.103,.22,.052,.008,mat(0x173440,.2,.15,{emissive:0x0b5266,emissiveIntensity:.45}));
+ boxMesh(g,-.29,.705,.10,.16,.018,.20,mat(0xe6e0d4));
+ for(let i=0;i<3;i++)boxMesh(g,-.29,.718+i*.004,.10,.145,.002,.18,i===2?mat(0xc6d2d5):mat(0xf5f0e7));
+ lineMesh(g,new THREE.Vector3(.22,.70,.10),new THREE.Vector3(.34,.70,.18),.009,gold);
+ boxMesh(g,.02,.69,.285,.22,.035,.018,woodTop);
+ boxMesh(g,.02,.71,.297,.18,.018,.006,gold);
+ // Desk front brass badge.
+ boxMesh(g,0,.43,.30,.28,.065,.012,gold);
+ boxMesh(g,0,.43,.309,.23,.038,.006,woodTop);
+ g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+}
+function createMeeting(parent,o){
+ const g=new THREE.Group();parent.add(g);
+ const wood=mat(0x765039,.48,.16),edge=mat(0xd0b28b,.34,.48),chair=mat(0x344b64,.62,.18),leather=mat(0x26384b,.7),metal=mat(0x8798a1,.32,.68),screen=mat(0x102b38,.18,.25,{emissive:0x087e9b,emissiveIntensity:.48}),paper=mat(0xf0eee6,.85),accent=mat(0x43c9c2,.25,.2,{emissive:0x128b85,emissiveIntensity:.5});
+ // Oval boardroom table with a bevelled walnut top and central inlay.
+ const top=new THREE.Mesh(new THREE.CylinderGeometry(.46,.46,.09,48),wood);top.scale.set(1,.72,.62);top.position.y=.51;top.castShadow=true;top.receiveShadow=true;g.add(top);
+ const inlay=new THREE.Mesh(new THREE.CylinderGeometry(.445,.445,.012,48),edge);inlay.scale.set(1,.72,.62);inlay.position.y=.562;g.add(inlay);
+ const inner=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.009,48),wood);inner.scale.set(1,.72,.62);inner.position.y=.571;g.add(inner);
+ // Twin pedestal supports and weighted feet.
+ for(const x of [-.22,.22]){boxMesh(g,x,.27,0,.12,.38,.14,metal);boxMesh(g,x,.075,0,.24,.045,.28,chair);}
+ // Four detailed conference chairs, two along each side.
+ for(const [x,z,rot] of [[-.29,-.39,0],[.29,-.39,0],[-.29,.39,Math.PI],[.29,.39,Math.PI]]){
+  const c=new THREE.Group();g.add(c);c.position.set(x,.02,z);c.rotation.y=rot;
+  boxMesh(c,0,.25,-.045,.19,.30,.075,leather);
+  boxMesh(c,0,.39,-.045,.17,.08,.065,chair);
+  boxMesh(c,0,.12,.025,.19,.07,.20,leather);
+  for(const sx of [-.12,.12]){
+   lineMesh(c,new THREE.Vector3(sx,.08,.02),new THREE.Vector3(sx,.28,.05),.012,metal);
+   boxMesh(c,sx,.23,.065,.045,.035,.16,chair);
+  }
+  cylMesh(c,0,.035,0,.025,.03,.08,metal,12);
+  for(let k=0;k<4;k++){const a=k*Math.PI/2;lineMesh(c,new THREE.Vector3(0,.025,0),new THREE.Vector3(Math.cos(a)*.105,.025,Math.sin(a)*.105),.009,metal);}
+ }
+ // Speakerphone puck with radial microphone ports.
+ C(g,0,.59,-.03,.075,.075,.025,chair,32);
+ C(g,0,.607,-.03,.055,.055,.009,dark,32);
+ for(let i=0;i<8;i++){const a=i*Math.PI/4;sphereMesh(g,Math.cos(a)*.041,.615,-.03+Math.sin(a)*.041,.004,accent);}
+ sphereMesh(g,0,.617,-.03,.012,accent);
+ // Shared presentation tablet, stylus, folders and loose documents.
+ boxMesh(g,.0,.595,-.21,.24,.018,.15,dark);
+ boxMesh(g,.0,.606,-.21,.21,.009,.12,screen);
+ boxMesh(g,-.29,.585,.02,.13,.012,.18,paper);
+ for(let i=0;i<3;i++)boxMesh(g,-.29,.594+i*.003,.02,.12,.002,.16,i===2?mat(0xb7c4c4):paper);
+ lineMesh(g,new THREE.Vector3(.22,.59,.13),new THREE.Vector3(.34,.59,.20),.008,metal);
+ // Slim cable channel under the tabletop and discreet brass fasteners.
+ boxMesh(g,0,.44,0,.48,.035,.08,chair);
+ for(const x of [-.36,.36])sphereMesh(g,x,.565,0,.012,edge);
+ g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+}
+function createSecurity(parent,o){
+ const g=new THREE.Group();parent.add(g);
+ const shell=mat(0x354e65,.48,.48),dark=mat(0x0c1d30,.42,.3),metal=mat(0x8398a6,.32,.7),chair=mat(0x24364b,.7,.18),screens=[0x29b9e8,0x39d7b9,0x7e9cff].map(c=>mat(c,.2,.18,{emissive:c,emissiveIntensity:.72}));
+ // Compact security operations console with a substantial cabinet and metal edge trim.
+ boxMesh(g,0,.36,0,.88,.62,.52,shell);
+ boxMesh(g,0,.685,0,.91,.055,.55,metal);
+ boxMesh(g,0,.72,0,.88,.035,.52,dark);
+ for(const x of [-.39,.39])boxMesh(g,x,.37,.27,.045,.60,.025,metal);
+ // Three independent surveillance monitors with bezels, stands and camera feeds.
+ for(let i=0;i<3;i++){
+  const x=(i-1)*.255;
+  boxMesh(g,x,.94,-.075,.245,.29,.045,dark);
+  boxMesh(g,x,.945,-.047,.215,.245,.012,metal);
+  boxMesh(g,x,.945,-.038,.198,.224,.008,screens[i]);
+  // Feed overlays: perimeter scan lines, tracking reticle and small status bar.
+  for(let k=0;k<4;k++)boxMesh(g,x-.075+k*.05,.88,-.031,.032,.004,.003,mat(0xd2eaf1,.5,0,{transparent:true,opacity:.55}));
+  boxMesh(g,x,.84,-.03,.12,.008,.003,screens[i]);
+  const reticle=new THREE.Mesh(new THREE.RingGeometry(.025,.029,24),new THREE.MeshBasicMaterial({color:0xe1f6ff,transparent:true,opacity:.75,side:THREE.DoubleSide}));reticle.position.set(x,.96,-.029);g.add(reticle);
+  boxMesh(g,x,.77,-.075,.025,.10,.035,metal);
+  boxMesh(g,x,.715,-.075,.13,.018,.10,dark);
+ }
+ // Keyboard, radio handset, access-control keypad and status lights.
+ boxMesh(g,0,.755,.18,.30,.018,.13,dark);
+ for(let row=0;row<3;row++)for(let col=0;col<10;col++)boxMesh(g,-.13+col*.029,.768,.14+row*.035,.021,.006,.022,row===0&&col===9?screens[1]:metal);
+ boxMesh(g,.34,.79,.13,.09,.035,.15,dark);
+ for(let i=0;i<4;i++)sphereMesh(g,.31+i*.02,.813,.207,.006,screens[i%3]);
+ boxMesh(g,-.34,.79,.13,.08,.035,.14,chair);
+ lineMesh(g,new THREE.Vector3(-.34,.81,.12),new THREE.Vector3(-.36,.91,.12),.012,metal);
+ for(let i=0;i<3;i++)sphereMesh(g,-.34,.94+i*.025,.12,.012,screens[i]);
+ // Operator chair, seat cushion and compact swivel base.
+ boxMesh(g,0,.27,.40,.25,.07,.22,chair);
+ boxMesh(g,0,.49,.49,.25,.34,.07,chair);
+ for(const x of [-.16,.16])boxMesh(g,x,.36,.40,.035,.06,.20,metal);
+ cylMesh(g,0,.10,.40,.025,.03,.20,metal,12);
+ for(let i=0;i<4;i++){const a=i*Math.PI/2;lineMesh(g,new THREE.Vector3(0,.025,.40),new THREE.Vector3(Math.cos(a)*.15,.025,.40+Math.sin(a)*.15),.012,dark);}
+ sphereMesh(g,.39,.48,.29,.025,screens[1]);
+ g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+}
 function createWorker3D(parent,desk){
  // Refined isometric office character: natural proportions, tailored clothing,
  // layered hair and a restrained face. The articulated rig/API stays unchanged.

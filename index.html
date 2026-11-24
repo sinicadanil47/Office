@@ -1105,10 +1105,10 @@ function addInteriorDecor(parent,n,tier,wallH){
   // Warm coworking: two generous daylight windows, timber slats and pale wall fields.
   for(let i=0;i<2;i++){
    const x=n*(i+1)/3,w=Math.min(2.15,n*.31);
-   addArchitecturalWindow(parent,"back",x,1.02,w,1.72,{frame:0x536b6b,glass:0xa9dce8,glow:0xffe1b0,glowI:.24,bar:0xe4d5bd});
-   addWindowBackdrop(parent,"back",x,1.02,w,1.72,1);
-   back(x,.94,.105,w+.16,.10,.12,trim);
-   addWindowLightStrip(parent,x,2.35,.95,3.65,0xffe2b7);
+   addArchitecturalWindow(parent,"back",x,.82,w,1.62,{frame:0x536b6b,glass:0xa9dce8,glow:0xffe1b0,glowI:.24,bar:0xe4d5bd});
+   addWindowBackdrop(parent,"back",x,.82,w,1.62,1);
+   back(x,.74,.105,w+.16,.10,.12,trim);
+   addWindowLightStrip(parent,x,2.12,.95,3.25,0xffe2b7);
   }
   for(let i=0;i<9;i++)back(.42+i*.16,.38,.075,.055,1.05,.05,M(0xb58a5e,.66));
   back(n/2,.48,.09,Math.min(1.8,n*.25),.58,.07,M(0xf1eee5,.84));
@@ -1118,12 +1118,12 @@ function addInteriorDecor(parent,n,tier,wallH){
  }else if(tier===2){
   // Business centre: polished stone, dark panoramic frames and monumental corner piers.
   const windowTheme={frame:0x252d38,glass:0xeab58d,glow:0xffbd80,glowI:.28,bar:0xb68d66};
-  addArchitecturalWindow(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,windowTheme);
-  addWindowBackdrop(parent,"back",n*.34,.76,Math.min(3.1,n*.34),2.15,2);
-  addArchitecturalWindow(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,windowTheme);
-  addWindowBackdrop(parent,"back",n*.72,.76,Math.min(2.6,n*.29),2.15,2);
-  addArchitecturalWindow(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,windowTheme);
-  addWindowBackdrop(parent,"side",n*.52,.76,Math.min(3.3,n*.38),2.15,2);
+  addArchitecturalWindow(parent,"back",n*.34,.48,Math.min(3.1,n*.34),1.92,windowTheme);
+  addWindowBackdrop(parent,"back",n*.34,.48,Math.min(3.1,n*.34),1.92,2);
+  addArchitecturalWindow(parent,"back",n*.72,.48,Math.min(2.6,n*.29),1.92,windowTheme);
+  addWindowBackdrop(parent,"back",n*.72,.48,Math.min(2.6,n*.29),1.92,2);
+  addArchitecturalWindow(parent,"side",n*.52,.48,Math.min(3.3,n*.38),1.92,windowTheme);
+  addWindowBackdrop(parent,"side",n*.52,.48,Math.min(3.3,n*.38),1.92,2);
   // Deep stone-clad piers at both exposed rear corners.
   for(const [x,z] of [[.14,.12],[n-.14,.12]]){
    back(x,0,z,.28,wallH,.28,M(0x737b80,.45,.22));
@@ -1131,9 +1131,9 @@ function addInteriorDecor(parent,n,tier,wallH){
    back(x,wallH-.18,z,.34,.12,.34,trim);
   }
   side(.12,0,n-.14,.28,wallH,.28,M(0x737b80,.45,.22));
-  addWindowLightStrip(parent,n*.34,2.75,1.05,4.3,0xffc38d);
-  addWindowLightStrip(parent,n*.72,2.75,.92,4.0,0xffc38d);
-  addWindowLightStrip(parent,.52,2.65,.9,4.2,0xffc38d);
+  addWindowLightStrip(parent,n*.34,2.15,1.05,3.7,0xffc38d);
+  addWindowLightStrip(parent,n*.72,2.15,.92,3.5,0xffc38d);
+  addWindowLightStrip(parent,.52,2.15,.9,3.6,0xffc38d);
  }else if(tier===3){
   // IT tower: full-height glass bays, slim metal mullions and cyan perimeter lighting.
   const glass=mat(0x164655,.24,.45,{transparent:true,opacity:.28,depthWrite:false,emissive:0x123a48,emissiveIntensity:.35}),rail=M(0x63828b,.35,.65),light=M(0x38d7cb,.25,.3,.9);
@@ -1288,7 +1288,7 @@ function addRoom3D(){
  boxMesh(threeFloorGroup,.045,.018,n/2,.09,.055,n+.24,rim);
  boxMesh(threeFloorGroup,n-.045,.018,n/2,.09,.055,n+.24,rim);
  }
- const wallH=tier===0?3.65:3.05;
+ const wallH=2.7;
  const wallColors=[0x596166,0xe5e6df,0xd1d5d6,0x14232d,0x252532];
  const wallMat=tier===4?mat(0x9eb6c9,.25,.18,{transparent:true,opacity:.12,depthWrite:false}):mat(wallColors[tier],tier===2?.48:.84,tier===2?.08:0);
  // Exactly two rear walls. Their fronts remain fully open for the isometric cutaway view.

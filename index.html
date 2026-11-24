@@ -1505,7 +1505,7 @@ function dev3dEditSelected(action){
 }
 function dev3dRenderPreview(){
  if(!dev3dState.root||!dev3dState.ready)return;while(dev3dState.root.children.length){const o=dev3dState.root.children[0];dev3dState.root.remove(o);}dev3dState.previewObjects=[];
- dev3dState.mixer=null;dev3dState.parts.forEach((p,i)=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;const placed=dev3dPlace(obj,p);placed.traverse(n=>{n.userData.dev3dPartIndex=i;});placed.userData.dev3dPartIndex=i;dev3dState.root.add(placed);dev3dState.previewObjects.push(placed);if(String(p.asset).startsWith("character:")){const clip=dev3dAnimationClipFor(p.asset,obj);if(clip){dev3dState.mixer=new THREE.AnimationMixer(obj);dev3dState.mixer.clipAction(clip).reset().play();}}});
+ dev3dState.mixer=null;const previewParts=[];dev3dState.parts.forEach((p,i)=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;const placed=dev3dPlace(obj,p);placed.traverse(n=>{n.userData.dev3dPartIndex=i;});placed.userData.dev3dPartIndex=i;dev3dState.root.add(placed);dev3dState.previewObjects.push(placed);previewParts.push({part:p,obj,placed});if(String(p.asset).startsWith("character:")){const clip=dev3dAnimationClipFor(p.asset,obj);if(clip){dev3dState.mixer=new THREE.AnimationMixer(obj);dev3dState.mixer.clipAction(clip).reset().play();}}});if(dev3dState.type==="ceo")dev3dAttachCharacterToChair(dev3dState.root,previewParts);
  dev3dState.root.position.set(0,0,0);let b=new THREE.Box3().setFromObject(dev3dState.root),size=b.getSize(new THREE.Vector3());const m=.012,fits=b.min.x>=-.5-m&&b.max.x<=.5+m&&b.min.z>=-.5-m&&b.max.z<=.5+m;dev3dStatus((fits?"В пределах клетки 1×1":"ВЫХОД ЗА ГРАНИЦЫ КЛЕТКИ")+" · X "+size.x.toFixed(2)+" × Z "+size.z.toFixed(2));
  const n=$("dev3dSelectedName");if(n)n.textContent=dev3dState.parts[dev3dState.selected]?"Выбран: "+dev3dState.parts[dev3dState.selected].name:"Выберите предмет на сцене";
 }
@@ -1594,6 +1594,13 @@ function dev3dAnimationClipFor(asset,obj){
  console.info("Character animation retargeted",asset,tracks.length+"/"+clip.tracks.length);
  return new THREE.AnimationClip(clip.name||"Typing",clip.duration,tracks);
 }
+function dev3dAttachCharacterToChair(parent,placedParts){
+ const char=placedParts.find(x=>x.part.asset==="character:boss"),chair=placedParts.find(x=>/chair/i.test(x.part.name||x.part.asset));
+ if(!char||!chair)return null;
+ const anchor=new THREE.Group();anchor.name="ceoChairAttachment";anchor.position.set(Number(chair.part.x)||0,Number(chair.part.y)||0,Number(chair.part.z)||0);anchor.rotation.y=THREE.MathUtils.degToRad(Number(chair.part.rot)||0);parent.add(anchor);
+ char.placed.position.sub(anchor.position);anchor.add(char.placed);char.placed.userData.attachedChair=chair.placed;char.placed.userData.chairAnchor=anchor;
+ return anchor;
+}
 function dev3dUsePreset(parent,o,key){
  const stored=dev3dPresets[key];if(!stored?.length||!dev3dState.ready)return null;
  const preset=(key==="ceo"?dev3dEnsureBossPart(stored.map(p=>({...p}))):stored);
@@ -1607,6 +1614,7 @@ function dev3dUsePreset(parent,o,key){
   const keyPart=placedParts.find(x=>/keyboard/i.test(x.part.name||x.part.asset));
   const mousePart=placedParts.find(x=>/mouse/i.test(x.part.name||x.part.asset));
   const chairPart=placedParts.find(x=>/chair/i.test(x.part.name||x.part.asset));
+  dev3dAttachCharacterToChair(group,placedParts);
   if(char){
    const controller=dev3dCreateTypingController(char.obj,keyPart?.placed,mousePart?.placed);
    const clip=dev3dAnimationClipFor("character:boss",char.obj);
@@ -1614,7 +1622,7 @@ function dev3dUsePreset(parent,o,key){
    dev3dTypingControllers.push(controller);
    group.userData.typingController=controller;
    group.userData.characterObject=char.placed;
-   if(chairPart)char.placed.userData.attachedChair=chairPart.placed;
+
   }else{
    placedParts.filter(x=>String(x.part.asset).startsWith("character:")).forEach(x=>{
     const clip=dev3dAnimationClipFor(x.part.asset,x.obj);if(clip){const mixer=new THREE.AnimationMixer(x.obj);mixer.clipAction(clip).reset().play();dev3dGameMixers.push(mixer);}

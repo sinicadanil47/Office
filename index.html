@@ -101,7 +101,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 <button class="item" data-type="desk"><canvas class="sprite-preview" data-sprite="desk" data-preview-type="desk" data-level="1" width="56" height="56" aria-hidden="true"></canvas><b>IT-стол · уровень 1</b><small>Программист · +$25/сек</small><strong>$500</strong><span class="desk-level-strip">L1 → L2 → L3 → L4+</span></button>
 <button class="item" data-type="coffee"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>Кофе команде · +25% дохода соседних IT-столов</small><strong>$800</strong></button>
 <button class="item" data-type="server"><canvas class="sprite-preview" data-sprite="server" width="56" height="56" aria-hidden="true"></canvas><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
-<button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
+<button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита · киберзащита</small><strong>$4 000</strong></button>
 <button class="item" data-type="ceo"><canvas class="sprite-preview" data-sprite="ceo" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>Шеф · +$140/сек · +45 престижа · VIP-контракты</small><strong>$6 500</strong></button>
 </div>
 <div class="tools"><button class="tool-btn" id="rotateBtn">↻ Повернуть (90°)</button><button class="tool-btn" id="sellBtn">⌫ Режим продажи</button></div>
@@ -197,7 +197,7 @@ const TYPES={
  coffee:{name:"Кофемашина",cost:800,base:0,icon:"coffee"},
  server:{name:"Серверная стойка",cost:2000,base:90,icon:"server"},
  meeting:{name:"Переговорная",cost:3500,base:110,prestige:20,icon:"meeting"},
- security:{name:"Отдел безопасности",cost:4000,base:80,prestige:30,icon:"security"},
+ security:{name:"Отдел безопасности",cost:4000,base:80,prestige:30,protection:25,icon:"security"},
  ceo:{name:"Стол руководителя",cost:6500,base:140,prestige:45,icon:"ceo"},
 };
 
@@ -283,8 +283,20 @@ const FLOORS=[
  {tier:4,name:"Пентхаус",floorLabel:"ЭТАЖ 50 · 13×13",gridSize:13,reqPrestige:500,cost:85000,incomeMult:2.0,bonus:100}
 ];
 let state={balance:2500,prestige:0,layout:[],floorTier:0,gridSize:5,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};
-try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&typeof saved==="object")state={...state,...saved,viewing:null,selected:null,sellMode:false};}catch(e){}
+let hasLocalCyberSecurityState=false;
+try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&typeof saved==="object"){state={...state,...saved,viewing:null,selected:null,sellMode:false};hasLocalCyberSecurityState=!!saved.cyberSecurityState;}}catch(e){}
 state.layout=(Array.isArray(state.layout)?state.layout:[]).filter(o=>o&&o.type!=="boss");
+function makeCyberObjectId(){return "office_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9);}
+state.layout.forEach(o=>{if(!o.id)o.id=makeCyberObjectId();});
+const CYBER_ATTACK_INTERVAL_MIN=600000,CYBER_ATTACK_INTERVAL_MAX=900000;
+function randomCyberDelay(){return CYBER_ATTACK_INTERVAL_MIN+Math.floor(Math.random()*(CYBER_ATTACK_INTERVAL_MAX-CYBER_ATTACK_INTERVAL_MIN+1));}
+const cyberDefaults=()=>({nextAttackAt:Date.now()+randomCyberDelay(),activeThreat:null,activeDebuffs:{ddosUntil:0,blockedDesks:{},shieldUntil:0,shieldCharges:0},incidentHistory:[]});
+let cyberSecurityState=state.cyberSecurityState&&typeof state.cyberSecurityState==="object"?state.cyberSecurityState:cyberDefaults();
+cyberSecurityState.activeDebuffs=cyberSecurityState.activeDebuffs||{ddosUntil:0,blockedDesks:{},shieldUntil:0,shieldCharges:0};
+cyberSecurityState.activeDebuffs.blockedDesks=cyberSecurityState.activeDebuffs.blockedDesks||{};
+cyberSecurityState.incidentHistory=Array.isArray(cyberSecurityState.incidentHistory)?cyberSecurityState.incidentHistory.slice(-15):[];
+if(!Number.isFinite(Number(cyberSecurityState.nextAttackAt))||Number(cyberSecurityState.nextAttackAt)<=0)cyberSecurityState.nextAttackAt=Date.now()+randomCyberDelay();
+state.cyberSecurityState=cyberSecurityState;
 function legacyTier(size){return ({8:0,10:1,12:2,14:3})[Number(size)]??0;}
 let floorTier=Number.isInteger(Number(state.floorTier))&&Number(state.floorTier)>=0&&Number(state.floorTier)<=4?Number(state.floorTier):legacyTier(state.gridSize);
 let gridSize=FLOORS[floorTier].gridSize;state.floorTier=floorTier;state.gridSize=gridSize;
@@ -294,26 +306,27 @@ function decodeCloudLayout(raw,fallbackTier=floorTier){
  const arr=Array.isArray(raw)?raw:[],meta=arr.find(o=>o&&o.type==="__meta");let tier=fallbackTier;
  if(meta&&meta.floorTier!==undefined&&Number.isInteger(Number(meta.floorTier))&&Number(meta.floorTier)>=0&&Number(meta.floorTier)<=4)tier=Number(meta.floorTier);
  else if(meta&&meta.gridSize)tier=legacyTier(meta.gridSize);
- return {layout:arr.filter(o=>o&&o.type!=="__meta"&&o.type!=="boss"),floorTier:tier,gridSize:FLOORS[tier].gridSize};
+ return {layout:arr.filter(o=>o&&o.type!=="__meta"&&o.type!=="boss"),floorTier:tier,gridSize:FLOORS[tier].gridSize,cyberSecurityState:meta?.cyberSecurityState||null};
 }
-function cloudLayout(){return [...state.layout,{type:"__meta",floorTier,gridSize}];}
-function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,floorTier,gridSize,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned,lastVisit:Date.now()}));}catch(e){}}
+function cloudLayout(){return [...state.layout,{type:"__meta",floorTier,gridSize,cyberSecurityState}];}
+function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,floorTier,gridSize,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned,cyberSecurityState,lastVisit:Date.now()}));}catch(e){}}
 function cloudPayload(){return {id:playerId,username:player,balance:Math.floor(state.balance),income:incomeFor(state.layout),prestige:prestigeFor(state.layout),mode:state.peace?"peace":"compete",layout:cloudLayout(),updated_at:new Date().toISOString()};}
 async function syncPlayer(showError=false){localSave();if(!db)return false;try{const {error}=await db.from("players").upsert(cloudPayload(),{onConflict:"id"});if(error)throw error;cloudReady=true;return true;}catch(err){cloudReady=false;console.warn("Supabase save failed:",err);if(showError)toast("Нет связи — прогресс сохранён локально");return false;}}
 function save(){localSave();clearTimeout(saveTimer);saveTimer=setTimeout(()=>syncPlayer(false),400);}
-async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);const decoded=decodeCloudLayout(data.layout,floorTier);state.layout=decoded.layout;floorTier=decoded.floorTier;gridSize=FLOORS[floorTier].gridSize;state.floorTier=floorTier;state.gridSize=gridSize;state.prestige=Math.max(0,(Number(data.prestige)||0)-basePrestigeFor(state.layout));state.peace=data.mode!=="compete";}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:cloudLayout()},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();resize();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
+async function loadPlayer(){if(!db)return;try{const {data,error}=await db.from("players").select("id,username,balance,income,prestige,mode,layout").eq("id",playerId).maybeSingle();if(error)throw error;if(data){state.balance=Number(data.balance??2500);const decoded=decodeCloudLayout(data.layout,floorTier);state.layout=decoded.layout;floorTier=decoded.floorTier;gridSize=FLOORS[floorTier].gridSize;state.floorTier=floorTier;state.gridSize=gridSize;state.prestige=(Number(data.prestige)||0)-basePrestigeFor(state.layout);state.peace=data.mode!=="compete";if(decoded.cyberSecurityState&&!hasLocalCyberSecurityState)restoreCyberSecurityState(decoded.cyberSecurityState);state.layout.forEach(o=>{if(!o.id)o.id=makeCyberObjectId();});}else{const {error:e}=await db.from("players").upsert({id:playerId,username:player,balance:2500,income:0,prestige:0,mode:"peace",layout:cloudLayout()},{onConflict:"id"});if(e)throw e;}cloudReady=true;localSave();updateUI();resize();}catch(err){cloudReady=false;console.warn("Supabase load failed:",err);toast("Сервер недоступен — локальный прогресс");}}
 function toast(s){const t=$("toast");t.textContent=s;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1900);}
+function cyberDeskBlocked(o){return !!(o&&o.id&&(cyberSecurityState.activeDebuffs.blockedDesks?.[o.id]||0)>Date.now());}
 function incomeFor(layout,tier=floorTier){
  let sum=0;
- layout.forEach(o=>{const t=TYPES[o.type];if(t)sum+=(t.base||0)+(Number(o.baseBonus)||0);});
- layout.filter(o=>o.type==="desk").forEach(d=>{
+ layout.forEach(o=>{if(o.type==="desk"&&cyberDeskBlocked(o))return;const t=TYPES[o.type];if(t)sum+=(t.base||0)+(Number(o.baseBonus)||0);});
+ layout.filter(o=>o.type==="desk"&&!cyberDeskBlocked(o)).forEach(d=>{
   let bonus=0;
   layout.forEach(o=>{if(o===d)return;const dist=Math.abs(o.x-d.x)+Math.abs(o.y-d.y);if(dist<=1){if(o.type==="coffee")bonus+=.25*(1+Math.max(0,Math.min(3,(Number(o.level)||1)-1))*.2);if(o.type==="server")bonus+=.15*(1+Math.max(0,(o.level||1)-1)*.1);}});
   sum+=25*bonus;
  });
- return sum*FLOORS[Math.max(0,Math.min(4,Number(tier)||0))].incomeMult;
+ const tierMult=FLOORS[Math.max(0,Math.min(4,Number(tier)||0))].incomeMult;return sum*tierMult*(layout===state.layout&&(cyberSecurityState.activeDebuffs.ddosUntil||0)>Date.now()?.7:1);
 }
-function basePrestigeFor(layout){return layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0)+Math.max(0,(Number(o.level)||1)-1)*5,0);}function prestigeFor(layout){return basePrestigeFor(layout)+state.prestige;}
+function basePrestigeFor(layout){return layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0)+Math.max(0,(Number(o.level)||1)-1)*5,0);}function prestigeFor(layout){return Math.max(0,basePrestigeFor(layout)+state.prestige);}
 const currentLayout=()=>state.viewing?state.viewing.layout:state.layout;
 function updateExpansionUI(){
  const next=FLOORS[floorTier+1],prestige=prestigeFor(state.layout);
@@ -328,6 +341,139 @@ function buyExpansion(){
  if(state.balance<next.cost){toast("Недостаточно денег для переезда");return;}
  state.balance-=next.cost;floorTier=next.tier;gridSize=next.gridSize;state.floorTier=floorTier;state.gridSize=gridSize;
  pointer=null;cameraZoom=1;cameraOffsetX=0;cameraOffsetY=0;threePanX=0;threePanZ=0;resize();fitLargeFloorCamera();save();syncPlayer(false);updateUI();haptic();toast("Переезд выполнен! Доход офиса увеличен!");
+}
+
+const CYBER_ATTACKS=[
+ {type:"ddos",name:"DDoS-атака",danger:"Низкий / слабый",description:"Поток вредоносного трафика перегружает сетевую инфраструктуру компании."},
+ {type:"server_hack",name:"Взлом сервера",danger:"Высокий",description:"Злоумышленники получили доступ к корпоративному серверу и пытаются вывести средства."},
+ {type:"data_theft",name:"Кража данных",danger:"Средний",description:"Обнаружена утечка конфиденциальных данных и клиентской информации."},
+ {type:"ransomware",name:"Атака шифровальщика",danger:"Средний / слабый",description:"Вредоносное ПО пытается зашифровать рабочую станцию одного из IT-сотрудников."},
+ {type:"fraud",name:"Финансовое мошенничество",danger:"Критический",description:"Зафиксирована подмена финансовых реквизитов и попытка крупного несанкционированного списания."}
+];
+const CYBER_TWO_HOURS=7200000,CYBER_ONE_HOUR=3600000,CYBER_SHIELD_TIME=1800000;
+let cyberModal=null,cyberModalKey="";
+function restoreCyberSecurityState(raw){
+ if(!raw||typeof raw!=="object")return;
+ const d=cyberDefaults();Object.assign(cyberSecurityState,d,raw);
+ cyberSecurityState.activeDebuffs={...d.activeDebuffs,...(raw.activeDebuffs||{})};
+ cyberSecurityState.activeDebuffs.blockedDesks={...(raw.activeDebuffs?.blockedDesks||{})};
+ cyberSecurityState.incidentHistory=Array.isArray(raw.incidentHistory)?raw.incidentHistory.slice(-15):[];
+ if(!Number.isFinite(Number(cyberSecurityState.nextAttackAt))||Number(cyberSecurityState.nextAttackAt)<=0)cyberSecurityState.nextAttackAt=Date.now()+randomCyberDelay();
+ state.cyberSecurityState=cyberSecurityState;
+}
+function cyberSecurityLevel(){return state.layout.filter(o=>o.type==="security").reduce((m,o)=>Math.max(m,Math.min(4,Math.max(1,Number(o.level)||1))),0);}
+function cyberFinancialMitigation(){return [0,.05,.10,.15,.20][cyberSecurityLevel()]||0;}
+function cyberQuotePrices(){
+ const lvl=cyberSecurityLevel(),rate=lvl>=2?.018:.02,balance=Math.max(0,Number(state.balance)||0);
+ return {quotedBalance:balance,emergencyRate:rate,emergencyCost:Math.round(balance*rate),reinforcedCost:Math.round(balance*.05)};
+}
+function cyberCreateThreat(stage,attackAt){
+ const def=CYBER_ATTACKS[Math.floor(Math.random()*CYBER_ATTACKS.length)],t={...def,stage,createdAt:Date.now(),attackAt,expiresAt:stage==="early_warning"?attackAt:Date.now()+30000,dismissed:false,damagePct:0,prestigePct:0};
+ if(t.type==="server_hack")t.damagePct=10+Math.random()*2;
+ if(t.type==="fraud")t.damagePct=15+Math.random()*5;
+ if(t.type==="data_theft")t.prestigePct=5+Math.random()*5;
+ Object.assign(t,cyberQuotePrices());return t;
+}
+function cyberMoney(n){return "$"+Math.round(n).toLocaleString("ru-RU");}
+function cyberConsequencesText(t){
+ if(t.type==="ddos")return "Снижение общего дохода на 30% на 2 часа.";
+ if(t.type==="server_hack")return "Списание "+t.damagePct.toFixed(1)+"% текущего баланса (потери уменьшаются защитой отдела).";
+ if(t.type==="data_theft")return "Потеря "+t.prestigePct.toFixed(1)+"% текущего престижа.";
+ if(t.type==="ransomware")return "Блокировка одного действующего IT-стола на 1 час.";
+ return "Списание "+t.damagePct.toFixed(1)+"% текущего баланса (потери уменьшаются защитой отдела).";
+}
+function cyberEnsureModal(){
+ if(cyberModal)return cyberModal;
+ const style=document.createElement("style");style.textContent=`
+ .cyber-overlay{display:none;position:fixed;inset:0;z-index:125;align-items:center;justify-content:center;padding:16px;background:rgba(2,6,16,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+ .cyber-overlay.show{display:flex}.cyber-panel{width:min(510px,100%);max-height:88dvh;overflow:auto;border:1px solid rgba(248,113,113,.48);border-radius:20px;background:linear-gradient(155deg,#17263b,#0b1424 72%);box-shadow:0 24px 80px #000c,0 0 35px #ef444422;padding:18px;color:#edf5ff}
+ .cyber-kicker{font-size:10px;font-weight:900;letter-spacing:1.8px;color:#fca5a5}.cyber-panel h2{font-size:19px;line-height:1.2;margin:7px 0 10px;color:#fff}.cyber-threat{padding:12px;border:1px solid #41516a;border-radius:13px;background:#ffffff08}.cyber-threat b{display:block;font-size:14px}.cyber-threat small,.cyber-copy{display:block;color:#aebed2;font-size:11px;line-height:1.5;margin-top:5px}.cyber-danger{display:inline-block;margin-top:8px;padding:4px 8px;border-radius:20px;background:#7f1d1d66;color:#fecaca;font-size:10px;font-weight:800}.cyber-consequence{margin:12px 0;padding:10px;border-radius:11px;background:#0b1728;color:#e2e8f0;font-size:11px;line-height:1.5}.cyber-count{display:flex;justify-content:space-between;align-items:center;margin:12px 0;font-size:11px;color:#cbd5e1}.cyber-count strong{font-size:20px;color:#fca5a5;font-variant-numeric:tabular-nums}.cyber-actions{display:grid;grid-template-columns:1fr;gap:8px}.cyber-actions button{min-height:44px;border-radius:11px;padding:10px 12px;text-align:left;font-size:12px;font-weight:800}.cyber-actions button small{display:block;font-size:10px;font-weight:500;opacity:.82;margin-top:3px}.cyber-primary{background:linear-gradient(135deg,#9f3434,#dc4b4b);color:white}.cyber-strong{background:linear-gradient(135deg,#9a6a1d,#d59a34);color:#fff}.cyber-ignore{background:#26364d;color:#dce8f6}.cyber-actions button:disabled{opacity:.35;filter:grayscale(1)}.cyber-foot{margin-top:10px;color:#8ea2bc;font-size:9px;line-height:1.4}
+ .cyber-upgrade-info{margin:9px 0;padding:10px;border-radius:10px;background:#14243a;border:1px solid #334a66}.cyber-upgrade-info b{display:block;font-size:10px;color:#93c5fd}.cyber-upgrade-info small{display:block;margin-top:5px;color:#a9bad0;font-size:9px;line-height:1.5}
+ `;document.head.appendChild(style);
+ cyberModal=document.createElement("div");cyberModal.className="cyber-overlay";cyberModal.innerHTML='<div class="cyber-panel" role="dialog" aria-modal="true" aria-live="polite"></div>';document.body.appendChild(cyberModal);return cyberModal;
+}
+function cyberHideModal(){if(cyberModal)cyberModal.classList.remove("show");cyberModalKey="";}
+function cyberPlayAlarm(){
+ try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=new AC(),now=ac.currentTime;[0,.19,.38].forEach((offset,i)=>{const osc=ac.createOscillator(),gain=ac.createGain();osc.type="sawtooth";osc.frequency.value=i%2?740:560;gain.gain.setValueAtTime(.0001,now+offset);gain.gain.exponentialRampToValueAtTime(.075,now+offset+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+offset+.14);osc.connect(gain);gain.connect(ac.destination);osc.start(now+offset);osc.stop(now+offset+.15);});setTimeout(()=>ac.close().catch(()=>{}),900);}catch(e){}
+}
+function cyberRenderModal(){
+ const t=cyberSecurityState.activeThreat;if(!t){cyberHideModal();return;}
+ if(t.stage==="early_warning"&&t.dismissed){cyberHideModal();return;}
+ const el=cyberEnsureModal(),panel=el.firstElementChild,key=t.stage+":"+t.type;
+ if(cyberModalKey!==key){
+  cyberModalKey=key;
+  const early=t.stage==="early_warning",title=early?"СИСТЕМА РАННЕГО ОБНАРУЖЕНИЯ":"КИБЕРАТАКА ОБНАРУЖЕНА!";
+  const em=t.emergencyCost,rein=t.reinforcedCost,canE=state.balance>=em,canR=state.balance>=rein;
+  panel.innerHTML='<div class="cyber-kicker">'+(early?"EARLY WARNING · SECURITY LEVEL 4":"CYBER SECURITY ALERT")+'</div><h2>'+title+'</h2><div class="cyber-threat"><b>'+t.name+'</b><small>'+t.description+'</small><span class="cyber-danger">Уровень опасности: '+t.danger+'</span></div><div class="cyber-consequence"><b>Возможные последствия</b><br>'+cyberConsequencesText(t)+'</div><div class="cyber-count"><span>'+(early?"До предполагаемой атаки":"До автоматического решения")+'</span><strong id="cyberCountdown">--:--</strong></div><div class="cyber-actions"><button class="cyber-primary" id="cyberEmergency" '+(!canE?'disabled':'')+'>'+(early?"Активировать экстренную защиту":"Экстренная защита")+'<small>'+cyberMoney(em)+' · '+(t.emergencyRate*100).toFixed(1)+'% баланса · полностью блокирует атаку</small></button><button class="cyber-strong" id="cyberReinforced" '+(!canR?'disabled':'')+'>'+(early?"Активировать усиленную защиту":"Усиленная защита")+'<small>'+cyberMoney(rein)+' · 5% баланса · блокировка + щит на 30 минут</small></button><button class="cyber-ignore" id="cyberIgnore">'+(early?"Игнорировать предупреждение":"Игнорировать")+'<small>'+(early?"Атака продолжится через минуту":"Последствия атаки будут применены немедленно")+'</small></button></div><div class="cyber-foot">Стоимость зафиксирована при открытии окна. Усиленный щит блокирует следующую атаку бесплатно.</div>';
+  panel.querySelector("#cyberEmergency").onclick=()=>cyberChoose("emergency");
+  panel.querySelector("#cyberReinforced").onclick=()=>cyberChoose("reinforced");
+  panel.querySelector("#cyberIgnore").onclick=()=>cyberChoose("ignore");
+ }
+ const remain=t.stage==="early_warning"?Math.max(0,t.attackAt-Date.now()):Math.max(0,t.expiresAt-Date.now());
+ const countdown=panel.querySelector("#cyberCountdown");if(countdown)countdown.textContent=Math.ceil(remain/1000)+" сек.";
+ el.classList.add("show");
+}
+function cyberRecord(outcome,detail){
+ const t=cyberSecurityState.activeThreat;if(!t)return;
+ cyberSecurityState.incidentHistory.push({timestamp:Date.now(),type:t.type,name:t.name,outcome,detail:String(detail||"")});
+ cyberSecurityState.incidentHistory=cyberSecurityState.incidentHistory.slice(-15);
+}
+function cyberFinishThreat(outcome,detail,notify=true){
+ cyberRecord(outcome,detail);cyberSecurityState.activeThreat=null;cyberSecurityState.nextAttackAt=Date.now()+randomCyberDelay();cyberHideModal();save();syncPlayer(false);updateUI();
+ if(notify)toast((outcome==="reflected"?"Защита успешна: ":"Киберинцидент: ")+detail);
+}
+function cyberApplyConsequences(t){
+ const now=Date.now(),mitigation=cyberFinancialMitigation();let detail="";
+ if(t.type==="ddos"){
+  cyberSecurityState.activeDebuffs.ddosUntil=Math.max(cyberSecurityState.activeDebuffs.ddosUntil||0,now+CYBER_TWO_HOURS);detail="Доход снижен на 30% на 2 часа.";
+ }else if(t.type==="server_hack"||t.type==="fraud"){
+  const raw=Math.max(0,state.balance)*(t.damagePct/100),loss=Math.min(state.balance,Math.round(raw*(1-mitigation)));
+  state.balance=Math.max(0,state.balance-loss);detail="Потеряно "+cyberMoney(loss)+" ("+t.damagePct.toFixed(1)+"% ущерба, защита уменьшила его на "+Math.round(mitigation*100)+"%).";
+ }else if(t.type==="data_theft"){
+  const total=prestigeFor(state.layout),loss=Math.round(total*t.prestigePct/100);state.prestige=Math.max(-basePrestigeFor(state.layout),state.prestige-loss);detail="Потеряно "+loss+" ★ престижа ("+t.prestigePct.toFixed(1)+"%).";
+ }else if(t.type==="ransomware"){
+  const candidates=state.layout.filter(o=>o.type==="desk"&&!cyberDeskBlocked(o));
+  if(candidates.length){const desk=candidates[Math.floor(Math.random()*candidates.length)];cyberSecurityState.activeDebuffs.blockedDesks[desk.id]=now+CYBER_ONE_HOUR;detail="Заблокирован IT-стол на 1 час.";}
+  else detail="Нет доступных IT-столов для блокировки.";
+ }
+ state.balance=Math.max(0,state.balance);state.prestige=Math.max(-basePrestigeFor(state.layout),state.prestige);
+ cyberFinishThreat("damage",detail,false);toast("Кибератака: "+detail);save();syncPlayer(false);updateUI();
+}
+function cyberBeginResponse(){
+ const t=cyberSecurityState.activeThreat;if(!t)return;
+ t.stage="response";t.dismissed=false;t.expiresAt=Date.now()+30000;Object.assign(t,cyberQuotePrices());
+ const shield=cyberSecurityState.activeDebuffs;
+ if((shield.shieldUntil||0)>Date.now()&&(shield.shieldCharges||0)>0){shield.shieldCharges=0;shield.shieldUntil=0;cyberFinishThreat("reflected","Усиленный щит бесплатно заблокировал атаку!");return;}
+ if(cyberSecurityLevel()>=3&&(t.type==="ddos"||t.type==="ransomware")){cyberFinishThreat("reflected","Отдел безопасности автоматически отразил атаку!");return;}
+ cyberPlayAlarm();toast("Обнаружена кибератака: "+t.name);cyberRenderModal();save();
+}
+function cyberChoose(action){
+ const t=cyberSecurityState.activeThreat;if(!t)return;
+ if(action==="ignore"&&t.stage==="early_warning"){t.dismissed=true;cyberHideModal();save();toast("Предупреждение принято к сведению");return;}
+ if(action==="ignore"){cyberApplyConsequences(t);return;}
+ const cost=action==="emergency"?t.emergencyCost:t.reinforcedCost;
+ if(state.balance<cost){toast("Недостаточно средств для защиты");return;}
+ state.balance=Math.max(0,state.balance-cost);
+ if(action==="reinforced"){cyberSecurityState.activeDebuffs.shieldUntil=Date.now()+CYBER_SHIELD_TIME;cyberSecurityState.activeDebuffs.shieldCharges=1;}
+ cyberFinishThreat("reflected",action==="reinforced"?"Атака отражена. Усиленный щит действует 30 минут.":"Атака полностью заблокирована. Потрачено "+cyberMoney(cost)+".");
+}
+function cyberTick(){
+ const now=Date.now(),debuffs=cyberSecurityState.activeDebuffs;let changed=false;
+ if((debuffs.ddosUntil||0)>0&&debuffs.ddosUntil<=now){debuffs.ddosUntil=0;changed=true;toast("DDoS-эффект завершён · доход восстановлен");}
+ Object.keys(debuffs.blockedDesks||{}).forEach(id=>{if(debuffs.blockedDesks[id]<=now){delete debuffs.blockedDesks[id];changed=true;toast("IT-стол разблокирован · работа восстановлена");}});
+ if((debuffs.shieldUntil||0)<=now&&(debuffs.shieldUntil||0)!==0){debuffs.shieldUntil=0;debuffs.shieldCharges=0;changed=true;}
+ let t=cyberSecurityState.activeThreat;
+ if(t){
+  if(t.stage==="early_warning"&&now>=t.attackAt)cyberBeginResponse();
+  else if(t.stage==="response"&&now>=t.expiresAt)cyberApplyConsequences(t);
+  else cyberRenderModal();
+ }else if(cyberSecurityState.nextAttackAt<=now){
+  cyberSecurityState.activeThreat=cyberCreateThreat("response",now);cyberBeginResponse();
+ }else if(cyberSecurityLevel()>=4&&cyberSecurityState.nextAttackAt-now<=60000){
+  cyberSecurityState.activeThreat=cyberCreateThreat("early_warning",cyberSecurityState.nextAttackAt);
+  cyberPlayAlarm();toast("Система раннего обнаружения: выявлена угроза!");cyberRenderModal();changed=true;
+ }
+ if(changed){save();updateUI();}
 }
 function updateUI(){
  const inc=incomeFor(state.layout);
@@ -799,6 +945,31 @@ function createMeeting(parent,o){
  boxMesh(g,0,.405,-.01,.34,.025,.06,dark);
  g.scale.x=1.85;g.position.set(o.x+1,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
+function createSecurityOfficerCharacter(){
+ const officer=createOfficeCharacter({isBoss:false,variantIndex:0});
+ officer.userData.isSecurity=true;
+ const uniformMat=new THREE.MeshStandardMaterial({color:0x172554,roughness:.65}),vestMat=new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.55,metalness:.2}),badgeMat=new THREE.MeshStandardMaterial({color:0xfacc15,metalness:.85,roughness:.2}),headsetMat=new THREE.MeshStandardMaterial({color:0x334155,roughness:.4}),micLedMat=new THREE.MeshStandardMaterial({color:0x38bdf8,emissive:0x38bdf8,emissiveIntensity:.9});
+ const pelvisGroup=officer.children[0],torsoGroup=pelvisGroup.children[1],torsoMesh=torsoGroup.children[0],headGroup=torsoGroup.children[1];
+ torsoMesh.material=uniformMat;
+ const vest=new THREE.Mesh(new THREE.BoxGeometry(.188,.17,.122),vestMat);vest.position.set(0,.115,0);torsoGroup.add(vest);
+ const badge=new THREE.Mesh(new THREE.CylinderGeometry(.014,.014,.008,6),badgeMat);badge.rotation.x=Math.PI/2;badge.position.set(-.048,.16,.064);torsoGroup.add(badge);
+ [-.075,.075].forEach(px=>{const strap=new THREE.Mesh(new THREE.BoxGeometry(.036,.01,.09),badgeMat);strap.position.set(px,.222,0);torsoGroup.add(strap);});
+ const earPiece=new THREE.Mesh(new THREE.BoxGeometry(.016,.032,.032),headsetMat);earPiece.position.set(.072,.065,0);headGroup.add(earPiece);
+ const micBoom=new THREE.Mesh(new THREE.BoxGeometry(.006,.006,.065),headsetMat);micBoom.position.set(.068,.045,.035);micBoom.rotation.y=-.25;headGroup.add(micBoom);
+ const micTip=new THREE.Mesh(new THREE.SphereGeometry(.007,8,8),micLedMat);micTip.position.set(.058,.045,.066);headGroup.add(micTip);
+ return officer;
+}
+function attachOfficerAndAlertToSecurityDesk(deskGroup){
+ const seatLocalPos=new THREE.Vector3(0,.268,.17),officer=createSecurityOfficerCharacter();
+ officer.position.copy(seatLocalPos);officer.rotation.y=Math.PI;deskGroup.add(officer);
+ deskGroup.userData.character=officer;deskGroup.userData.seatLocalPos=seatLocalPos.clone();deskGroup.userData.seatLocalRotY=Math.PI;
+ const alertGroup=new THREE.Group();alertGroup.position.set(0,.96,-.14);alertGroup.visible=false;
+ const beaconMat=new THREE.MeshStandardMaterial({color:0xef4444,emissive:0xdc2626,emissiveIntensity:1.4,transparent:true,opacity:.92});
+ const beacon=new THREE.Mesh(new THREE.OctahedronGeometry(.065,0),beaconMat);alertGroup.add(beacon);
+ const alertLight=new THREE.PointLight(0xef4444,1.4,2.2);alertGroup.add(alertLight);deskGroup.add(alertGroup);
+ deskGroup.userData.setCyberAlert=isActive=>{alertGroup.visible=!!isActive;};
+ deskGroup.userData.updateCyberAlert=elapsedTime=>{if(!alertGroup.visible)return;const pulse=(Math.sin(elapsedTime*8)+1)*.5;beacon.rotation.y=elapsedTime*3.5;beacon.position.y=Math.sin(elapsedTime*5)*.03;beaconMat.emissiveIntensity=.7+pulse*1.5;alertLight.intensity=.6+pulse*1.6;};
+}
 function createSecurityDeskModel(){
 const group=new THREE.Group();
 const deskDarkMat=new THREE.MeshStandardMaterial({color:0x1e242b,roughness:.55,metalness:.25}),deskTrimMat=new THREE.MeshStandardMaterial({color:0x3b4452,roughness:.4,metalness:.45}),chromeMat=new THREE.MeshStandardMaterial({color:0xcbd5e1,roughness:.25,metalness:.8}),chairSeatMat=new THREE.MeshStandardMaterial({color:0x262d36,roughness:.65}),chairAccentMat=new THREE.MeshStandardMaterial({color:0x2563eb,roughness:.5}),ledBlueMat=new THREE.MeshStandardMaterial({color:0x38bdf8,emissive:0x0ea5e9,emissiveIntensity:.9});
@@ -820,7 +991,8 @@ for(let i=0;i<5;i++){const an=i/5*Math.PI*2,l=new THREE.Mesh(new THREE.BoxGeomet
 const seat=new THREE.Mesh(new THREE.BoxGeometry(.28,.045,.26),chairSeatMat);seat.position.y=.25;seat.castShadow=true;chair.add(seat);const backrest=new THREE.Mesh(new THREE.BoxGeometry(.26,.30,.045),chairSeatMat);backrest.position.set(0,.42,.11);backrest.rotation.x=-.1;backrest.castShadow=true;chair.add(backrest);const stripe=new THREE.Mesh(new THREE.BoxGeometry(.08,.24,.05),chairAccentMat);stripe.position.set(0,.42,.112);stripe.rotation.x=-.1;chair.add(stripe);
 [-.15,.15].forEach(x=>{const sup=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.02),chromeMat);sup.position.set(x,.30,.02);chair.add(sup);const pad=new THREE.Mesh(new THREE.BoxGeometry(.032,.018,.16),deskDarkMat);pad.position.set(x,.36,.02);chair.add(pad);});group.add(chair);
 const glow=new THREE.PointLight(0x38bdf8,.5,1.2);glow.position.set(0,surfaceY+.18,deskZ+.06);group.add(glow);
-const box=new THREE.Box3().setFromObject(group),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());group.children.forEach(child=>{child.position.x-=center.x;child.position.z-=center.z;child.position.y-=box.min.y;});const maxHoriz=Math.max(size.x,size.z);if(maxHoriz>.85)group.scale.setScalar(.85/maxHoriz);return group;
+attachOfficerAndAlertToSecurityDesk(group);
+const box=new THREE.Box3().setFromObject(group),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());group.children.forEach(child=>{child.position.x-=center.x;child.position.z-=center.z;child.position.y-=box.min.y;});if(group.userData.character)group.userData.seatLocalPos.copy(group.userData.character.position);const maxHoriz=Math.max(size.x,size.z);if(maxHoriz>.85)group.scale.setScalar(.85/maxHoriz);return group;
 }
 function createSecurity(parent,o){const g=createSecurityDeskModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
 function createWorker3D(parent,desk){
@@ -1557,11 +1729,18 @@ class OfficeCharacterController{
  forceDock(){if(!this.character||!this.deskGroup)return;this.releaseCoffee();if(this.character.parent!==this.deskGroup)this.deskGroup.attach(this.character);this.character.position.copy(this.deskGroup.userData.seatLocalPos);this.character.rotation.set(0,this.deskGroup.userData.seatLocalRotY||0,0);this.character.userData.state="sit";this.phase="working";}
  dispose(){this.releaseCoffee();if(this.character?.parent!==this.deskGroup)this.character.parent?.remove(this.character);this.character=null;}
 }
+function attachCyberLockIndicator(deskGroup){
+ const marker=new THREE.Group();marker.position.set(0,1.12,.02);marker.visible=false;
+ const red=new THREE.MeshStandardMaterial({color:0xef4444,emissive:0xb91c1c,emissiveIntensity:1.1,roughness:.35});
+ const body=new THREE.Mesh(new THREE.BoxGeometry(.105,.085,.035),red);marker.add(body);
+ const shackle=new THREE.Mesh(new THREE.TorusGeometry(.027,.009,6,12,Math.PI),new THREE.MeshStandardMaterial({color:0xfca5a5,emissive:0xef4444,emissiveIntensity:.7}));shackle.position.y=.055;shackle.rotation.z=Math.PI;marker.add(shackle);
+ deskGroup.add(marker);deskGroup.userData.cyberLockIndicator=marker;
+}
 function rebuildThreeScene(){
  threeOfficeControllers.forEach(c=>c.forceDock());threeOfficeControllers.clear();dev3dGameMixers.forEach(m=>m.stopAllAction());dev3dGameMixers.length=0;dev3dProceduralRigs.length=0;dev3dTypingControllers.length=0;const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();
- floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);threeWorkerGroups.set(o,g);break;case"ceo":g=createCEO(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;}if(g)g.userData.object=o;});
- floor.forEach(o=>{if(o.type==="ceo"||o.type==="desk"||o.type==="coffee")return;const key=o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});
- floor.forEach(o=>{if(o.type!=="desk"&&o.type!=="ceo")return;const dg=threeFurnitureGroup.children.find(c=>c.userData.object===o),character=dg?.userData.character;if(dg&&character)threeOfficeControllers.set(o,new OfficeCharacterController({character,deskGroup:dg,scene:threeScene,getCoffeeMachineGroup:()=>threeFurnitureGroup?.children.find(c=>c.userData.object?.type==="coffee")||null}));});
+ floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);threeWorkerGroups.set(o,g);break;case"ceo":g=createCEO(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;}if(g){g.userData.object=o;if(o.type==="desk")attachCyberLockIndicator(g);}});
+ floor.forEach(o=>{if(o.type==="ceo"||o.type==="desk"||o.type==="coffee"||o.type==="security")return;const key=o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});
+ floor.forEach(o=>{if(o.type!=="desk"&&o.type!=="ceo"&&o.type!=="security")return;const dg=threeFurnitureGroup.children.find(c=>c.userData.object===o),character=dg?.userData.character;if(dg&&character)threeOfficeControllers.set(o,new OfficeCharacterController({character,deskGroup:dg,scene:threeScene,getCoffeeMachineGroup:()=>threeFurnitureGroup?.children.find(c=>c.userData.object?.type==="coffee")||null}));});
 }
 function updateThreeCamera(){if(!threeCamera)return;const n=currentGridSize(),span=n+5,aspect=Math.max(.5,threeWidth/Math.max(1,threeHeight));threeCamera.left=-span*aspect*.5;threeCamera.right=span*aspect*.5;threeCamera.top=span*.5;threeCamera.bottom=-span*.5;threeCamera.zoom=cameraZoom;const center=new THREE.Vector3(n/2+cameraOffsetX*.018+threePanX,0,n/2+cameraOffsetY*.018+threePanZ),d=span*1.75;threeCamera.position.copy(center).add(new THREE.Vector3(d,d,d));threeCamera.lookAt(center);threeCamera.updateProjectionMatrix();}
 function fitLargeFloorCamera(){
@@ -1589,6 +1768,7 @@ function renderThreeScene(){
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
  threePreviewGroup?.traverse(node=>{const character=node.userData?.character||node.userData?.worker;if(character?.userData?.update)character.userData.update(now);});
  threeOfficeControllers.forEach(controller=>controller.update(frameDt,now));
+ threeFurnitureGroup?.children.forEach(deskGroup=>{if(deskGroup.userData.updateCyberAlert){deskGroup.userData.setCyberAlert?.(!!cyberSecurityState.activeThreat);deskGroup.userData.updateCyberAlert(now);}const obj=deskGroup.userData.object;if(obj?.type==="desk"&&deskGroup.userData.cyberLockIndicator){const until=cyberSecurityState.activeDebuffs.blockedDesks?.[obj.id]||0;deskGroup.userData.cyberLockIndicator.visible=until>Date.now();}});
  threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});
  threeFloorGroup?.traverse(o=>{if(o.userData.dustMote){o.position.y=o.userData.baseY+Math.sin(now*1.7+o.userData.baseX)*.035;o.position.x=o.userData.baseX+Math.sin(now*.7+o.userData.baseY)*.045;}});
  if(buildPreviewState)updateBuildPreviewVisual();
@@ -1967,9 +2147,9 @@ function handleRoomTap(e){
  if(buildPreviewState){setBuildPreviewCell(c.x,c.y);return;}
  haptic();const i=state.layout.findIndex(o=>objectFootprintCells(o).some(cell=>cell.x===c.x&&cell.y===c.y));
  if(activeVip&&Date.now()<activeVip.expires&&i>=0&&state.layout[i].x===activeVip.x&&state.layout[i].y===activeVip.y){closeVipDeal();return;}
- if(state.sellMode){if(i>=0){const o=state.layout[i],controller=threeOfficeControllers.get(o);if(controller){controller.dispose();threeOfficeControllers.delete(o);}state.layout.splice(i,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
+ if(state.sellMode){if(i>=0){const o=state.layout[i],controller=threeOfficeControllers.get(o);if(controller){controller.dispose();threeOfficeControllers.delete(o);}if(o.type==="desk")delete cyberSecurityState.activeDebuffs.blockedDesks[o.id];state.layout.splice(i,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
  if(moveMode){if(i>=0){beginMovePreview(i);}else toast("Сначала выберите установленный объект");return;}
- if(state.selected){if(i>=0){toast("Клетка занята");return;}const movingEmployee=state.layout.some(o=>{if(o.type!=="desk")return false;const rt=employeeMotion.get(employeeKey(o));return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===c.x&&Math.floor(rt.pos.y)===c.y;});if(movingEmployee){toast("Сотрудник проходит по этой клетке");return;}const t=TYPES[state.selected];if(!devFreeBuild&&state.balance<t.cost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=t.cost;state.layout.push({type:state.selected,x:c.x,y:c.y,rot:state.rotation});save();state.selected=null;closeShop();updateUI();haptic();toast(t.name+" установлен");draw();return;}
+ if(state.selected){if(i>=0){toast("Клетка занята");return;}const movingEmployee=state.layout.some(o=>{if(o.type!=="desk")return false;const rt=employeeMotion.get(employeeKey(o));return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===c.x&&Math.floor(rt.pos.y)===c.y;});if(movingEmployee){toast("Сотрудник проходит по этой клетке");return;}const t=TYPES[state.selected];if(!devFreeBuild&&state.balance<t.cost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=t.cost;state.layout.push({id:makeCyberObjectId(),type:state.selected,x:c.x,y:c.y,rot:state.rotation,level:state.selected==="security"?1:undefined});save();state.selected=null;closeShop();updateUI();haptic();toast(t.name+" установлен");draw();return;}
  if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(employeeKey(state.layout[i]));if(rt&&(rt.state==="sleep"||rt.state==="walk"||rt.state==="coffee")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}
  if(currentGridSize()>=11){quickBuildCell={x:c.x,y:c.y};$("shop").classList.add("open");toast("Выберите объект — предпросмотр откроется в клетке "+(c.x+1)+", "+(c.y+1));return;}
  toast("Выберите действие или объект в магазине");
@@ -2025,7 +2205,26 @@ function go(page){if(page!=="floor"&&buildPreviewState)clearBuildPreview();docum
 document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>go(b.dataset.page)));
 
 function closeShop(){$("shop").classList.remove("open");$("installBar").classList.remove("show");}
-function showUpgradeCard(index){const o=state.layout[index];if(!o)return;const name=TYPES[o.type]?.name||"Объект",level=Number(o.level)||1,baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost,coffee=o.type==="coffee",upgradeable=o.type==="desk"||coffee,maxed=coffee&&level>=4,desc=coffee?"Бонус: "+(25+Math.min(3,level-1)*5)+"% к доходу соседних IT-столов · бодрость 45 сек":(TYPES[o.type].base||0)+"$/сек";const employee= o.type==="desk"?employeeMotion.get(employeeKey(o)):null,workerStatus=employee?({work:"Работает",sleep:"Спит · нажмите, чтобы разбудить",walk:"Прогуливается",coffee:"Пьёт кофе"}[employee.state]||"Работает"):"",energy=employee?Math.round(employee.energy??(employee.coffeeUntil>Date.now()?100:78)):0; $("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64,level)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+(o.type==="desk"?" / 4+":"")+" · "+escapeHtml(desc)+'</small></div></div><button id="closeUpgrade">✕</button></div>'+(o.type==="desk"?'<div class="employee-status"><canvas id="employeePortrait" width="58" height="58"></canvas><div><b>'+workerStatus+'</b><small>Настроение и бодрость</small><div class="employee-mood"><i style="width:'+energy+'%"></i></div><small>'+energy+'% · '+(energy>75?"Отличное":energy>45?"Нормальное":"Низкое")+' состояние</small></div></div>':"")+'<div class="upgrade-actions">'+(upgradeable?'<button id="upgradeObject" class="primary" '+(maxed?'disabled':'')+' >'+(maxed?"Максимальный уровень":'Улучшить за '+money(cost))+'</button>':'')+'<button id="sellObject" class="danger" style="margin-top:7px">Продать · вернуть '+money(Math.floor(TYPES[o.type].cost*.5))+'</button></div>';$("upgradeCard").classList.add("show");renderAllFurniturePreviews();if(o.type==="desk"){const pc=$("employeePortrait"),pr=pc.getContext("2d"),oldCtx=ctx,oldCellW=cellW;pc.width=116;pc.height=116;pr.setTransform(2,0,0,2,0,0);pr.clearRect(0,0,58,58);ctx=pr;cellW=18;drawWorker(29,51,"work",0,false);ctx=oldCtx;cellW=oldCellW;} $("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");if($("upgradeObject"))$("upgradeObject").onclick=()=>{if(coffee&&level>=4)return;if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");renderAllFurniturePreviews();toast("Уровень объекта повышен");};$("sellObject").onclick=()=>{const at=state.layout.indexOf(o);if(at<0)return;state.layout.splice(at,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");draw();toast("Объект продан · возвращено "+money(Math.floor(TYPES[o.type].cost*.5)));};}
+function showUpgradeCard(index){
+ const o=state.layout[index];if(!o)return;
+ const name=TYPES[o.type]?.name||"Объект",level=Math.max(1,Number(o.level)||1),baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost;
+ const coffee=o.type==="coffee",security=o.type==="security",upgradeable=o.type==="desk"||coffee||security,maxed=(coffee||security)&&level>=4;
+ const mitigation=[0,5,10,15,20][Math.min(4,level)]||0;
+ const desc=security?"Снижение финансового ущерба "+mitigation+"% · базовая защита +25%":coffee?"Бонус: "+(25+Math.min(3,level-1)*5)+"% к доходу соседних IT-столов · бодрость 45 сек":(TYPES[o.type].base||0)+"$/сек";
+ const employee=o.type==="desk"?employeeMotion.get(employeeKey(o)):null,workerStatus=employee?({work:"Работает",sleep:"Спит · нажмите, чтобы разбудить",walk:"Прогуливается",coffee:"Пьёт кофе"}[employee.state]||"Работает"):"",energy=employee?Math.round(employee.energy??(employee.coffeeUntil>Date.now()?100:78)):0;
+ const securityInfo=security?'<div class="cyber-upgrade-info"><b>КИБЕРЗАЩИТА · УРОВЕНЬ '+level+'/4</b><small>Уровень 2: скидка 10% на экстренную защиту · Уровень 3: автоотражение DDoS и шифровальщика · Уровень 4: предупреждение за 60 секунд.</small></div>':"";
+ $("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64,level)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+(o.type==="desk"?" / 4+":security?" / 4":"")+" · "+escapeHtml(desc)+'</small></div></div><button id="closeUpgrade">✕</button></div>'+(o.type==="desk"?'<div class="employee-status"><canvas id="employeePortrait" width="58" height="58"></canvas><div><b>'+workerStatus+'</b><small>Настроение и бодрость</small><div class="employee-mood"><i style="width:'+energy+'%"></i></div><small>'+energy+'% · '+(energy>75?"Отличное":energy>45?"Нормальное":"Низкое")+' состояние</small></div></div>':"")+securityInfo+'<div class="upgrade-actions">'+(upgradeable?'<button id="upgradeObject" class="primary" '+(maxed?'disabled':'')+'>'+(maxed?"Максимальный уровень":'Улучшить за '+money(cost))+'</button>':'')+'<button id="sellObject" class="danger" style="margin-top:7px">Продать · вернуть '+money(Math.floor(TYPES[o.type].cost*.5))+'</button></div>';
+ $("upgradeCard").classList.add("show");renderAllFurniturePreviews();
+ if(o.type==="desk"){const pc=$("employeePortrait"),pr=pc.getContext("2d"),oldCtx=ctx,oldCellW=cellW;pc.width=116;pc.height=116;pr.setTransform(2,0,0,2,0,0);pr.clearRect(0,0,58,58);ctx=pr;cellW=18;drawWorker(29,51,"work",0,false);ctx=oldCtx;cellW=oldCellW;}
+ $("closeUpgrade").onclick=()=>$("upgradeCard").classList.remove("show");
+ if($("upgradeObject"))$("upgradeObject").onclick=()=>{
+  if(maxed)return;if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}
+  if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;
+  if(!security)o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));
+  save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");renderAllFurniturePreviews();draw();toast(security?"Уровень отдела безопасности повышен до "+o.level:"Уровень объекта повышен");
+ };
+ $("sellObject").onclick=()=>{const at=state.layout.indexOf(o);if(at<0)return;const controller=threeOfficeControllers.get(o);if(controller){controller.dispose();threeOfficeControllers.delete(o);}if(o.type==="desk")delete cyberSecurityState.activeDebuffs.blockedDesks[o.id];state.layout.splice(at,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");draw();toast("Объект продан · возвращено "+money(Math.floor(TYPES[o.type].cost*.5)));};
+}
 function objectFootprintCells(o){if(!o)return[];if(o.type!=="meeting")return[{x:o.x,y:o.y}];const horizontal=(Number(o.rot||0)%2)===0;return horizontal?[{x:o.x,y:o.y},{x:o.x+1,y:o.y}]:[{x:o.x,y:o.y},{x:o.x,y:o.y+1}];}
 function buildCellBlocked(x,y,ignoreObject=null){if(state.layout.some(o=>o!==ignoreObject&&objectFootprintCells(o).some(c=>c.x===x&&c.y===y)))return true;return state.layout.some(o=>{if(o===ignoreObject||o.type!=="desk")return false;const rt=employeeMotion.get(employeeKey(o));return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===x&&Math.floor(rt.pos.y)===y;});}
 function buildFootprintValid(type,x,y,rot,ignoreObject=null){const cells=type==="meeting"?(rot%2===0?[{x,y},{x:x+1,y}]:[{x,y},{x,y:y+1}]):[{x,y}];return cells.every(c=>c.x>=0&&c.y>=0&&c.x<gridSize&&c.y<gridSize&&!buildCellBlocked(c.x,c.y,ignoreObject));}
@@ -2174,9 +2373,10 @@ function tick(now){gameFrameId=0;spawnVip();
 window.addEventListener("resize",resize);
 document.addEventListener("visibilitychange",()=>{if(document.hidden){save();if(gameFrameId){cancelAnimationFrame(gameFrameId);gameFrameId=0;}}else{last=performance.now();scheduleGameLoop();if(floorPageActive)draw();}});
 updateUI();renderTop();renderCompanies();addFeed();resize();renderAllFurniturePreviews();scheduleGameLoop();$("hudPlayer").textContent=player;dev3dLoad();$("page-floor").querySelector(".stats").querySelectorAll(".stat").forEach(el=>$("hudStats").appendChild(el));$("topHud").appendChild($("page-floor").querySelector(".view-banner"));document.body.appendChild(canvas);document.body.appendChild($("shop"));document.body.appendChild($("upgradeCard"));resize();
-loadPlayer().then(async()=>{await refreshLeaderboard();renderTop();renderCompanies();const elapsed=Math.max(0,Math.min(28800,(Date.now()-previousVisit)/1000)),inc=incomeFor(state.layout);if(elapsed>60&&inc>0){offlineReward=elapsed*inc*.5;$("offlineText").textContent="Офис работал без вас "+Math.floor(elapsed/60)+" мин и принёс "+money(offlineReward)+".";$("offlineModal").classList.add("show");}localSave();fitLargeFloorCamera();resize();});
+loadPlayer().then(async()=>{state.layout.forEach(o=>{if(!o.id)o.id=makeCyberObjectId();});cyberTick();setInterval(cyberTick,1000);await refreshLeaderboard();renderTop();renderCompanies();const elapsed=Math.max(0,Math.min(28800,(Date.now()-previousVisit)/1000)),inc=incomeFor(state.layout);if(elapsed>60&&inc>0){offlineReward=elapsed*inc*.5;$("offlineText").textContent="Офис работал без вас "+Math.floor(elapsed/60)+" мин и принёс "+money(offlineReward)+".";$("offlineModal").classList.add("show");}localSave();fitLargeFloorCamera();resize();});
 $("claimOffline").addEventListener("click",()=>{state.balance+=offlineReward;state.totalEarned+=offlineReward;offlineReward=0;$("offlineModal").classList.remove("show");save();syncPlayer(false);updateUI();haptic();});
 window.addEventListener("pagehide",()=>localSave());
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)cyberTick();});
 setInterval(()=>syncPlayer(false),15000);setInterval(refreshLeaderboard,20000);
 setInterval(dividends,10000);setInterval(addFeed,6500);
 })();

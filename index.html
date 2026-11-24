@@ -98,11 +98,10 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 <div class="section-head"><h2>Строительство</h2><span>ВЫБЕРИТЕ ОБЪЕКТ</span></div>
 <div class="shop" id="shop">
 <div class="expansion-card"><div class="expansion-copy" id="shopExpansionStatus">Переезд на следующий этаж</div><button class="primary" id="expandShopBtn" type="button">📐 Расширить этаж</button></div>
-<button class="item" data-type="boss"><canvas class="sprite-preview" data-sprite="boss" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>+$150/сек · +50 престижа</small><strong>$5 000</strong></button>
 <button class="item" data-type="desk"><canvas class="sprite-preview" data-sprite="desk" data-preview-type="desk" data-level="1" width="56" height="56" aria-hidden="true"></canvas><b>IT-стол · уровень 1</b><small>Программист · +$25/сек</small><strong>$500</strong><span class="desk-level-strip">L1 → L2 → L3 → L4+</span></button>
 <button class="item" data-type="coffee"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>Кофе команде · +25% дохода соседних IT-столов</small><strong>$800</strong></button>
 <button class="item" data-type="server"><canvas class="sprite-preview" data-sprite="server" width="56" height="56" aria-hidden="true"></canvas><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
-<!-- executive desk pinned near the top of the build catalog --><button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
+<button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита</small><strong>$4 000</strong></button>
 </div>
 <div class="tools"><button class="tool-btn" id="rotateBtn">↻ Повернуть (90°)</button><button class="tool-btn" id="sellBtn">⌫ Режим продажи</button></div>
 </section>
@@ -154,7 +153,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
  <div class="dev3d-head"><h2>Редактор 3D-сборок</h2><button class="dev-close" id="dev3dClose">Закрыть ✕</button></div>
  <div class="dev3d-preview"><div class="dev3d-float-tools" id="dev3dFloatTools"><div class="dev3d-tool-caption" id="dev3dSelectedName">Выберите предмет на сцене</div><div class="dev3d-tool-row"><button data-edit="x-">←</button><button data-edit="z-">↑</button><button data-edit="z+">↓</button><button data-edit="x+">→</button><button data-edit="y-">Y−</button><button data-edit="y+">Y+</button></div><div class="dev3d-tool-row"><button data-edit="rotX-">X− 15°</button><button data-edit="rotX+">X+ 15°</button><button data-edit="rotY-">Y− 15°</button><button data-edit="rotY+">Y+ 15°</button><button data-edit="rotZ-">Z− 15°</button><button data-edit="rotZ+">Z+ 15°</button><button data-edit="scale-">− Scale</button><button data-edit="scale+">+ Scale</button><button data-edit="delete" class="dev3d-tool-delete">Удалить</button></div><div class="dev3d-tool-row"><button data-edit="apply">Применить</button><button data-edit="copy">Копировать JSON</button></div></div><canvas id="dev3dCanvas"></canvas><div class="dev3d-status" id="dev3dStatus">Загрузка 3D-библиотеки…</div></div>
  <div class="dev3d-side">
-  <div class="dev-section"><h3>ТИП ОБЪЕКТА ИГРЫ</h3><select id="dev3dType"><option value="ceo">ceo — Стол руководителя</option><option value="meeting">meeting — Переговорная</option><option value="security">security — Отдел безопасности</option><option value="desk_1">desk_1 — IT-стол · уровень 1</option><option value="desk_2">desk_2 — IT-стол · уровень 2</option><option value="desk_3">desk_3 — IT-стол · уровень 3</option><option value="desk_4">desk_4 — IT-стол · уровень 4</option></select></div>
+  <div class="dev-section"><h3>ТИП ОБЪЕКТА ИГРЫ</h3><select id="dev3dType"><option value="meeting">meeting — Переговорная</option><option value="security">security — Отдел безопасности</option><option value="desk_1">desk_1 — IT-стол · уровень 1</option><option value="desk_2">desk_2 — IT-стол · уровень 2</option><option value="desk_3">desk_3 — IT-стол · уровень 3</option><option value="desk_4">desk_4 — IT-стол · уровень 4</option></select></div>
   <div class="dev-section"><h3>БИБЛИОТЕКА ДЕТАЛЕЙ</h3><div class="dev3d-tabs"><button id="dev3dFurnitureTab" class="active">Мебель</button><button id="dev3dPeopleTab">Персонажи</button></div><div class="dev3d-library" id="dev3dLibrary"></div></div>
   <div class="dev-section"><h3>СОСТАВ СБОРКИ</h3><div class="dev3d-list" id="dev3dParts"></div></div>
   <div class="dev3d-actions"><button class="dev3d-btn" id="dev3dApply">Применить в игре</button><button class="dev3d-btn" id="dev3dCopy">Скопировать JSON</button></div>
@@ -196,14 +195,12 @@ const TYPES={
  desk:{name:"IT-стол",cost:500,base:25,icon:"desk"},
  coffee:{name:"Кофемашина",cost:800,base:0,icon:"coffee"},
  server:{name:"Серверная стойка",cost:2000,base:90,icon:"server"},
- boss:{name:"Стол руководителя",cost:5000,base:150,prestige:50,icon:"boss"},meeting:{name:"Переговорная",cost:3500,base:110,prestige:20,icon:"meeting"},security:{name:"Отдел безопасности",cost:4000,base:80,prestige:30,icon:"security"}
 };
 
 const SPRITE_SVG={
 desk:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="a" x2="1" y2="1"><stop stop-color="#f5f7f8"/><stop offset="1" stop-color="#84939e"/></linearGradient><linearGradient id="b"><stop stop-color="#b8895d"/><stop offset="1" stop-color="#62432d"/></linearGradient><linearGradient id="c" x2="0" y2="1"><stop stop-color="#387b9d"/><stop offset="1" stop-color="#071b2c"/></linearGradient><filter id="sh"><feGaussianBlur stdDeviation="3"/></filter></defs><ellipse cx="60" cy="104" rx="44" ry="7" fill="#000" opacity=".3" filter="url(#sh)"/><path d="m17 68 43-25 44 25-44 26Z" fill="url(#a)" stroke="#fff"/><path d="m17 68 43 26v7L17 75Z" fill="#667783"/><path d="m60 94 44-26v7L60 101Z" fill="#45545f"/><path d="m27 65 33-19 34 19-34 20Z" fill="url(#b)" stroke="#e5c49e"/><path d="m39 53 2-22 25-14 2 25Z" fill="#253c50" stroke="#91a9b9" stroke-width="2"/><path d="m44 51 1-17 19-11 1 18Z" fill="url(#c)"/><path d="m47 37 14-8m-14 14 17-10m-17 16 9-5" stroke="#77e2f3" stroke-width="1.6"/><path d="m51 53 4 0 1 7-6 0Z" fill="#aebbc4"/><path d="m47 61 17-10 14 8-18 11Z" fill="#263b4c"/><path d="m27 80 11-7 13 8-12 8Z" fill="#223a54"/><path d="m27 80 12 9v8l-12-8Z" fill="#14283d"/><path d="m39 89 12-8v8l-12 8Z" fill="#355572"/><path d="M29 52q-2-11 8-13 10 1 9 13l-3 11-13-1Z" fill="#294765"/><circle cx="38" cy="36" r="6" fill="#e5b18b"/><path d="M32 37q0-10 9-9l5 6-3 2-3-4-8 5Z" fill="#382a26"/><path d="m32 47 12 0 7 13-14 7-9-8Z" fill="#367da4"/><path d="m33 52-8 8 4 4 9-7m7-4 8 7-4 4-9-7" fill="none" stroke="#e6b18a" stroke-width="3" stroke-linecap="round"/></svg>`,
 coffee:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="a"><stop stop-color="#c99661"/><stop offset="1" stop-color="#50321f"/></linearGradient><linearGradient id="b" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".5" stop-color="#9caeb8"/><stop offset="1" stop-color="#536977"/></linearGradient><filter id="g"><feGaussianBlur stdDeviation="3"/></filter></defs><ellipse cx="60" cy="103" rx="40" ry="7" fill="#000" opacity=".3" filter="url(#g)"/><path d="m18 69 42-24 43 24-43 25Z" fill="url(#a)" stroke="#d9aa78"/><path d="m18 69 42 25v8L18 77Z" fill="#50321f"/><path d="m60 94 43-25v8l-43 25Z" fill="#39271d"/><path d="m25 65 35-20 36 20-36 21Z" fill="#e4cfb3"/><path d="m44 56 3-29 33-1 5 31-20 12Z" fill="url(#b)" stroke="#fff"/><path d="m49 31 29-1 2 21-30 2Z" fill="#253b49"/><path d="m53 35 22-1v14l-22 1Z" fill="#102532"/><path d="M55 39h18m-18 5h12" stroke="#9bd7e7" stroke-width="2"/><path d="m55 54 24-1 4 7-28 1Z" fill="#dfe8ec"/><path d="M61 60v7m10-7v7" stroke="#4d6573" stroke-width="2"/><circle cx="54" cy="57" r="2.3" fill="#ed4d54"/><circle cx="75" cy="57" r="2.3" fill="#32c78b"/><path d="m32 58 10-6 9 5-10 7Z" fill="#fff" stroke="#aab7bd"/><path d="m86 59 8-5 8 5-8 5Z" fill="#fff" stroke="#aab7bd"/><path d="M89 51q-5-7 1-12m4 12q-3-8 4-13m-9-5q-3-7 2-10" fill="none" stroke="#e9fbff" stroke-width="2" stroke-linecap="round" opacity=".75"/></svg>`,
 server:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="a"><stop stop-color="#536675"/><stop offset="1" stop-color="#111b25"/></linearGradient><linearGradient id="b" x2="1" y2="1"><stop stop-color="#344b5b"/><stop offset="1" stop-color="#0a111a"/></linearGradient><linearGradient id="c"><stop stop-color="#c5f7ff" stop-opacity=".45"/><stop offset="1" stop-color="#62b6cb" stop-opacity=".08"/></linearGradient><filter id="gl"><feGaussianBlur stdDeviation="2"/></filter></defs><ellipse cx="60" cy="105" rx="32" ry="6" fill="#000" opacity=".35"/><path d="m31 25 42-18 25 14-42 21Z" fill="#697e8c"/><path d="m31 25 25 17v62l-25-15Z" fill="#111c26" stroke="#637783"/><path d="m56 42 42-21v63l-42 20Z" fill="url(#b)" stroke="#8297a2" stroke-width="2"/><path d="m61 46 32-16v48L61 94Z" fill="#091722" stroke="#b5cbd3" stroke-width="2"/><path d="m63 48 28-14v43L63 91Z" fill="url(#c)"/><g fill="#142c3a" stroke="#6f8997"><path d="m65 51 24-12v7L65 58Z"/><path d="m65 62 24-12v7L65 69Z"/><path d="m65 73 24-12v7L65 80Z"/></g><g fill="#48e4d0"><circle cx="69" cy="53" r="1.6"/><circle cx="76" cy="50" r="1.6"/><circle cx="83" cy="46" r="1.6"/><circle cx="69" cy="64" r="1.6"/><circle cx="76" cy="61" r="1.6"/></g><g fill="#9af0a9"><circle cx="69" cy="75" r="1.6"/><circle cx="76" cy="72" r="1.6"/><circle cx="83" cy="68" r="1.6"/></g><path d="m62 46 29-15" stroke="#e4fbff" stroke-width="1.5" opacity=".7"/><path d="m43 35 7 5v59l-7-5Z" fill="#2d4351"/></svg>`,
-ceo:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="a"><stop stop-color="#75513b"/><stop offset="1" stop-color="#211719"/></linearGradient><linearGradient id="b"><stop stop-color="#fff0b5"/><stop offset=".5" stop-color="#c18b37"/><stop offset="1" stop-color="#704719"/></linearGradient><linearGradient id="c"><stop stop-color="#92583f"/><stop offset="1" stop-color="#35201c"/></linearGradient><filter id="gl"><feGaussianBlur stdDeviation="4"/></filter></defs><ellipse cx="60" cy="104" rx="45" ry="7" fill="#000" opacity=".35"/><path d="m17 69 43-25 44 25-44 26Z" fill="url(#a)" stroke="url(#b)" stroke-width="2"/><path d="m17 69 43 26v7L17 77Z" fill="#211719"/><path d="m60 95 44-26v8l-44 26Z" fill="#171416"/><path d="m23 66 37-22 39 22-39 23Z" fill="#775039" stroke="#e0b65e" stroke-width="1.5"/><path d="m42 59 19-12 22 12-21 13Z" fill="#1b2b39" stroke="#b7c8d0"/><path d="m47 58 14-8 16 9-16 9Z" fill="#367b99"/><path d="m80 53 4-19 12-7 1 22-9 10Z" fill="#2b2521"/><path d="m84 36 9-6 2 14-9 5Z" fill="#f4c66b"/><ellipse cx="89" cy="49" rx="15" ry="11" fill="#ffc66b" opacity=".25" filter="url(#gl)"/><path d="m82 55 8 2-4 5-9-2Z" fill="#e5b66b"/><path d="m34 43 5-10 18-7 12 8-3 18-19 6-13-7Z" fill="url(#c)" stroke="#b17a4e"/><path d="m40 36 14-7 10 6-2 13-15 5-8-5Z" fill="#965b3d"/><path d="m49 29 8-5 6 4-1 7-9 3-5-4Z" fill="#d9a17b"/><path d="m50 29 5-6 7 3 2 5-6-2-8 4Z" fill="#2c2422"/></svg>`,
 meeting:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="a" x2="1" y2="1"><stop stop-color="#e8f5f4" stop-opacity=".95"/><stop offset=".5" stop-color="#8daeb5" stop-opacity=".9"/><stop offset="1" stop-color="#405c68"/></linearGradient><linearGradient id="b"><stop stop-color="#a17b57"/><stop offset="1" stop-color="#4a3225"/></linearGradient><linearGradient id="c"><stop stop-color="#7894a8"/><stop offset="1" stop-color="#24394c"/></linearGradient></defs><ellipse cx="60" cy="105" rx="48" ry="7" fill="#000" opacity=".32"/><path d="m10 70 50-29 50 29-50 29Z" fill="url(#b)" stroke="#d3ad7c"/><path d="m10 70 50 29v7L10 77Z" fill="#3c2a22"/><path d="m60 99 50-29v7l-50 29Z" fill="#30231d"/><path d="m16 66 44-26 44 26-44 27Z" fill="url(#a)" stroke="#efffff" stroke-width="1.5"/><path d="m28 65 32-19 32 19-32 19Z" fill="#b9d5d8" opacity=".3"/><path d="m47 57 13-8 14 8-14 8Z" fill="#203a4e"/><path d="m51 56 9-6 10 6-10 6Z" fill="#4c9eb8"/><g fill="url(#c)" stroke="#9ab5c5"><path d="m19 49 9-5 9 5-9 5Z"/><path d="m19 49 9 5v9l-9-5Z"/><path d="m84 49 9-5 9 5-9 5Z"/><path d="m93 49 9-5v9l-9 5Z"/><path d="m35 87 9-5 9 5-9 5Z"/><path d="m35 87 9 5v8l-9-5Z"/><path d="m74 87 9-5 9 5-9 5Z"/><path d="m83 87 9-5v8l-9 5Z"/></g><path d="m47 29 25-14 18 10-25 15Z" fill="#172d40" stroke="#b2cad4"/><path d="m52 28 20-11 13 8-20 12Z" fill="#4d9db9"/><path d="m57 25 11-6m-8 10 13-7" stroke="#d4f5ff" stroke-width="1.5"/></svg>`,
 security:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="a" x2="1" y2="1"><stop stop-color="#7892a5"/><stop offset=".5" stop-color="#344c63"/><stop offset="1" stop-color="#17283a"/></linearGradient><linearGradient id="b"><stop stop-color="#4bc9ff"/><stop offset="1" stop-color="#092b55"/></linearGradient><linearGradient id="c"><stop stop-color="#a6f7ff"/><stop offset=".5" stop-color="#2baee0"/><stop offset="1" stop-color="#105a84"/></linearGradient><filter id="gl"><feGaussianBlur stdDeviation="3"/></filter></defs><ellipse cx="60" cy="104" rx="43" ry="7" fill="#000" opacity=".35"/><path d="m15 70 45-26 45 26-45 27Z" fill="url(#a)" stroke="#9bb5c7"/><path d="m15 70 45 27v7L15 77Z" fill="#1a3044"/><path d="m60 97 45-27v7l-45 27Z" fill="#14273a"/><path d="m24 62 35-20 37 20-36 22Z" fill="#8199a9" stroke="#d0e0e7"/><path d="m32 60 26-16 29 16-27 17Z" fill="#253f55"/><g stroke="#a5c8d8"><path d="m36 55 14-9 14 9-14 9Z" fill="#102d48"/><path d="m51 47 14-9 14 9-14 9Z" fill="#102d48"/><path d="m66 55 14-9 14 9-14 9Z" fill="#102d48"/></g><g fill="url(#b)"><path d="m39 54 11-7 11 7-11 7Z"/><path d="m54 46 11-7 11 7-11 7Z"/><path d="m69 54 11-7 11 7-11 7Z"/></g><g stroke="#c4f4ff" stroke-width="1.3"><path d="m43 54 9-6m6-3 9-6m6 13 9-6"/></g><path d="m91 72 11-6v17l-11 6Z" fill="#142a3e" stroke="#789bb1"/><path d="m77 31 9-5 9 5-9 6Z" fill="url(#c)"/><path d="m77 31 9 6v12l-9-5Z" fill="#14628b"/><path d="m86 37 9-6v12l-9 6Z" fill="#0b466b"/><path d="m84 35 5 4-3 6-4-4Z" fill="none" stroke="#d1faff" stroke-width="1.7"/><circle cx="88" cy="40" r="14" fill="#37c7fa" opacity=".2" filter="url(#gl)"/></svg>`
 };
@@ -214,12 +211,11 @@ const SPRITE_ASSETS={
  desk:"sprites/office_furniture_desk_straight_01.png",
  coffee:"sprites/office_props_mug_01.png",
  server:"sprites/office_electronics_computer_tower_01.png",
- ceo:"sprites/office_furniture_desk_corner_l_01.png",
  meeting:"sprites/office_furniture_chair_meeting_01.png",
  security:"sprites/office_electronics_camera_security_01.png"
 };
 const SPRITE_URI={},SPRITE_IMAGES={};
-function spriteKey(type){return type==="boss"?"ceo":type;}
+function spriteKey(type){return type;}
 function spriteData(type){const key=spriteKey(type);if(!SPRITE_URI[key])SPRITE_URI[key]="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(SPRITE_SVG[key]||SPRITE_SVG.desk);return SPRITE_URI[key];}
 function spriteMarkup(type,size=56,level=1){
  const key=spriteKey(type);
@@ -283,6 +279,7 @@ const FLOORS=[
 ];
 let state={balance:2500,prestige:0,layout:[],floorTier:0,gridSize:5,investments:{},peace:true,selected:null,rotation:0,sellMode:false,viewing:null,totalEarned:0};
 try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved&&typeof saved==="object")state={...state,...saved,viewing:null,selected:null,sellMode:false};}catch(e){}
+state.layout=(Array.isArray(state.layout)?state.layout:[]).filter(o=>o&&o.type!=="boss");
 function legacyTier(size){return ({8:0,10:1,12:2,14:3})[Number(size)]??0;}
 let floorTier=Number.isInteger(Number(state.floorTier))&&Number(state.floorTier)>=0&&Number(state.floorTier)<=4?Number(state.floorTier):legacyTier(state.gridSize);
 let gridSize=FLOORS[floorTier].gridSize;state.floorTier=floorTier;state.gridSize=gridSize;
@@ -292,7 +289,7 @@ function decodeCloudLayout(raw,fallbackTier=floorTier){
  const arr=Array.isArray(raw)?raw:[],meta=arr.find(o=>o&&o.type==="__meta");let tier=fallbackTier;
  if(meta&&meta.floorTier!==undefined&&Number.isInteger(Number(meta.floorTier))&&Number(meta.floorTier)>=0&&Number(meta.floorTier)<=4)tier=Number(meta.floorTier);
  else if(meta&&meta.gridSize)tier=legacyTier(meta.gridSize);
- return {layout:arr.filter(o=>o&&o.type!=="__meta"),floorTier:tier,gridSize:FLOORS[tier].gridSize};
+ return {layout:arr.filter(o=>o&&o.type!=="__meta"&&o.type!=="boss"),floorTier:tier,gridSize:FLOORS[tier].gridSize};
 }
 function cloudLayout(){return [...state.layout,{type:"__meta",floorTier,gridSize}];}
 function localSave(){try{localStorage.setItem(KEY,JSON.stringify({balance:state.balance,prestige:state.prestige,layout:state.layout,floorTier,gridSize,investments:state.investments,peace:state.peace,totalEarned:state.totalEarned,lastVisit:Date.now()}));}catch(e){}}
@@ -311,7 +308,7 @@ function incomeFor(layout,tier=floorTier){
  });
  return sum*FLOORS[Math.max(0,Math.min(4,Number(tier)||0))].incomeMult;
 }
-function basePrestigeFor(layout){let n=layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0)+Math.max(0,(Number(o.level)||1)-1)*5,0);layout.filter(o=>o.type==="boss").forEach(b=>layout.forEach(m=>{if(m.type==="meeting"&&Math.abs(m.x-b.x)+Math.abs(m.y-b.y)<=1)n+=25;}));return n;}function prestigeFor(layout){return basePrestigeFor(layout)+state.prestige;}
+function basePrestigeFor(layout){return layout.reduce((s,o)=>s+(TYPES[o.type]?.prestige||0)+Math.max(0,(Number(o.level)||1)-1)*5,0);}function prestigeFor(layout){return basePrestigeFor(layout)+state.prestige;}
 const currentLayout=()=>state.viewing?state.viewing.layout:state.layout;
 function updateExpansionUI(){
  const next=FLOORS[floorTier+1],prestige=prestigeFor(state.layout);
@@ -618,24 +615,6 @@ function normalizeFurnitureModel(model,targetFootprint=0.86){
  model.position.x-=center.x;model.position.z-=center.z;model.position.y-=fitted.min.y;
  return model;
 }
-function createBoss(parent,o,registerWorker=true){
- // One transform root owns the desk AND the seated executive. This is essential:
- // build/move previews transform and dispose a single object, never orphaning the character.
- const root=new THREE.Group();parent.add(root);root.position.set(o.x+.5,0,o.y+.5);root.rotation.y=(Number(o.rot)||0)*Math.PI/2;
- const desk=createDesk(root,{...o,x:-.5,y:-.5,rot:0,level:4});desk.userData.isExecutiveDesk=true;
- const plaqueCanvas=document.createElement("canvas");plaqueCanvas.width=256;plaqueCanvas.height=96;const pc=plaqueCanvas.getContext("2d");pc.fillStyle="#182b3d";pc.fillRect(0,0,256,96);pc.strokeStyle="#c8a568";pc.lineWidth=7;pc.strokeRect(5,5,246,86);pc.fillStyle="#f3dfb6";pc.font="bold 43px Georgia";pc.textAlign="center";pc.textBaseline="middle";pc.fillText("DIRECTOR",128,49);
- const plaqueTex=new THREE.CanvasTexture(plaqueCanvas);plaqueTex.colorSpace=THREE.SRGBColorSpace;const plaque=new THREE.Mesh(new THREE.BoxGeometry(.235,.072,.012),new THREE.MeshStandardMaterial({color:0xffffff,map:plaqueTex,roughness:.45,metalness:.22}));plaque.position.set(.285,.515,-.19);plaque.castShadow=true;desk.add(plaque);
- const paperMat=mat(0xf5f0e5,.94),paperLine=mat(0x9aa7b1,.85),gold=mat(0xc9a35e,.38,.55);
- const document=new THREE.Group();desk.add(document);document.position.set(-.245,.493,.11);document.rotation.y=-.04;const page=new THREE.Mesh(new THREE.BoxGeometry(.19,.004,.225),paperMat);page.castShadow=true;page.receiveShadow=true;document.add(page);
- for(let i=0;i<8;i++){const line=new THREE.Mesh(new THREE.BoxGeometry(.145,.001,.0018),paperLine);line.position.set(-.005,.003,-.073+i*.018);document.add(line);}
- const seal=new THREE.Mesh(new THREE.TorusGeometry(.018,.003,6,22),gold);seal.position.set(.055,.004,.078);seal.rotation.x=Math.PI/2;document.add(seal);
- const pen=new THREE.Group();document.add(pen);pen.position.set(-.055,.014,.065);pen.rotation.x=Math.PI/2;const penBody=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,.105,10),mat(0x26384e,.32,.58));penBody.rotation.z=Math.PI/2;pen.add(penBody);const penTip=new THREE.Mesh(new THREE.ConeGeometry(.005,.018,10),gold);penTip.position.x=.065;penTip.rotation.z=-Math.PI/2;pen.add(penTip);
- const person=createWorker3D(root,o,true);person.position.set(0,0,.62);person.rotation.y=Math.PI;person.userData.executiveBoss=true;person.userData.executiveDesk=desk;
- const arms=person.userData.arms;arms.forEach(a=>{a.shoulder.rotation.x=-.82;a.elbow.rotation.x=-.34;});const right=arms.find(a=>a.side===1),left=arms.find(a=>a.side===-1);
- if(right){const grip=new THREE.Group();right.hand.add(grip);grip.position.set(.008,-.005,.035);grip.rotation.set(-.35,0,.18);const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.0035,.0035,.105,9),mat(0x26384e,.3,.58));shaft.rotation.x=Math.PI/2;grip.add(shaft);const nib=new THREE.Mesh(new THREE.ConeGeometry(.004,.016,8),gold);nib.position.z=-.06;grip.add(nib);}
- if(left){left.shoulder.rotation.x=-.78;left.elbow.rotation.x=-.32;}
- person.userData.executiveWriting={right,left,document,phase:(o.x*7+o.y*13)*.37,writeT:0,marks:0};if(registerWorker)threeWorkerGroups.set(o,person);root.userData.object=o;return root;
-}
 function createMeeting(parent,o){
  const g=new THREE.Group();parent.add(g);
  const wood=mat(0x765039,.48,.16),edge=mat(0xd0b28b,.34,.48),chair=mat(0x344b64,.62,.18),leather=mat(0x26384b,.7),metal=mat(0x8798a1,.32,.68),screen=mat(0x102b38,.18,.25,{emissive:0x087e9b,emissiveIntensity:.48}),paper=mat(0xf0eee6,.85),dark=mat(0x17232c,.52,.35),accent=mat(0x43c9c2,.25,.2,{emissive:0x128b85,emissiveIntensity:.5});
@@ -750,7 +729,7 @@ function createSecurity(parent,o){
  lineMesh(g,new THREE.Vector3(.42,.98,-.18),new THREE.Vector3(.42,1.12,-.18),.008,edge);
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
-function createWorker3D(parent,desk,executive=false){
+function createWorker3D(parent,desk){
  // Refined isometric office character: natural proportions, tailored clothing,
  // layered hair and a restrained face. The articulated rig/API stays unchanged.
  const g=new THREE.Group();parent.add(g);
@@ -761,7 +740,7 @@ function createWorker3D(parent,desk,executive=false){
   {jacket:0x765466,shirt:0xf5ece8,tie:0xb49ac2,pants:0x393345,hair:0x33272b,skin:0xd99e80,accent:0xd4a98e},
   {jacket:0x866342,shirt:0xf0ece3,tie:0x6485a9,pants:0x374052,hair:0x3a3028,skin:0xd99d7b,accent:0xd8b77e}
  ];
- const variant=Math.abs(Math.floor(desk.x*17+desk.y*31))%palettes.length,p=executive?{jacket:0x1c3048,shirt:0xf4f0e6,tie:0x8f343b,pants:0x202b3a,hair:0x9b9b96,skin:0xd7a080,accent:0xc9a35e}:palettes[variant];
+ const variant=Math.abs(Math.floor(desk.x*17+desk.y*31))%palettes.length,p=palettes[variant];
  const mat=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
  const skin=mat(p.skin,.88),hair=mat(p.hair,.92),jacket=mat(p.jacket,.82),shirt=mat(p.shirt,.76),tie=mat(p.tie,.7),pants=mat(p.pants,.86),shoe=mat(0x252b34,.48,.04),sole=mat(0x141a22,.7),white=mat(0xfaf8f1,.55),iris=mat(0x536f78,.5),dark=mat(0x30282a,.8),gold=mat(p.accent,.42,.35),seam=mat(p.jacket).clone();seam.color.multiplyScalar(1.28);
  const sphere=(parent,x,y,z,sx,sy,sz,m,detail=24)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(1,detail,Math.max(14,Math.floor(detail*.7))),m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;};
@@ -853,7 +832,7 @@ function createWorker3D(parent,desk,executive=false){
  const zTex=new THREE.CanvasTexture(zCanvas),sleepLabel=new THREE.Sprite(new THREE.SpriteMaterial({map:zTex,transparent:true,depthWrite:false}));
  sleepLabel.scale.set(.62,.31,1);sleepLabel.position.set(.3,1.62,0);sleepLabel.visible=false;g.add(sleepLabel);
  g.userData={desk,arms,legs,head,torso:torsoRig,sleepLabel,eyes,poseBlend:0,blinkSeed:(desk.x*7+desk.y*13)%5};
- if(executive){const gold=mat(0xc9a35e,.36,.55),ivory=mat(0xf4f0e6,.65);const pin=new THREE.Mesh(new THREE.SphereGeometry(.012,14,10),gold);pin.position.set(-.105,.055,.16);torsoRig.add(pin);const pocket=new THREE.Mesh(new THREE.BoxGeometry(.047,.025,.009),ivory);pocket.position.set(-.115,-.055,.153);pocket.rotation.z=-.18;torsoRig.add(pocket);arms.forEach(a=>{const cuff=new THREE.Mesh(new THREE.TorusGeometry(.012,.003,5,12),gold);cuff.position.set(-a.side*.012,-.285,.012);a.elbow.add(cuff);});}
+
  return g;
 }
 const FLOOR_ATMOSPHERES=[
@@ -1331,7 +1310,7 @@ function addRoom3D(){
 }
 
 /* ── Dev 3D assembly editor: model loaders, per-cell assembly presets ── */
-const dev3dState={type:"ceo",tab:"furniture",parts:[],selected:-1,assets:{},names:[],ready:false,loading:false,renderer:null,scene:null,camera:null,root:null,raf:0,mixer:null,previewObjects:[],raycaster:null,pointer:null};
+const dev3dState={type:"desk_1",tab:"furniture",parts:[],selected:-1,assets:{},names:[],ready:false,loading:false,renderer:null,scene:null,camera:null,root:null,raf:0,mixer:null,previewObjects:[],raycaster:null,pointer:null};
 const dev3dPresets=(()=>{try{const p=JSON.parse(localStorage.getItem("office_custom_presets")||"{}")||{};if(p.ceo){delete p.ceo;localStorage.setItem("office_custom_presets",JSON.stringify(p));}return p;}catch(e){return {};}})();const dev3dGameMixers=[],dev3dProceduralRigs=[],dev3dTypingControllers=[];
 const dev3dFurnitureMaterial=()=>new THREE.MeshStandardMaterial({map:dev3dState.atlas,roughness:.65});
 function dev3dStatus(t){const e=$("dev3dStatus");if(e)e.textContent=t;}
@@ -1351,56 +1330,6 @@ function dev3dInitView(){
 function dev3dCloneAsset(asset){const src=dev3dState.assets[asset];if(!src)return null;const obj=asset.startsWith("character:")&&THREE.SkeletonUtils?THREE.SkeletonUtils.clone(src):src.clone(true);return obj;}
 function dev3dNormalize(obj,target=.84){obj.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(obj),size=b.getSize(new THREE.Vector3()),factor=target/Math.max(size.x,size.z,.0001);obj.scale.multiplyScalar(factor);obj.updateMatrixWorld(true);b.setFromObject(obj);const c=b.getCenter(new THREE.Vector3());obj.position.x-=c.x;obj.position.z-=c.z;obj.position.y-=b.min.y;obj.userData.dev3dPlacementOffset={x:obj.position.x,y:obj.position.y,z:obj.position.z};return obj;}
 function dev3dPlace(obj,p){const pivot=new THREE.Group();pivot.name="dev3dRotationPivot";pivot.add(obj);pivot.position.set(Number(p.x)||0,Number(p.y)||0,Number(p.z)||0);pivot.rotation.order="XYZ";pivot.rotation.set(THREE.MathUtils.degToRad(Number(p.rotX)||0),THREE.MathUtils.degToRad(Number(p.rot)||0),THREE.MathUtils.degToRad(Number(p.rotZ)||0));pivot.scale.setScalar(Number(p.scale)||1);return pivot;}
-function dev3dBuildBossOnTypingSkeleton(root){
- if(!root)return root;
- const bones=[];root.traverse(n=>{if(n.isBone)bones.push(n);else if(n.isMesh){n.visible=false;n.castShadow=false;n.receiveShadow=false;}});
- if(!bones.length){console.warn("Typing.glb has no usable skeleton bones");return root;}
- const mat=(color,rough=.78,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
- const suit=mat(0x263b55),suitLight=mat(0x3b5877),shirt=mat(0xe9e6dc),skin=mat(0xc98f70),skinLight=mat(0xe0aa88),hair=mat(0x37302b),shoe=mat(0x171c24,.65),tie=mat(0x9b3e39),gold=mat(0xb18a50,.4,.55);
- const sphere=(parent,material,pos,scale,segments=16)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,12),material);m.position.copy(pos);m.scale.copy(scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
- const segment=(bone,child,material,radius)=>{
-  const v=child.position.clone(),len=v.length();if(len<.0001)return;
-  const pivot=new THREE.Group();pivot.position.copy(v).multiplyScalar(.5);pivot.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.clone().normalize());bone.add(pivot);
-  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(radius*.78,radius,len*.78,12),material);shaft.castShadow=true;shaft.receiveShadow=true;pivot.add(shaft);
-  sphere(pivot,material,new THREE.Vector3(0,-len*.39,0),new THREE.Vector3(radius,radius,radius),12);
-  sphere(pivot,material,new THREE.Vector3(0,len*.39,0),new THREE.Vector3(radius*.82,radius*.82,radius*.82),12);
- };
- const name=b=>String(b.name||"").toLowerCase();
- bones.forEach(b=>{
-  const n=name(b),children=b.children.filter(c=>c.isBone);
-  let material=suit,radius=.026;
-  if(/finger|thumb|index|middle|ring|pinky|hand|wrist/.test(n)){material=skinLight;radius=/finger|thumb|index|middle|ring|pinky/.test(n)?.008:.025;}
-  else if(/foot|toe|ankle/.test(n)){material=shoe;radius=.027;}
-  else if(/leg|thigh|calf|shin|knee/.test(n)){material=suit;radius=.043;}
-  else if(/arm|shoulder|forearm|elbow/.test(n)){material=suitLight;radius=.034;}
-  else if(/neck|head/.test(n)){material=skin;radius=.04;}
-  children.forEach(c=>segment(b,c,material,radius));
-  if(/hips|pelvis/.test(n))sphere(b,suit,new THREE.Vector3(0,0,0),new THREE.Vector3(.105,.075,.075));
-  if(/spine|chest|torso/.test(n)){
-   sphere(b,suit,new THREE.Vector3(0,0,0),new THREE.Vector3(.115,.145,.082));
-   sphere(b,shirt,new THREE.Vector3(0,.005,.073),new THREE.Vector3(.052,.105,.018));
-   const knot=sphere(b,tie,new THREE.Vector3(0,.065,.094),new THREE.Vector3(.014,.018,.009),12);
-   const tieBody=new THREE.Mesh(new THREE.ConeGeometry(.018,.105,4),tie);tieBody.position.set(0,-.005,.093);tieBody.rotation.x=Math.PI;tieBody.castShadow=true;b.add(tieBody);
-   [-1,1].forEach(side=>{const lapel=new THREE.Mesh(new THREE.BoxGeometry(.025,.12,.012),suitLight);lapel.position.set(side*.043,.015,.094);lapel.rotation.z=side*.22;lapel.castShadow=true;b.add(lapel);});
-  }
-  if(/head/.test(n)){
-   sphere(b,skin,new THREE.Vector3(0,0,0),new THREE.Vector3(.085,.105,.078),20);
-   sphere(b,hair,new THREE.Vector3(0,.072,-.008),new THREE.Vector3(.087,.047,.08),18);
-   sphere(b,hair,new THREE.Vector3(0,.035,-.055),new THREE.Vector3(.082,.035,.04),16);
-   [-1,1].forEach(side=>{
-    sphere(b,skinLight,new THREE.Vector3(side*.083,-.005,0),new THREE.Vector3(.018,.028,.018),12);
-    sphere(b,shirt,new THREE.Vector3(side*.032,.012,.068),new THREE.Vector3(.014,.011,.008),12);
-    sphere(b,shoe,new THREE.Vector3(side*.032,.012,.075),new THREE.Vector3(.006,.007,.004),10);
-    sphere(b,hair,new THREE.Vector3(side*.032,.039,.071),new THREE.Vector3(.022,.007,.009),10);
-   });
-   sphere(b,skinLight,new THREE.Vector3(0,-.025,.078),new THREE.Vector3(.017,.023,.02),12);
-  }
- });
- root.userData.generatedBossOnTypingRig=true;
- root.userData.typingSkeletonBoneCount=bones.length;
- console.info("CEO character generated on Typing.glb skeleton",bones.length,"bones");
- return root;
-}
 async function dev3dLoad(){
  if(dev3dState.ready||dev3dState.loading)return;dev3dState.loading=true;dev3dStatus("Загрузка FBX/GLB-моделей…");
  try{const [fbxModule,gltfModule,skeletonModule]=await Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/FBXLoader.js"),import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js"),import("https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/utils/SkeletonUtils.js")]);THREE.FBXLoader=fbxModule.FBXLoader;THREE.GLTFLoader=gltfModule.GLTFLoader;THREE.SkeletonUtils={clone:skeletonModule.clone};}catch(error){dev3dState.loading=false;dev3dStatus("Ошибка загрузки FBX/GLTF-загрузчиков: "+error.message);console.error(error);return;}
@@ -1413,15 +1342,13 @@ async function dev3dLoad(){
  },undefined,e=>{console.error(e);resolve();}));
  const loadGLB=(key,path)=>new Promise(resolve=>gltf.load(path,g=>{const root=g.scene||g.scenes?.[0];if(root){dev3dNormalize(root,.72);dev3dState.assets[key]=root;dev3dState.assets[key+":clips"]=g.animations||[];}resolve();},undefined,e=>{console.error(path,e);resolve();}));
  Promise.all([loadFurniture,loadGLB("character:employee","models/Typing.glb")]).then(()=>{
-  const typing=dev3dState.assets["character:employee"];
-  if(typing&&THREE.SkeletonUtils){const boss=THREE.SkeletonUtils.clone(typing);dev3dBuildBossOnTypingSkeleton(boss);dev3dState.assets["character:boss"]=boss;dev3dState.assets["character:boss:clips"]=dev3dState.assets["character:employee:clips"]||[];}
   dev3dState.ready=true;dev3dState.loading=false;dev3dStatus("Модели загружены · подиум 1×1 клетка");dev3dRenderLibrary();dev3dRenderParts();dev3dRenderPreview();threeSceneSignature="";if(typeof rebuildThreeScene==="function"&&floorPageActive)rebuildThreeScene();});
 }
-function dev3dOpen(){if(!devUnlocked)return;dev3dState.parts=(dev3dPresets[dev3dState.type]||[]).map(p=>({...p}));if(dev3dState.type==="ceo"&&dev3dState.parts.length)dev3dEnsureBossPart(dev3dState.parts);dev3dRenderParts();$("dev3dModal").classList.add("show");$("dev3dModal").setAttribute("aria-hidden","false");dev3dInitView();dev3dLoad();}
+function dev3dOpen(){if(!devUnlocked)return;dev3dState.parts=(dev3dPresets[dev3dState.type]||[]).map(p=>({...p}));dev3dRenderParts();$("dev3dModal").classList.add("show");$("dev3dModal").setAttribute("aria-hidden","false");dev3dInitView();dev3dLoad();}
 function dev3dClose(){$("dev3dModal").classList.remove("show");$("dev3dModal").setAttribute("aria-hidden","true");}
 function dev3dRenderLibrary(){
  const box=$("dev3dLibrary");if(!box)return;box.innerHTML="";
- const entries=dev3dState.tab==="furniture"?dev3dState.names:[{key:"character:boss",name:"lowpoly_old_man.glb — Шеф"},{key:"character:employee",name:"Typing.glb — Сотрудник"}];
+ const entries=dev3dState.tab==="furniture"?dev3dState.names:[{key:"character:employee",name:"Typing.glb — Сотрудник"}];
  if(!entries.length){box.innerHTML='<div class="dev-note">Мебель не найдена или FBX ещё загружается.</div>';return;}
  entries.forEach(it=>{const b=document.createElement("button");b.textContent=it.name;b.title=it.key;b.addEventListener("click",()=>{dev3dState.parts.push({asset:it.key,name:it.name,x:0,y:0,z:0,rot:0,scale:1});dev3dState.selected=dev3dState.parts.length-1;dev3dRenderParts();dev3dRenderPreview();});box.appendChild(b);});
 }
@@ -1443,11 +1370,11 @@ function dev3dEditSelected(action){
 }
 function dev3dRenderPreview(){
  if(!dev3dState.root||!dev3dState.ready)return;while(dev3dState.root.children.length){const o=dev3dState.root.children[0];dev3dState.root.remove(o);}dev3dState.previewObjects=[];
- dev3dState.mixer=null;const previewParts=[];dev3dState.parts.forEach((p,i)=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;const placed=dev3dPlace(obj,p);placed.traverse(n=>{n.userData.dev3dPartIndex=i;});placed.userData.dev3dPartIndex=i;dev3dState.root.add(placed);dev3dState.previewObjects.push(placed);previewParts.push({part:p,obj,placed});if(String(p.asset).startsWith("character:")){const clip=dev3dAnimationClipFor(p.asset,obj);if(clip){dev3dState.mixer=new THREE.AnimationMixer(obj);dev3dState.mixer.clipAction(clip).reset().play();}}});if(dev3dState.type==="ceo")dev3dAttachCharacterToChair(dev3dState.root,previewParts);
+ dev3dState.mixer=null;const previewParts=[];dev3dState.parts.forEach((p,i)=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;const placed=dev3dPlace(obj,p);placed.traverse(n=>{n.userData.dev3dPartIndex=i;});placed.userData.dev3dPartIndex=i;dev3dState.root.add(placed);dev3dState.previewObjects.push(placed);previewParts.push({part:p,obj,placed});if(String(p.asset).startsWith("character:")){const clip=dev3dAnimationClipFor(p.asset,obj);if(clip){dev3dState.mixer=new THREE.AnimationMixer(obj);dev3dState.mixer.clipAction(clip).reset().play();}}});
  dev3dState.root.position.set(0,0,0);let b=new THREE.Box3().setFromObject(dev3dState.root),size=b.getSize(new THREE.Vector3());const m=.012,fits=b.min.x>=-.5-m&&b.max.x<=.5+m&&b.min.z>=-.5-m&&b.max.z<=.5+m;dev3dStatus((fits?"В пределах клетки 1×1":"ВЫХОД ЗА ГРАНИЦЫ КЛЕТКИ")+" · X "+size.x.toFixed(2)+" × Z "+size.z.toFixed(2));
  const n=$("dev3dSelectedName");if(n)n.textContent=dev3dState.parts[dev3dState.selected]?"Выбран: "+dev3dState.parts[dev3dState.selected].name:"Выберите предмет на сцене";
 }
-function dev3dPresetKey(type){return type==="ceo"?"ceo":type==="desk_1"||type==="desk_2"||type==="desk_3"||type==="desk_4"?type:type;}
+function dev3dPresetKey(type){return type;}
 function dev3dApply(){
  dev3dPresets[dev3dPresetKey(dev3dState.type)]=dev3dState.parts.map(p=>({...p}));localStorage.setItem("office_custom_presets",JSON.stringify(dev3dPresets));
  if(dev3dState.type==="ceo")state.layout=state.layout.map(o=>o.type==="boss"?o:o);
@@ -1455,10 +1382,6 @@ function dev3dApply(){
  save();syncPlayer(false);threeSceneSignature="";if(typeof rebuildThreeScene==="function")rebuildThreeScene();draw();toast("Пресеты сохранены и применены в игре");
 }
 function dev3dCopy(){const payload=JSON.stringify(dev3dPresets,null,2);const done=()=>toast("Скопировано!");if(navigator.clipboard?.writeText)navigator.clipboard.writeText(payload).then(done).catch(()=>{const t=document.createElement("textarea");t.value=payload;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();done();});else{const t=document.createElement("textarea");t.value=payload;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();done();}}
-function dev3dEnsureBossPart(parts){
- if(!parts.some(p=>p.asset==="character:boss"))parts.push({asset:"character:boss",name:"Персонаж · lowpoly_old_man.glb",x:.3,y:.35,z:.2,rot:180,rotX:0,rotZ:0,scale:1});
- return parts;
-}
 function dev3dNormalizeCharacter(root,height=1.05){
  root.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(root),size=b.getSize(new THREE.Vector3());
  const factor=height/Math.max(size.y,.0001);root.scale.multiplyScalar(factor);root.updateMatrixWorld(true);b.setFromObject(root);
@@ -1514,89 +1437,18 @@ function dev3dNormalizeBoneName(name){
  return String(name||"").split(/[|/]/).pop().replace(/mixamorig/ig,"").replace(/armature/ig,"").replace(/[^a-z0-9]/ig,"").toLowerCase();
 }
 function dev3dAnimationClipFor(asset,obj){
- const own=dev3dState.assets[asset+":clips"]||[];
- const typingRoot=dev3dState.assets["character:employee"];
- const typingClips=dev3dState.assets["character:employee:clips"]||[];
- // For the CEO, deliberately ignore any embedded idle/walk clips.
- const source=asset==="character:boss"?typingClips:own;
- if(!source.length||!obj){console.warn("No animation clips available for",asset);return null;}
- const clip=asset==="character:boss"
-  ?(source.find(c=>/typ|keyboard|computer/i.test(c.name||""))||source[0])
-  :source.find(c=>!/walk|run|locomotion/i.test(c.name||""))||source[0];
- const nodes=[],targetBones=[],sourceBones=[];
- obj.traverse(n=>{if(n.name)nodes.push(n);if(n.isBone)targetBones.push(n);});
- if(asset==="character:boss"&&typingRoot)typingRoot.traverse(n=>{if(n.isBone)sourceBones.push(n);});
- const exact=new Map();nodes.forEach(n=>{const k=dev3dNormalizeBoneName(n.name);if(k&&!exact.has(k))exact.set(k,n);});
- const sourceMap=new Map();if(typingRoot)typingRoot.traverse(n=>{if(n.isBone){const k=dev3dNormalizeBoneName(n.name);if(k&&!sourceMap.has(k))sourceMap.set(k,n);}});
- const tracks=[];let semantic=0,indexMapped=0;
- clip.tracks.forEach(track=>{
-  const dot=track.name.lastIndexOf(".");if(dot<1)return;
-  const sourceName=track.name.slice(0,dot),key=dev3dNormalizeBoneName(sourceName);
-  let target=exact.get(key);
-  if(!target&&key){
-   const matches=nodes.filter(n=>{const k=dev3dNormalizeBoneName(n.name);return k&&(k.endsWith(key)||key.endsWith(k));});
-   if(matches.length===1)target=matches[0];
-  }
-  if(target)semantic++;
-  // If rigs use different bone naming, preserve hierarchy order as a controlled fallback.
-  if(!target&&asset==="character:boss"&&sourceBones.length&&targetBones.length){
-   const src=sourceMap.get(key)||sourceBones.find(b=>dev3dNormalizeBoneName(b.name)===key);
-   const idx=src?sourceBones.indexOf(src):-1;
-   if(idx>=0&&idx<targetBones.length){target=targetBones[idx];indexMapped++;}
-  }
-  if(target&&(track.name.endsWith(".quaternion")||track.name.endsWith(".position")||track.name.endsWith(".scale"))){
-   const copy=track.clone();copy.name=target.name+track.name.slice(dot);tracks.push(copy);
-  }
- });
- const ratio=tracks.length/Math.max(1,clip.tracks.length);
- if(!tracks.length||ratio<.12){
-  console.warn("Typing.glb retarget failed",asset,{clip:clip.name,tracks:tracks.length,total:clip.tracks.length,targetBones:targetBones.length,sourceBones:sourceBones.length});
-  return null;
- }
- console.info("Typing.glb animation applied",asset,{clip:clip.name,tracks:tracks.length,total:clip.tracks.length,semantic,indexMapped});
- return new THREE.AnimationClip("Typing",clip.duration,tracks);
-}
-function dev3dAttachCharacterToChair(parent,placedParts){
- const char=placedParts.find(x=>x.part.asset==="character:boss"),chair=placedParts.find(x=>/chair/i.test(x.part.name||x.part.asset));
- if(!char||!chair)return null;
- const anchor=new THREE.Group();anchor.name="ceoChairAttachment";anchor.position.set(Number(chair.part.x)||0,Number(chair.part.y)||0,Number(chair.part.z)||0);anchor.rotation.y=THREE.MathUtils.degToRad(Number(chair.part.rot)||0);parent.add(anchor);
- char.placed.position.sub(anchor.position);anchor.add(char.placed);char.placed.userData.attachedChair=chair.placed;char.placed.userData.chairAnchor=anchor;
- return anchor;
+ const source=dev3dState.assets[asset+":clips"]||[];if(!source.length||!obj)return null;
+ const clip=source.find(c=>!/walk|run|locomotion/i.test(c.name||""))||source[0],nodes=[];obj.traverse(n=>{if(n.name)nodes.push(n);});
+ const exact=new Map();nodes.forEach(n=>{const k=dev3dNormalizeBoneName(n.name);if(k&&!exact.has(k))exact.set(k,n);});const tracks=[];
+ clip.tracks.forEach(track=>{const dot=track.name.lastIndexOf(".");if(dot<1)return;const key=dev3dNormalizeBoneName(track.name.slice(0,dot));let target=exact.get(key);if(!target&&key){const matches=nodes.filter(n=>{const k=dev3dNormalizeBoneName(n.name);return k&&(k.endsWith(key)||key.endsWith(k));});if(matches.length===1)target=matches[0];}if(target){const suffix=track.name.slice(dot);if(suffix===".quaternion"||suffix===".position"||suffix===".scale"){const copy=track.clone();copy.name=target.name+suffix;tracks.push(copy);}}});
+ if(!tracks.length||tracks.length/Math.max(1,clip.tracks.length)<.12)return null;return new THREE.AnimationClip("Character",clip.duration,tracks);
 }
 function dev3dUsePreset(parent,o,key){
- const stored=dev3dPresets[key];if(!stored?.length||!dev3dState.ready)return null;
- const preset=(key==="ceo"?dev3dEnsureBossPart(stored.map(p=>({...p}))):stored);
- const group=new THREE.Group();parent.add(group);const placedParts=[];
- preset.forEach(p=>{
-  const obj=dev3dCloneAsset(p.asset);if(!obj)return;
-  const placed=dev3dPlace(obj,p);group.add(placed);placedParts.push({part:p,obj,placed});
- });
- if(key==="ceo"){
-  const char=placedParts.find(x=>x.part.asset==="character:boss");
-  const keyPart=placedParts.find(x=>/keyboard/i.test(x.part.name||x.part.asset));
-  const mousePart=placedParts.find(x=>/mouse/i.test(x.part.name||x.part.asset));
-  const chairPart=placedParts.find(x=>/chair/i.test(x.part.name||x.part.asset));
-  dev3dAttachCharacterToChair(group,placedParts);
-  if(char){
-   const clip=dev3dAnimationClipFor("character:boss",char.obj);
-   if(clip){const mixer=new THREE.AnimationMixer(char.obj);mixer.clipAction(clip).reset().play();dev3dGameMixers.push(mixer);group.userData.typingMixer=mixer;}
-   else{const controller=dev3dCreateTypingController(char.obj,keyPart?.placed,mousePart?.placed);dev3dTypingControllers.push(controller);group.userData.typingController=controller;}
-   group.userData.characterObject=char.placed;
-
-  }else{
-   placedParts.filter(x=>String(x.part.asset).startsWith("character:")).forEach(x=>{
-    const clip=dev3dAnimationClipFor(x.part.asset,x.obj);if(clip){const mixer=new THREE.AnimationMixer(x.obj);mixer.clipAction(clip).reset().play();dev3dGameMixers.push(mixer);}
-   });
-  }
- }else{
-  placedParts.filter(x=>String(x.part.asset).startsWith("character:")).forEach(x=>{
-   const clip=dev3dAnimationClipFor(x.part.asset,x.obj);if(clip){const mixer=new THREE.AnimationMixer(x.obj);mixer.clipAction(clip).reset().play();dev3dGameMixers.push(mixer);}
-  });
- }
+ const stored=dev3dPresets[key];if(!stored?.length||!dev3dState.ready)return null;const group=new THREE.Group();parent.add(group);
+ stored.forEach(p=>{const obj=dev3dCloneAsset(p.asset);if(!obj)return;const placed=dev3dPlace(obj,p);group.add(placed);if(String(p.asset).startsWith("character:")){const clip=dev3dAnimationClipFor(p.asset,obj);if(clip){const mixer=new THREE.AnimationMixer(obj);mixer.clipAction(clip).reset().play();dev3dGameMixers.push(mixer);}}});
  group.position.set(o.x+.5,0,o.y+.5);group.rotation.y=(Number(o.rot)||0)*Math.PI/2;return group;
 }
-
-function rebuildThreeScene(){dev3dGameMixers.forEach(m=>m.stopAllAction());dev3dGameMixers.length=0;dev3dProceduralRigs.length=0;dev3dTypingControllers.length=0;const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"boss":g=createBoss(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;}if(g){g.userData.object=o;if(o.type==="desk"){const worker=createWorker3D(threeFurnitureGroup,o);threeWorkerGroups.set(o,worker);}}});floor.forEach(o=>{if(o.type==="boss")return;const key=o.type==="desk"?"desk_"+Math.max(1,Math.min(4,Number(o.level)||1)):o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});}
+function rebuildThreeScene(){dev3dGameMixers.forEach(m=>m.stopAllAction());dev3dGameMixers.length=0;dev3dProceduralRigs.length=0;dev3dTypingControllers.length=0;const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;}if(g){g.userData.object=o;if(o.type==="desk"){const worker=createWorker3D(threeFurnitureGroup,o);threeWorkerGroups.set(o,worker);}}});floor.forEach(o=>{const key=o.type==="desk"?"desk_"+Math.max(1,Math.min(4,Number(o.level)||1)):o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});}
 function updateThreeCamera(){if(!threeCamera)return;const n=currentGridSize(),span=n+5,aspect=Math.max(.5,threeWidth/Math.max(1,threeHeight));threeCamera.left=-span*aspect*.5;threeCamera.right=span*aspect*.5;threeCamera.top=span*.5;threeCamera.bottom=-span*.5;threeCamera.zoom=cameraZoom;const center=new THREE.Vector3(n/2+cameraOffsetX*.018+threePanX,0,n/2+cameraOffsetY*.018+threePanZ),d=span*1.75;threeCamera.position.copy(center).add(new THREE.Vector3(d,d,d));threeCamera.lookAt(center);threeCamera.updateProjectionMatrix();}
 function fitLargeFloorCamera(){
  const n=currentGridSize(),aspect=Math.max(.42,threeWidth/Math.max(1,threeHeight));
@@ -1621,39 +1473,7 @@ function renderThreeScene(){
  const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);
  if(sig!==threeSceneSignature)rebuildThreeScene();
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
- threeFurnitureGroup?.traverse(o=>{
-  const a=o.userData.bossAnimation;if(!a)return;
-  const t=now+a.phase,stroke=Math.sin(t*8.5);
-  // Continuous, restrained writing cycle: shoulder, elbow, wrist and pen move as one chain.
-  a.rightArm.rotation.x=.012+Math.sin(t*8.5)*.018;
-  a.rightArm.rotation.z=.018+Math.sin(t*4.2)*.012;
-  a.rightArm.userData.elbow.rotation.x=-.035+Math.sin(t*8.5+.7)*.025;
-  a.rightArm.userData.elbow.rotation.z=.025+Math.sin(t*5.1)*.012;
-  a.rightArm.userData.wrist.rotation.x=.035+stroke*.10;
-  a.rightArm.userData.wrist.rotation.z=-.025+stroke*.075;
-  a.pen.rotation.z=-.22+stroke*.045;
-  a.pen.position.x=-.012+stroke*.009;
-  a.pen.position.z=.018+Math.sin(t*8.5)*.006;
-  a.leftArm.rotation.x=.006+Math.sin(t*.7)*.008;
-  a.leftArm.rotation.z=-.012+Math.sin(t*.55)*.008;
-  a.leftArm.userData.elbow.rotation.x=.015+Math.sin(t*.6)*.008;
-  a.leftArm.userData.wrist.rotation.z=Math.sin(t*.5)*.008;
-  a.head.rotation.x=.025+Math.sin(t*.65)*.018;
-  a.head.rotation.y=.035+Math.sin(t*.38)*.025;
-  a.writeT+=frameDt;
-  if(a.writeT>.085){a.writeT=0;const pos=a.markGeo.attributes.position,n=a.markLine.geometry.drawRange.count,base=(n%30)*3;pos.array[base]=.018+Math.sin(t*8.5)*.045;pos.array[base+1]=.001;pos.array[base+2]=-.012+((n%30)/30)*.075;pos.needsUpdate=true;a.markLine.geometry.setDrawRange(0,Math.min(90,n+3));}
-  a.lampLight.intensity=.20+Math.sin(t*1.3)*.018;
- });
  threeWorkerGroups.forEach((g,desk)=>{
-  if(g.userData.executiveBoss){
-   const a=g.userData.executiveWriting,t=now+a.phase,stroke=Math.sin(t*8.2);
-   // The rig is a child of the CEO root; keep its local transform fixed so
-   // placement, rotation and move previews carry the complete workstation.
-   a.right.shoulder.rotation.x=-.82+Math.sin(t*8.2)*.018;a.right.shoulder.rotation.z=.035+Math.sin(t*4.1)*.012;a.right.elbow.rotation.x=-.34+Math.sin(t*8.2+.7)*.045;a.right.hand.rotation.x=.06+stroke*.10;a.right.hand.rotation.z=.025+stroke*.055;
-   a.left.shoulder.rotation.x=-.78+Math.sin(t*.65)*.009;a.left.elbow.rotation.x=-.32+Math.sin(t*.55)*.012;g.userData.head.rotation.x=.015+Math.sin(t*.7)*.016;g.userData.head.rotation.z=Math.sin(t*.43)*.012;
-   a.writeT+=frameDt;if(a.writeT>.11){a.writeT=0;a.marks++;const mark=new THREE.Mesh(new THREE.BoxGeometry(.012,.0015,.002),mat(0x354d67,.8));mark.position.set(-.045+(a.marks%7)*.012,.005,-.055+Math.floor(a.marks/7)*.014);a.document.add(mark);if(a.marks>28){const old=a.document.children.find(c=>c!==a.document.children[0]&&c!==a.document.children[1]&&c!==a.document.children[2]);if(old)a.document.remove(old);a.marks=20;}}
-   return;
-  }
   const rt=employeeMotion.get(desk),state=rt?.state||"work",p=rt?.pos||{x:desk.x+.5,y:desk.y+.5};
   const deskAngle=(Number(desk.rot)||0)*Math.PI/2,seatX=desk.x+.5+Math.sin(deskAngle)*.62,seatZ=desk.y+.5+Math.cos(deskAngle)*.62;
   const walking=state==="walk"||state==="stand"||state==="coffee";
@@ -1846,14 +1666,6 @@ function drawSecurity(o){
  const p=iso(o.x+.5,o.y+.46);for(let i=0;i<3;i++){const x=p.x-15+i*15;poly([{x:x-7,y:p.y-26},{x:x+6,y:p.y-26},{x:x+6,y:p.y-13},{x:x-7,y:p.y-13}],"#101c2b","#829daf");poly([{x:x-5,y:p.y-24},{x:x+4,y:p.y-24},{x:x+4,y:p.y-15},{x:x-5,y:p.y-15}],["#123b56","#164b5a","#263d69"][i]);ctx.strokeStyle=["#55d7f2","#4ee0c1","#8bafff"][i];ctx.beginPath();ctx.moveTo(x-4,p.y-18);ctx.lineTo(x-1,p.y-21);ctx.lineTo(x+1,p.y-17);ctx.lineTo(x+4,p.y-20);ctx.stroke();}
  ctx.fillStyle="#4ce0bd";ctx.shadowColor="#4ce0bd";ctx.shadowBlur=8;ctx.beginPath();ctx.arc(p.x+19,p.y-4,3,0,7);ctx.fill();ctx.shadowBlur=0;
 }
-function drawBoss(o){
- box(o.x+.1,o.y+.25,.8,.57,15,"#493126","#261d1b","#38271f");box(o.x+.07,o.y+.2,.86,.62,5,"#95683e","#563a2b","#765033");
- const a=iso(o.x+.16,o.y+.26),b=iso(o.x+.84,o.y+.26);ctx.strokeStyle="#e0bd7b";ctx.lineWidth=1.7;ctx.beginPath();ctx.moveTo(a.x,a.y-2);ctx.lineTo(b.x,b.y-2);ctx.stroke();
- const p=iso(o.x+.5,o.y+.46);poly([{x:p.x-10,y:p.y-7},{x:p.x+5,y:p.y-7},{x:p.x+9,y:p.y-3},{x:p.x-6,y:p.y-3}],"#e9e0d1","#fff1d5");
- ctx.save();ctx.strokeStyle="#d8bd86";ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(p.x+15,p.y-9);ctx.lineTo(p.x+19,p.y-20);ctx.lineTo(p.x+25,p.y-24);ctx.stroke();ctx.shadowColor="#ffd37a";ctx.shadowBlur=13;ctx.fillStyle="#f7d58c";ctx.beginPath();ctx.moveTo(p.x+19,p.y-25);ctx.lineTo(p.x+30,p.y-23);ctx.lineTo(p.x+26,p.y-18);ctx.lineTo(p.x+18,p.y-20);ctx.closePath();ctx.fill();ctx.restore();
- box(o.x+.37,o.y+.77,.26,.13,10,"#27384b","#172538","#203047");
-}
-
 // Employee pathfinding is scoped to the active floor. Furniture cells are hard obstacles.
 function employeeKey(o){return Math.round(o.x)+":"+Math.round(o.y);}
 function validFloorCell(x,y,n=currentGridSize()){return Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&y>=0&&x<n&&y<n;}
@@ -1975,11 +1787,11 @@ function drawEmployeeOnFloor(desk){
  const rt=employeeMotion.get(desk);if(!rt)return;
  const p=iso(rt.pos.x,rt.pos.y);drawWorker(p.x-1,p.y-3,rt.state,rt.state==="walk"?Math.sin(performance.now()/90)*1.2:0,rt.state!=="walk");
 }
-function drawFurnitureShape(o){if(o.type==="desk")drawDesk(o);else if(o.type==="coffee")drawCoffee(o);else if(o.type==="server")drawServer(o);else if(o.type==="boss")drawBoss(o);else if(o.type==="meeting")drawMeeting(o);else if(o.type==="security")drawSecurity(o);}
+function drawFurnitureShape(o){if(o.type==="desk")drawDesk(o);else if(o.type==="coffee")drawCoffee(o);else if(o.type==="server")drawServer(o);else if(o.type==="meeting")drawMeeting(o);else if(o.type==="security")drawSecurity(o);}
 function drawObject(o){
  const p=iso(o.x+.5,o.y+.5),w=cellW*1.45;ctx.save();
  ctx.fillStyle="rgba(0,0,0,.30)";ctx.beginPath();ctx.ellipse(p.x,p.y+cellH*.22,w*.34,cellH*.18,0,0,Math.PI*2);ctx.fill();
- const glow=o.type==="desk"?"rgba(69,193,232,.13)":o.type==="server"?"rgba(45,212,191,.14)":o.type==="boss"?"rgba(245,181,65,.13)":o.type==="security"?"rgba(56,165,245,.12)":o.type==="coffee"?"rgba(234,190,126,.1)":"rgba(110,170,220,.1)";
+ const glow=o.type==="desk"?"rgba(69,193,232,.13)":o.type==="server"?"rgba(45,212,191,.14)":o.type==="security"?"rgba(56,165,245,.12)":o.type==="coffee"?"rgba(234,190,126,.1)":"rgba(110,170,220,.1)";
  ctx.shadowColor=glow;ctx.shadowBlur=8;ctx.fillStyle=glow;ctx.beginPath();ctx.ellipse(p.x,p.y+cellH*.16,w*.29,cellH*.15,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
  ctx.translate(p.x,p.y+cellH*.12);ctx.rotate(((Number(o.rot)||0)%4)*Math.PI/2);ctx.scale(.78,.78);ctx.translate(-p.x,-(p.y+cellH*.12));drawFurnitureShape(o);ctx.restore();
 }
@@ -1989,7 +1801,7 @@ function renderFurniturePreview(el,type,size,level=1){
   el.width=Math.round(w*dpr);el.height=Math.round(h*dpr);el.style.width=w+"px";el.style.height=h+"px";
   const pctx=el.getContext("2d");pctx.setTransform(dpr,0,0,dpr,0,0);pctx.clearRect(0,0,w,h);
   ctx=pctx;cellW=31;cellH=15.5;originX=w/2;originY=h*.63;
-  ctx.save();try{ctx.scale(.78*Math.min(1,w/72),.78*Math.min(1,h/72));drawFurnitureShape({type:type==="ceo"?"boss":type,x:0,y:0,rot:0,level,workerState:"work"});}finally{ctx.restore();}
+  ctx.save();try{ctx.scale(.78*Math.min(1,w/72),.78*Math.min(1,h/72));drawFurnitureShape({type:type,x:0,y:0,rot:0,level,workerState:"work"});}finally{ctx.restore();}
  }catch(previewError){console.warn("Office preview render error:",type,previewError);}
  finally{ctx=old.ctx||canvas.getContext("2d");cellW=old.cellW;cellH=old.cellH;originX=old.originX;originY=old.originY;}
 }
@@ -2179,7 +1991,7 @@ function beginBuildPreview(type){
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);}
  threePreviewGroup=new THREE.Group();threeRoot.add(threePreviewGroup);
  const p={type,x:cell.x,y:cell.y,rot:0,valid:false,ghost:null,frame:null,outline:null};buildPreviewState=p;
- const obj={type,x:p.x,y:p.y,rot:0,level:1};const makers={desk:createDesk,coffee:createCoffee,server:createServer,boss:(p,o)=>createBoss(p,o,false),meeting:createMeeting,security:createSecurity};
+ const obj={type,x:p.x,y:p.y,rot:0,level:1};const makers={desk:createDesk,coffee:createCoffee,server:createServer,meeting:createMeeting,security:createSecurity};
  p.ghost=makers[type](threePreviewGroup,obj);
  p.ghost.traverse(o=>{if(!o.isMesh||!o.material)return;const wasArray=Array.isArray(o.material),src=wasArray?o.material:[o.material];const cloned=src.map(m=>{const c=m.clone();c.transparent=true;c.opacity=.76;c.depthWrite=false;c.side=THREE.DoubleSide;c.userData.previewBaseColor=c.color?.clone?.()||new THREE.Color(0xffffff);if(c.emissive)c.emissive.lerp(new THREE.Color(0x173d38),.12);return c;});o.material=wasArray?cloned:cloned[0];o.castShadow=false;o.receiveShadow=false;o.renderOrder=3;});
  const fm=new THREE.MeshBasicMaterial({color:0x35e3bb,transparent:true,opacity:.34,side:THREE.DoubleSide,depthWrite:false});

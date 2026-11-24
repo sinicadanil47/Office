@@ -1473,7 +1473,7 @@ function renderThreeScene(){
  if(sig!==threeSceneSignature)rebuildThreeScene();
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
  threeWorkerGroups.forEach((g,desk)=>{
-  const rt=employeeMotion.get(desk),state=rt?.state||"work",p=rt?.pos||{x:desk.x+.5,y:desk.y+.5};
+  const rt=employeeMotion.get(employeeKey(desk)),state=rt?.state||"work",p=rt?.pos||{x:desk.x+.5,y:desk.y+.5};
   const deskAngle=(Number(desk.rot)||0)*Math.PI/2,seatX=desk.x+.5+Math.sin(deskAngle)*.62,seatZ=desk.y+.5+Math.cos(deskAngle)*.62;
   const walking=state==="walk"||state==="stand"||state==="coffee";
   const targetBlend=walking?1:0;
@@ -1530,7 +1530,7 @@ function renderThreeScene(){
 function resizeThree(){const r=canvas.getBoundingClientRect();threeWidth=window.innerWidth;threeHeight=window.innerHeight;threeRenderer.setSize(threeWidth,threeHeight,false);if(!threeCamera){threeCamera=new THREE.OrthographicCamera(-10,10,10,-10,.1,200);}updateThreeCamera();threeRenderer.render(threeScene,threeCamera);}
 
 const canvas=$("room");let ctx=canvas.getContext("2d");
-const employeeMotion=new WeakMap();
+const employeeMotion=new Map();
 let W=0,H=0,dpr=1,cellW=0,cellH=0,originX=0,originY=0,pointer=null,floaters=[],cameraOffsetX=0,cameraOffsetY=0,cameraZoom=1;const activePointers=new Map();let pinchState=null,suppressTap=false,lastTap=null,cameraResetFrame=0;
 function resize(){
  const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;
@@ -1616,7 +1616,7 @@ function drawWorker(x,y,state,bob=0,showChair=true){
  ctx.restore();
 }
 function drawDesk(o){
- const rt=employeeMotion.get(o),state=rt?rt.state:(o.workerState||o.mood||"work"),bob=state==="work"?Math.sin(performance.now()/200+o.x)*.5:0,level=Math.max(1,Math.min(4,Number(o.level)||1)),m=iso(o.x+.5,o.y+.5);
+ const rt=employeeMotion.get(employeeKey(o)),state=rt?rt.state:(o.workerState||o.mood||"work"),bob=state==="work"?Math.sin(performance.now()/200+o.x)*.5:0,level=Math.max(1,Math.min(4,Number(o.level)||1)),m=iso(o.x+.5,o.y+.5);
  const spriteW=cellW*1.62,spriteH=cellH*3.25;
  if(!drawDeskAtlas(level,m.x,m.y-cellH*.25,spriteW,spriteH)){
   ctx.save();ctx.translate(m.x,m.y);ctx.scale(.78,.78);
@@ -1706,7 +1706,7 @@ function startEmployeeWalk(desk,layout,n=currentGridSize()){
  const old=employeeMotion.get(desk)||{},energy=old.energy??100;
  if(energy>38)return false;
  const choice=chooseEmployeeWalk(desk,layout,n);if(!choice)return false;
- employeeMotion.set(desk,{...old,state:"stand",timer:.72,pos:{x:desk.x+.5,y:desk.y+.5},path:choice.path,index:0,progress:0,returning:false,pause:0,coffeeStop:!!choice.coffeeStop,afterSit:energy<=9?"sleep":"work"});
+ employeeMotion.set(employeeKey(desk),{...old,state:"stand",timer:.72,pos:{x:desk.x+.5,y:desk.y+.5},path:choice.path,index:0,progress:0,returning:false,pause:0,coffeeStop:!!choice.coffeeStop,afterSit:energy<=9?"sleep":"work"});
  return true;
 }
 function updateEmployeeMotion(dt,layout,n=currentGridSize()){
@@ -1903,7 +1903,7 @@ function handleRoomTap(e){
  if(state.sellMode){if(i>=0){const o=state.layout.splice(i,1)[0];state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
  if(moveMode){if(i>=0){beginMovePreview(i);}else toast("Сначала выберите установленный объект");return;}
  if(state.selected){if(i>=0){toast("Клетка занята");return;}const movingEmployee=state.layout.some(o=>{if(o.type!=="desk")return false;const rt=employeeMotion.get(o);return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===c.x&&Math.floor(rt.pos.y)===c.y;});if(movingEmployee){toast("Сотрудник проходит по этой клетке");return;}const t=TYPES[state.selected];if(!devFreeBuild&&state.balance<t.cost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=t.cost;state.layout.push({type:state.selected,x:c.x,y:c.y,rot:state.rotation});save();state.selected=null;closeShop();updateUI();haptic();toast(t.name+" установлен");draw();return;}
- if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(state.layout[i]);if(rt&&(rt.state==="sleep"||rt.state==="walk"||rt.state==="coffee")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}
+ if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(employeeKey(state.layout[i]));if(rt&&(rt.state==="sleep"||rt.state==="walk"||rt.state==="coffee")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}
  if(currentGridSize()>=11){quickBuildCell={x:c.x,y:c.y};$("shop").classList.add("open");toast("Выберите объект — предпросмотр откроется в клетке "+(c.x+1)+", "+(c.y+1));return;}
  toast("Выберите действие или объект в магазине");
 }

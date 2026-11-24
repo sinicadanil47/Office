@@ -623,14 +623,14 @@ function createBoss(parent,o){
  const plaqueCanvas=document.createElement("canvas");plaqueCanvas.width=256;plaqueCanvas.height=96;const pc=plaqueCanvas.getContext("2d");pc.fillStyle="#182b3d";pc.fillRect(0,0,256,96);pc.strokeStyle="#c8a568";pc.lineWidth=7;pc.strokeRect(5,5,246,86);pc.fillStyle="#f3dfb6";pc.font="bold 43px Georgia";pc.textAlign="center";pc.textBaseline="middle";pc.fillText("DIRECTOR",128,49);
  const plaqueTex=new THREE.CanvasTexture(plaqueCanvas);plaqueTex.colorSpace=THREE.SRGBColorSpace;const plaque=new THREE.Mesh(new THREE.BoxGeometry(.235,.072,.012),new THREE.MeshStandardMaterial({color:0xffffff,map:plaqueTex,roughness:.45,metalness:.22}));plaque.position.set(.285,.515,-.19);plaque.castShadow=true;desk.add(plaque);
  const paperMat=mat(0xf5f0e5,.94),paperLine=mat(0x9aa7b1,.85),gold=mat(0xc9a35e,.38,.55);
- const document=new THREE.Group();desk.add(document);document.position.set(.275,.493,-.015);document.rotation.y=-.08;const page=new THREE.Mesh(new THREE.BoxGeometry(.19,.004,.225),paperMat);page.castShadow=true;page.receiveShadow=true;document.add(page);
+ const document=new THREE.Group();desk.add(document);document.position.set(-.245,.493,.11);document.rotation.y=-.04;const page=new THREE.Mesh(new THREE.BoxGeometry(.19,.004,.225),paperMat);page.castShadow=true;page.receiveShadow=true;document.add(page);
  for(let i=0;i<8;i++){const line=new THREE.Mesh(new THREE.BoxGeometry(.145,.001,.0018),paperLine);line.position.set(-.005,.003,-.073+i*.018);document.add(line);}
  const seal=new THREE.Mesh(new THREE.TorusGeometry(.018,.003,6,22),gold);seal.position.set(.055,.004,.078);seal.rotation.x=Math.PI/2;document.add(seal);
  const pen=new THREE.Group();document.add(pen);pen.position.set(-.055,.014,.065);pen.rotation.x=Math.PI/2;const penBody=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,.105,10),mat(0x26384e,.32,.58));penBody.rotation.z=Math.PI/2;pen.add(penBody);const penTip=new THREE.Mesh(new THREE.ConeGeometry(.005,.018,10),gold);penTip.position.x=.065;penTip.rotation.z=-Math.PI/2;pen.add(penTip);
  const person=createWorker3D(parent,o,true);person.position.set(o.x+.5,0,o.y+.5+.62);person.rotation.y=Math.PI+(Number(o.rot)||0)*Math.PI/2;person.userData.executiveBoss=true;person.userData.executiveDesk=desk;
- const arms=person.userData.arms;arms.forEach(a=>{a.shoulder.rotation.x=-.62;a.elbow.rotation.x=-.2;});const right=arms.find(a=>a.side===1),left=arms.find(a=>a.side===-1);
+ const arms=person.userData.arms;arms.forEach(a=>{a.shoulder.rotation.x=-.82;a.elbow.rotation.x=-.34;});const right=arms.find(a=>a.side===1),left=arms.find(a=>a.side===-1);
  if(right){const grip=new THREE.Group();right.hand.add(grip);grip.position.set(.008,-.005,.035);grip.rotation.set(-.35,0,.18);const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.0035,.0035,.105,9),mat(0x26384e,.3,.58));shaft.rotation.x=Math.PI/2;grip.add(shaft);const nib=new THREE.Mesh(new THREE.ConeGeometry(.004,.016,8),gold);nib.position.z=-.06;grip.add(nib);}
- if(left){left.shoulder.rotation.x=-.58;left.elbow.rotation.x=-.24;}
+ if(left){left.shoulder.rotation.x=-.78;left.elbow.rotation.x=-.32;}
  person.userData.executiveWriting={right,left,document,phase:(o.x*7+o.y*13)*.37,writeT:0,marks:0};threeWorkerGroups.set(o,person);desk.userData.object=o;return desk;
 }
 function createMeeting(parent,o){
@@ -1645,8 +1645,8 @@ function renderThreeScene(){
   if(g.userData.executiveBoss){
    const a=g.userData.executiveWriting,t=now+a.phase,stroke=Math.sin(t*8.2),targetYaw=Math.PI+(Number(desk.rot)||0)*Math.PI/2;
    g.position.set(desk.x+.5,0,desk.y+.5+.62);const dy=Math.atan2(Math.sin(targetYaw-g.rotation.y),Math.cos(targetYaw-g.rotation.y));g.rotation.y+=dy*(1-Math.exp(-frameDt*6));
-   a.right.shoulder.rotation.x=-.62+Math.sin(t*8.2)*.018;a.right.shoulder.rotation.z=.035+Math.sin(t*4.1)*.012;a.right.elbow.rotation.x=-.20+Math.sin(t*8.2+.7)*.045;a.right.hand.rotation.x=.06+stroke*.10;a.right.hand.rotation.z=.025+stroke*.055;
-   a.left.shoulder.rotation.x=-.58+Math.sin(t*.65)*.009;a.left.elbow.rotation.x=-.24+Math.sin(t*.55)*.012;g.userData.head.rotation.x=.015+Math.sin(t*.7)*.016;g.userData.head.rotation.z=Math.sin(t*.43)*.012;
+   a.right.shoulder.rotation.x=-.82+Math.sin(t*8.2)*.018;a.right.shoulder.rotation.z=.035+Math.sin(t*4.1)*.012;a.right.elbow.rotation.x=-.34+Math.sin(t*8.2+.7)*.045;a.right.hand.rotation.x=.06+stroke*.10;a.right.hand.rotation.z=.025+stroke*.055;
+   a.left.shoulder.rotation.x=-.78+Math.sin(t*.65)*.009;a.left.elbow.rotation.x=-.32+Math.sin(t*.55)*.012;g.userData.head.rotation.x=.015+Math.sin(t*.7)*.016;g.userData.head.rotation.z=Math.sin(t*.43)*.012;
    a.writeT+=frameDt;if(a.writeT>.11){a.writeT=0;a.marks++;const mark=new THREE.Mesh(new THREE.BoxGeometry(.012,.0015,.002),mat(0x354d67,.8));mark.position.set(-.045+(a.marks%7)*.012,.005,-.055+Math.floor(a.marks/7)*.014);a.document.add(mark);if(a.marks>28){const old=a.document.children.find(c=>c!==a.document.children[0]&&c!==a.document.children[1]&&c!==a.document.children[2]);if(old)a.document.remove(old);a.marks=20;}}
    return;
   }

@@ -401,27 +401,35 @@ function createDesk(parent,o){
  const cyan=[0x65a9c7,0x28b8e0,0x29d6d0,0x78e8ff][lv-1],glow=M(cyan,.22,.18,{emissive:cyan,emissiveIntensity:[.18,.38,.72,1.05][lv-1]});
  B(g,0,.48,0,.88,.075,.56,wood);B(g,0,.438,0,.9,.022,.575,edge);
  for(const x of [-.365,.365])for(const z of [-.205,.205]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.022,.032,.42,8),metal);leg.position.set(x,.21,z);g.add(leg);B(g,x,.025,z,.075,.035,.075,rubber);}
- // Monitor generations: bulky CRT -> early LCD -> thin LED -> premium ultrawide.
+ // Monitor generations: bespoke ivory CRT for level 1; modern flat panels for levels 2–4.
  const mon=new THREE.Group();g.add(mon);mon.position.set(0,.70,-.17);
  const w=lv===4?.43:lv>=3?.39:.34,h=lv===1?.29:lv===2?.25:lv===3?.27:.29,d=lv===1?.19:lv===2?.075:lv===3?.045:.035;
- const shell=M([0x38434a,0x202e3b,0x172936,0x101d2b][lv-1],.38,lv>=3?.48:.25),glass=M(lv===1?0x163247:0x071827,.18,.1,{emissive:cyan,emissiveIntensity:lv===1?.16:lv===4?.58:.35});
- B(mon,0,h/2,0,w,h,d,shell);B(mon,0,h/2,d/2+.006,w-.025,h-.026,.009,glass);
- if(lv===1){S(mon,0,h/2,.075,w*.43,h*.39,.045,glass);B(mon,0,.035,.01,.17,.035,.14,shell);B(mon,0,.016,.01,.22,.018,.17,metal);}
- else {B(mon,0,h*.12,d/2+.012,w*.84,.008,.006,glow);if(lv>=3){B(mon,0,h/2,-d/2-.008,w*.94,h*.92,.012,metal);}if(lv===4){B(mon,0,h+.008,0,w*.96,.012,.025,metal);B(mon,0,-.012,0,w*.96,.012,.025,metal);}}
- // Stand neck and weighted foot.
- B(mon,0,-.035,0,.055,.075,.045,lv===1?shell:metal);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.018,.024,.105,12),metal);neck.position.set(0,-.085,0);mon.add(neck);B(mon,0,-.14,.025,.19,.018,.105,metal);
- // Screen interface details and indicator.
- const ui=M(cyan,.3,.05,{emissive:cyan,emissiveIntensity:.5});
- for(let i=0;i<5;i++)B(mon,-w*.27+i*.035,h*.72,d/2+.012,.018,.008,.004,ui);
- B(mon,-w*.17,h*.48,d/2+.012,w*.28,.012,.004,ui);B(mon,w*.17,h*.48,d/2+.012,w*.2,.012,.004,ui);
- for(let i=0;i<3;i++)B(mon,-w*.2+i*.055,h*.27,d/2+.012,.04,.006,.004,ui);
- // Keyboard with individual keycaps and highlighted function/space keys.
- const kb=new THREE.Group();g.add(kb);B(kb,0,.535,.145,.34,.022,.125,M(lv>=3?0x172632:0x26313b,.5,.28));
- const keyGeo=new THREE.BoxGeometry(.019,.009,.014),keys=new THREE.InstancedMesh(keyGeo,M(lv>=3?0x8299a8:0xb0b9bd,.55,.14),55),dummy=new THREE.Object3D();let ki=0;
+ if(lv===1){
+  const ivory=M(0xeae6df,.68,.04),ivoryHi=M(0xf5f1e9,.48,.08),ivoryShade=M(0xc9c4ba,.72,.04),bezel=M(0xd8d3ca,.62,.06),screen=M(0x071d29,.2,.08,{emissive:0x062d38,emissiveIntensity:.34}),phosphor=M(0x72d49a,.24,.04,{emissive:0x2d9b62,emissiveIntensity:.72}),power=M(0x42d879,.2,.05,{emissive:0x19c85d,emissiveIntensity:1.6});
+  B(mon,0,h*.52,-.018,.365,.315,.265,ivory);B(mon,0,h*.52,.105,.355,.304,.045,ivoryHi);B(mon,0,h*.52,.132,.329,.278,.025,bezel);
+  B(mon,0,h*.54,.147,.282,.222,.012,screen);S(mon,0,h*.54,.153,.139,.111,.012,screen);
+  for(let i=0;i<5;i++)B(mon,-.091,h*.72-i*.029,.166,.115-(i%2)*.028,.004,.003,phosphor);
+  B(mon,.025,h*.38,.166,.105,.004,.003,phosphor);B(mon,-.145,h*.54,.164,.008,.224,.004,ivoryShade);
+  for(let i=0;i<9;i++)B(mon,-.125+i*.031,h+.006,-.035,.018,.004,.105,ivoryShade);
+  S(mon,.139,.035,.166,.008,.008,.004,power);S(mon,-.139,.035,.166,.012,.012,.005,ivoryShade);
+  B(mon,0,-.035,-.015,.105,.075,.095,ivoryShade);B(mon,0,-.083,-.015,.125,.025,.115,ivory);B(mon,0,-.111,.005,.205,.025,.165,ivoryHi);B(mon,0,-.125,.005,.18,.008,.14,ivoryShade);
+ }else{
+  const shell=M([0x38434a,0x202e3b,0x172936,0x101d2b][lv-1],.38,lv>=3?.48:.25),glass=M(0x071827,.18,.1,{emissive:cyan,emissiveIntensity:lv===4?.58:.35});
+  B(mon,0,h/2,0,w,h,d,shell);B(mon,0,h/2,d/2+.006,w-.025,h-.026,.009,glass);
+  B(mon,0,h*.12,d/2+.012,w*.84,.008,.006,glow);if(lv>=3)B(mon,0,h/2,-d/2-.008,w*.94,h*.92,.012,metal);if(lv===4){B(mon,0,h+.008,0,w*.96,.012,.025,metal);B(mon,0,-.012,0,w*.96,.012,.025,metal);}
+  B(mon,0,-.035,0,.055,.075,.045,metal);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.018,.024,.105,12),metal);neck.position.set(0,-.085,0);mon.add(neck);B(mon,0,-.14,.025,.19,.018,.105,metal);
+  const ui=M(cyan,.3,.05,{emissive:cyan,emissiveIntensity:.5});
+  for(let i=0;i<5;i++)B(mon,-w*.27+i*.035,h*.72,d/2+.012,.018,.008,.004,ui);
+  B(mon,-w*.17,h*.48,d/2+.012,w*.28,.012,.004,ui);B(mon,w*.17,h*.48,d/2+.012,w*.2,.012,.004,ui);
+  for(let i=0;i<3;i++)B(mon,-w*.2+i*.055,h*.27,d/2+.012,.04,.006,.004,ui);
+ }
+// Keyboard with individual keycaps and highlighted function/space keys.
+ const kb=new THREE.Group();g.add(kb);const keyBase=M(lv===1?0xe6e1d8:lv>=3?0x172632:0x26313b,.5,.12),keyTop=M(lv===1?0xf7f3eb:lv>=3?0x8299a8:0xb0b9bd,.55,.14);B(kb,0,.535,.145,.34,.022,.125,keyBase);
+ const keyGeo=new THREE.BoxGeometry(.019,.009,.014),keys=new THREE.InstancedMesh(keyGeo,keyTop,55),dummy=new THREE.Object3D();let ki=0;
  for(let row=0;row<5;row++)for(let col=0;col<11;col++){dummy.position.set(-.148+col*.029,.551,.098+row*.022);dummy.updateMatrix();keys.setMatrixAt(ki++,dummy.matrix);}keys.instanceMatrix.needsUpdate=true;kb.add(keys);
- B(kb,0,.553,.188,.105,.01,.014,glow);
+ B(kb,0,.553,.188,.105,.01,.014,lv===1?keyTop:glow);
  // Mouse, mousepad, scroll wheel and cable.
- B(g,.275,.493,.15,.13,.012,.17,M(0x263a4b,.9,.08));S(g,.275,.515,.14,.034,.022,.052,M(0xc4cbd0,.42,.2));B(g,.275,.535,.112,.006,.004,.025,metal);
+ B(g,.275,.493,.15,.13,.012,.17,M(lv===1?0xd8d3ca:0x263a4b,.9,.08));S(g,.275,.515,.14,.034,.022,.052,M(lv===1?0xeae6df:0xc4cbd0,.42,.2));B(g,.275,.535,.112,.006,.004,.025,metal);
  const cable=new THREE.QuadraticBezierCurve3(new THREE.Vector3(.275,.516,.105),new THREE.Vector3(.34,.53,.06),new THREE.Vector3(.34,.49,-.04));g.add(new THREE.Mesh(new THREE.TubeGeometry(cable,12,.004,6,false),rubber));
  // PC case changes from beige office tower to RGB glass workstation.
  const pc=new THREE.Group();g.add(pc);pc.position.set(-.345,.535,-.005);
@@ -445,12 +453,14 @@ function createDesk(parent,o){
  const lift=new THREE.Mesh(new THREE.CylinderGeometry(.026,.038,.27,12),metal);lift.position.set(0,.19,0);chair.add(lift);
  for(let i=0;i<5;i++){const a=i*Math.PI*2/5,dx=Math.cos(a)*.19,dz=Math.sin(a)*.19,spoke=new THREE.Mesh(new THREE.BoxGeometry(.22,.025,.035),metal);spoke.position.set(dx/2,.055,dz/2);spoke.rotation.y=-a;chair.add(spoke);const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.035,12),rubber);wheel.position.set(dx,.025,dz);wheel.rotation.z=Math.PI/2;chair.add(wheel);}
  if(lv===4)B(back,0,.29,-.005,.24,.11,.08,upholstery);
- g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.level=lv;return g;
+ normalizeFurnitureModel(g,.86);
+ g.userData.workerSeatOffset=g.position.z+chair.position.z*g.scale.z;
+ g.position.x+=o.x+.5;g.position.z+=o.y+.5;g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.level=lv;return g;
 }
 function createCoffee(parent,o){
  const g=new THREE.Group();parent.add(g);
  const M=(c,r=.62,me=0,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:me,...e});
- const shell=M(0x26333b,.38,.58),shellDark=M(0x111b22,.48,.42),steel=M(0xb7c3c7,.28,.78),steelDark=M(0x657780,.34,.72),black=M(0x101a22,.22,.24),rubber=M(0x202a30,.88),glass=M(0x182b34,.14,.18,{transparent:true,opacity:.88}),screen=M(0x123847,.18,.25,{emissive:0x087e9b,emissiveIntensity:.72}),cyan=M(0x4bd9e9,.24,.18,{emissive:0x16a9c0,emissiveIntensity:1.1}),amber=M(0xffbd58,.25,.1,{emissive:0xc87919,emissiveIntensity:.8}),white=M(0xf4eee2,.38,.05),coffee=M(0x382014,.3,.04);
+ const shell=M(0xf4f2ed,.7,.025),shellDark=M(0xdedbd4,.62,.08),steel=M(0xc9d0d2,.24,.82),steelDark=M(0x879397,.34,.72),black=M(0x303b40,.28,.28),rubber=M(0x596166,.86),glass=M(0xa9d8df,.12,.12,{transparent:true,opacity:.34,depthWrite:false}),screen=M(0x102e38,.18,.22,{emissive:0x087e9b,emissiveIntensity:.9}),cyan=M(0x45d7e5,.22,.16,{emissive:0x16a9c0,emissiveIntensity:1.25}),amber=M(0xffbd58,.25,.1,{emissive:0xc87919,emissiveIntensity:.85}),white=M(0xfaf8f3,.34,.04),coffee=M(0x382014,.3,.04);
  const B=(p,x,y,z,w,h,d,m)=>boxMesh(p,x,y,z,w,h,d,m);
  const S=(p,x,y,z,r,m,scale=[1,1,1])=>sphereMesh(p,x,y,z,r,m,scale);
  const C=(p,x,y,z,r1,r2,h,m,seg=20)=>cylMesh(p,x,y,z,r1,r2,h,m,seg);
@@ -488,11 +498,12 @@ function createCoffee(parent,o){
  C(g,.205,.785,.296,.047,.047,.012,black,28);
  C(g,.205,.785,.305,.012,.012,.008,amber,20);
  for(let i=0;i<4;i++)S(g,-.22+i*.075,.76,.274,.012,i===0?amber:cyan,[1,1,.45]);
- // Bean hopper on top, with transparent walls and a dark domed lid.
- B(g,0,1.12,-.085,.36,.12,.32,shellDark);
- B(g,0,1.255,-.085,.30,.18,.26,glass);
- B(g,0,1.355,-.085,.34,.035,.30,black);
- B(g,0,1.377,-.085,.27,.012,.23,steelDark);
+ // Cream upper housing and a transparent side/rear water reservoir.
+ B(g,0,1.12,-.085,.36,.12,.32,shell);B(g,0,1.255,-.085,.30,.18,.26,glass);
+ B(g,0,1.355,-.085,.34,.035,.30,shellDark);B(g,0,1.377,-.085,.27,.012,.23,steel);
+ B(g,.385,.73,-.105,.105,.47,.30,glass);B(g,.385,.50,-.105,.112,.018,.31,steel);B(g,.385,.965,-.105,.112,.018,.31,steel);
+ B(g,.385,.73,.052,.11,.47,.012,steel);B(g,.385,.73,-.262,.11,.47,.012,steel);
+ for(let i=0;i<4;i++)B(g,.445,.58+i*.095,-.248,.003,.004,.006,steelDark);
  // Visible coffee beans inside the hopper.
  const beanMat=M(0x68432b,.82),beanHi=M(0x95623b,.76);
  for(let i=0;i<11;i++){
@@ -526,12 +537,13 @@ function createCoffee(parent,o){
  lineMesh(g,new THREE.Vector3(.31,.39,.24),new THREE.Vector3(.31,.28,.32),.012,steel);
  C(g,.31,.255,.32,.012,.012,.035,black,12);
  // Front lower access door, recessed handle and tiny fasteners.
- B(g,0,.34,.29,.32,.12,.018,steelDark);
- B(g,0,.35,.302,.22,.055,.009,shell);
- B(g,.125,.35,.311,.045,.012,.009,steel);
+ B(g,0,.34,.29,.32,.12,.018,steel);B(g,0,.35,.302,.22,.055,.009,shell);B(g,.125,.35,.311,.045,.012,.009,steelDark);
  for(const x of [-.29,.29])for(const y of [.31,.77])S(g,x,y,.278,.009,steel,[1,1,.4]);
- // Subtle warm under-panel lighting and status strip.
+ // Cup stack and compact syrup/sugar jars on the side ledge.
+ for(let i=0;i<3;i++){C(g,-.30,.245+i*.047,.115,.052-i*.004,.043-i*.003,.045,white,20);C(g,-.30,.267+i*.047,.115,.052-i*.004,.052-i*.004,.006,steelDark,20);}
+ for(let i=0;i<2;i++){B(g,.285,.285,.105+i*.105,.085,.12,.075,glass);C(g,.285,.35,.105+i*.105,.025,.025,.018,i?amber:coffee,16);B(g,.285,.355,.105+i*.105,.045,.009,.042,steel);}
  B(g,-.24,.255,.285,.10,.008,.008,amber);
+ const pourGlow=M(0xffbd70,.3,.05,{emissive:0xff9b45,emissiveIntensity:.38,transparent:true,opacity:.42});B(g,.04,.355,.375,.19,.008,.045,pourGlow);
  // Animated wisps rise above the cup without obscuring the machine.
  const steamMat=M(0xe8f7ff,.35,0,{transparent:true,opacity:.38,emissive:0x8bbdca,emissiveIntensity:.16,depthWrite:false});
  for(let i=0;i<4;i++){
@@ -541,7 +553,7 @@ function createCoffee(parent,o){
  // Grounded feet, rear power cable and compact premium silhouette.
  for(const x of [-.31,.31])for(const z of [-.22,.22])C(g,x,.005,z,.035,.035,.025,rubber,14);
  lineMesh(g,new THREE.Vector3(-.34,.2,-.22),new THREE.Vector3(-.42,.16,-.28),.012,black);
- g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+ normalizeFurnitureModel(g,.86);g.position.x+=o.x+.5;g.position.z+=o.y+.5;g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
 function createServer(parent,o){
  const g=new THREE.Group();parent.add(g);
@@ -1476,7 +1488,7 @@ function renderThreeScene(){
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
  threeWorkerGroups.forEach((g,desk)=>{
   const rt=employeeMotion.get(employeeKey(desk)),state=rt?.state||"work",p=rt?.pos||{x:desk.x+.5,y:desk.y+.5};
-  const deskAngle=(Number(desk.rot)||0)*Math.PI/2,seatX=desk.x+.5+Math.sin(deskAngle)*.62,seatZ=desk.y+.5+Math.cos(deskAngle)*.62;
+  const deskAngle=(Number(desk.rot)||0)*Math.PI/2,seatOffset=g.userData.workerSeatOffset||.62,seatX=desk.x+.5+Math.sin(deskAngle)*seatOffset,seatZ=desk.y+.5+Math.cos(deskAngle)*seatOffset;
   const walking=state==="walk"||state==="stand"||state==="coffee";
   const targetBlend=walking?1:0;
   const blend=g.userData.poseBlend+=(targetBlend-g.userData.poseBlend)*(1-Math.exp(-frameDt*7));

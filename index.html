@@ -533,69 +533,67 @@ function createCoffee(parent,o){
 }
 function createServer(parent,o){
  const g=new THREE.Group();parent.add(g);
- const shell=mat(0x263746,.38,.62),frame=mat(0x80939d,.32,.72),dark=mat(0x08131d,.5,.28),glass=mat(0x315b70,.2,.42,{transparent:true,opacity:.32}),vent=mat(0x111e29,.72,.2),leds=[0x37e4c0,0x46a9f4,0xffbd55].map(c=>mat(c,.22,.15,{emissive:c,emissiveIntensity:1.5}));
- // Tall rack cabinet, plinth, crown and reinforced corner rails.
- boxMesh(g,0,.055,0,.67,.09,.68,dark);
- boxMesh(g,0,.72,0,.62,1.27,.62,shell);
- for(const x of [-.29,.29])for(const z of [-.285,.285])boxMesh(g,x,.72,z,.035,1.25,.035,frame);
- boxMesh(g,0,1.365,0,.68,.055,.68,frame);
- boxMesh(g,0,.105,0,.65,.045,.66,frame);
- // Front glass door with substantial bevelled frame and central handle.
- boxMesh(g,0,.75,.323,.56,1.13,.018,frame);
- boxMesh(g,0,.75,.337,.515,1.075,.012,glass);
- boxMesh(g,-.238,.75,.35,.012,1.04,.018,shell);
- boxMesh(g,.238,.75,.35,.012,1.04,.018,shell);
- boxMesh(g,.205,.78,.36,.018,.24,.025,frame);
- // Four individual hot-swap server units, each with ventilation, bays and activity lights.
- for(let i=0;i<4;i++){
-  const y=.27+i*.255;
-  boxMesh(g,0,y,.365,.46,.22,.035,dark);
-  boxMesh(g,-.105,y,.389,.19,.145,.012,vent);
-  for(let k=0;k<8;k++)boxMesh(g,-.18+k*.022,y,.398,.008,.095,.004,frame);
-  boxMesh(g,.105,y,.39,.19,.15,.012,shell);
-  for(let k=0;k<3;k++){
-   boxMesh(g,.045+k*.055,y,.402,.042,.095,.008,vent);
-   boxMesh(g,.045+k*.055,y-.005,.409,.025,.006,.004,frame);
+ const frame=mat(0x71818b,.34,.72),body=mat(0x263541,.46,.55),dark=mat(0x09131c,.58,.28),panel=mat(0x172630,.48,.38),steel=mat(0xa5b3b9,.3,.72),glass=mat(0x548094,.18,.5,{transparent:true,opacity:.22}),rubber=mat(0x111a20,.86),led=[0x43e2bc,0x45aaf5,0xffc15c,0xff6573].map(c=>mat(c,.22,.12,{emissive:c,emissiveIntensity:1.45}));
+ const B=(x,y,z,w,h,d,m)=>boxMesh(g,x,y,z,w,h,d,m);
+ const S=(x,y,z,r,m)=>sphereMesh(g,x,y,z,r,m);
+ // Compact 42U-style cabinet with a reinforced frame and recessed plinth.
+ B(0,.055,0,.72,.09,.70,rubber);B(0,.105,0,.70,.045,.68,steel);
+ B(0,.755,0,.66,1.25,.64,body);
+ B(0,1.405,0,.72,.055,.70,frame);
+ for(const x of [-.315,.315])for(const z of [-.29,.29])B(x,.755,z,.038,1.27,.038,frame);
+ B(0,.13,.0,.67,.035,.65,dark);
+ // Glass front door, gasket, hinges and long pull handle.
+ B(0,.77,.333,.59,1.14,.018,frame);B(0,.77,.347,.55,1.095,.009,glass);
+ B(-.267,.77,.357,.012,1.04,.012,body);B(.267,.77,.357,.012,1.04,.012,body);
+ B(.235,.78,.365,.018,.28,.025,steel);
+ for(const y of [.27,1.25])for(const x of [-.28,.28])S(x,y,.365,.009,steel);
+ // Six independently mounted hot-swap compute blades.
+ for(let i=0;i<6;i++){
+  const y=.255+i*.174;
+  B(0,y,.377,.49,.15,.035,panel);
+  B(-.13,y,.398,.19,.105,.009,dark);
+  for(let k=0;k<9;k++)B(-.205+k*.019,y,.405,.007,.075,.004,frame);
+  B(.105,y,.399,.22,.11,.009,body);
+  for(let k=0;k<4;k++){
+   B(.035+k*.048,y,.408,.032,.075,.006,dark);
+   B(.035+k*.048,y-.002,.413,.018,.004,.003,steel);
   }
-  for(let k=0;k<3;k++)sphereMesh(g,.205,y-.045+k*.045,.405,.009,leds[(i+k)%3]);
-  boxMesh(g,0,y-.105,.39,.43,.012,.012,frame);
+  B(.215,y,.407,.018,.10,.009,frame);
+  S(.222,y-.027,.416,.008,led[i%4]);S(.222,y+.025,.416,.006,led[(i+1)%4]);
+  B(0,y-.078,.401,.47,.008,.008,steel);
  }
- // Cooling fans, fan guards, top status display and network ports.
+ // Dual high-static-pressure cooling fans behind perforated grills.
  for(const x of [-.17,.17]){
-  const fan=new THREE.Mesh(new THREE.TorusGeometry(.067,.009,8,28),frame);fan.position.set(x,1.28,.365);g.add(fan);
-  cylMesh(g,x,1.28,.36,.052,.052,.018,dark,24);
-  for(let k=0;k<6;k++){const a=k*Math.PI/3;lineMesh(g,new THREE.Vector3(x,1.28,.38),new THREE.Vector3(x+Math.cos(a)*.05,1.28+Math.sin(a)*.05,.38),.006,frame);}
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.066,.009,10,32),steel);ring.position.set(x,1.34,.365);g.add(ring);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.052,.052,.018,24),dark);hub.rotation.x=Math.PI/2;hub.position.set(x,1.34,.36);g.add(hub);
+  for(let k=0;k<8;k++){const a=k*Math.PI/4;lineMesh(g,new THREE.Vector3(x,1.34,.38),new THREE.Vector3(x+Math.cos(a)*.056,1.34+Math.sin(a)*.056,.38),.005,frame);}
  }
- boxMesh(g,0,1.43,.12,.3,.035,.18,dark);
- boxMesh(g,0,1.435,.215,.22,.012,.008,leds[0]);
- for(let i=0;i<4;i++)sphereMesh(g,-.12+i*.08,.19,.37,.012,leds[i%3]);
- // Side intake louvers and rear cable-management bundle.
- for(let side of [-1,1])for(let i=0;i<8;i++)boxMesh(g,side*.321,.35+i*.095,-.02,.009,.012,.34,frame);
- for(let i=0;i<5;i++)lineMesh(g,new THREE.Vector3(-.22+i*.11,.18,-.33),new THREE.Vector3(-.22+i*.11,.08,-.43),.009,leds[i%3]);
- // Precision rack detailing: captive screws, asset labels and redundant network patch panel.
- const labelMat=mat(0xd5e0e4,.58,.12),labelInk=mat(0x26343b,.7),port=mat(0x050d14,.4,.3),fiber=mat(0x18232c,.72);
- for(let i=0;i<4;i++){
-  const y=.27+i*.255;
-  for(const x of [-.225,.225])for(const yy of [y-.085,y+.085])sphereMesh(g,x,yy,.414,.006,frame,[1,1,.45]);
-  boxMesh(g,-.105,y+.084,.414,.12,.018,.006,labelMat);
-  for(let k=0;k<3;k++)boxMesh(g,-.14+k*.035,y+.084,.418,.018,.004,.003,labelInk);
+ // Top management display, power switch and service label.
+ B(0,1.455,.13,.32,.025,.16,dark);B(0,1.458,.215,.23,.008,.008,led[0]);
+ for(let i=0;i<3;i++)S(-.09+i*.09,1.455,.225,.009,led[i]);
+ B(-.22,1.455,.12,.08,.018,.09,steel);
+ // Side ventilation grilles and vertical cable-management ducts.
+ for(const side of [-1,1]){
+  B(side*.337,.77,-.04,.012,.88,.34,dark);
+  for(let i=0;i<13;i++)B(side*.345,.38+i*.064,-.04,.008,.009,.27,steel);
+  B(side*.32,.76,-.245,.025,1.05,.055,panel);
+  for(let i=0;i<7;i++)B(side*.325,.35+i*.135,-.28,.03,.012,.012,steel);
  }
- // Dual vertical cable guides and fibre bundles visible through the cabinet side.
- for(const x of [-.285,.285]){
-  boxMesh(g,x,.76,-.18,.025,1.02,.08,dark);
-  for(let k=0;k<6;k++)boxMesh(g,x,.35+k*.145,-.225,.032,.012,.012,frame);
- }
- // Rear patch field: individual RJ45 sockets with paired link/activity LEDs.
- boxMesh(g,0,.18,-.326,.43,.18,.018,dark);
+ // Rear dual power distribution and individual copper/fibre uplinks.
+ B(0,.18,-.331,.42,.16,.018,dark);
  for(let row=0;row<2;row++)for(let col=0;col<8;col++){
   const x=-.17+col*.048,y=.145+row*.055;
-  boxMesh(g,x,y,-.339,.034,.035,.008,port);
-  boxMesh(g,x,y+.018,-.345,.018,.004,.003,frame);
-  sphereMesh(g,x-.009,y-.022,-.345,.004,leds[(col+row)%3]);
+  B(x,y,-.345,.031,.032,.008,rubber);B(x,y+.018,-.351,.017,.004,.003,steel);
+  S(x-.009,y-.02,-.352,.004,led[(col+row)%4]);
  }
- // Feet and rack-mount rail perforations.
- for(const x of [-.25,.25])for(const z of [-.24,.24])cylMesh(g,x,.012,z,.035,.035,.025,dark,16);
- for(let i=0;i<10;i++)sphereMesh(g,-.286,.25+i*.095,.374,.005,frame,[1,1,.5]);
+ for(let i=0;i<5;i++)lineMesh(g,new THREE.Vector3(-.22+i*.11,.12,-.35),new THREE.Vector3(-.22+i*.11,.045,-.42),.009,i%2?led[1]:led[0]);
+ // Rack-unit numbering, captive screws and anti-vibration feet.
+ const tag=mat(0xd8e0e2,.62,.1);
+ for(let i=0;i<6;i++){
+  const y=.255+i*.174;B(-.265,y,.373,.035,.035,.006,tag);
+  for(const x of [-.29,.29])S(x,y,.377,.005,steel);
+ }
+ for(const x of [-.25,.25])for(const z of [-.23,.23]){const foot=new THREE.Mesh(new THREE.CylinderGeometry(.035,.04,.035,16),rubber);foot.position.set(x,.018,z);g.add(foot);}
  g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
 }
 function createBoss(parent,o){
@@ -694,8 +692,8 @@ function createMeeting(parent,o){
   for(let k=0;k<4;k++){const a=k*Math.PI/2;lineMesh(c,new THREE.Vector3(0,.025,0),new THREE.Vector3(Math.cos(a)*.105,.025,Math.sin(a)*.105),.009,metal);}
  }
  // Speakerphone puck with radial microphone ports.
- C(g,0,.59,-.03,.075,.075,.025,chair,32);
- C(g,0,.607,-.03,.055,.055,.009,dark,32);
+ cylMesh(g,0,.59,-.03,.075,.075,.025,chair,32);
+ cylMesh(g,0,.607,-.03,.055,.055,.009,dark,32);
  for(let i=0;i<8;i++){const a=i*Math.PI/4;sphereMesh(g,Math.cos(a)*.041,.615,-.03+Math.sin(a)*.041,.004,accent);}
  sphereMesh(g,0,.617,-.03,.012,accent);
  // Shared presentation tablet, stylus, folders and loose documents.
@@ -773,7 +771,7 @@ function createSecurity(parent,o){
  const mouse=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),metal);mouse.position.set(-.22,.78,.20);mouse.scale.set(.035,.018,.052);g.add(mouse);
  lineMesh(g,new THREE.Vector3(-.22,.79,.17),new THREE.Vector3(-.22,.80,.13),.004,dark);
  for(let i=0;i<3;i++){
-  C(g,.31+i*.045,.76,.235,.016,.016,.012,i===0?red:i===1?green:screens[2],16);
+  cylMesh(g,.31+i*.045,.76,.235,.016,.016,.012,i===0?red:i===1?green:screens[2],16);
  }
  // Badge reader with RFID contact area and a hanging access card.
  boxMesh(g,-.37,.53,.29,.075,.13,.035,dark);

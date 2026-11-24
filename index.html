@@ -670,7 +670,7 @@ function createBoss(parent,o){
  const rightArm=makeArm(1),leftArm=makeArm(-1);
  // A real document stack: leather portfolio, three offset sheets, ruled report,
  // highlighted KPI blocks, checkboxes, chart and signed approval.
- const papers=new THREE.Group();g.add(papers);papers.position.set(-.105,.585,.145);
+ const papers=new THREE.Group();g.add(papers);papers.position.set(-.105,.58,.145);papers.scale.y=.22;
  B(papers,0,.006,0,.30,.012,.205,mat(0x49372d,.62,.16));
  B(papers,0,.014,0,.285,.006,.195,paperShade);
  B(papers,-.006,.018,-.004,.276,.004,.19,paper);
@@ -685,7 +685,7 @@ function createBoss(parent,o){
  B(papers,.07,.032,.073,.075,.002,.002,ink);
  const signature=new THREE.Mesh(new THREE.TorusGeometry(.019,.0025,5,20,Math.PI*1.35),ink);signature.position.set(.075,.034,.065);signature.rotation.x=Math.PI/2;papers.add(signature);
  // Premium open laptop, with visible keyboard, trackpad, hinge, bezel and dashboard UI.
- const laptop=new THREE.Group();g.add(laptop);laptop.position.set(.265,.585,-.105);laptop.rotation.y=-.12;
+ const laptop=new THREE.Group();g.add(laptop);laptop.position.set(.265,.58,-.105);laptop.rotation.y=-.12;
  B(laptop,0,.009,.025,.218,.018,.158,dark);
  B(laptop,0,.019,.025,.207,.006,.148,gold);
  B(laptop,0,.023,.025,.199,.004,.14,mat(0x9aa8b1,.5,.3));

@@ -603,12 +603,16 @@ function createBoss(parent,o){
  const B=(p,x,y,z,w,h,d,m)=>boxMesh(p,x,y,z,w,h,d,m),S=(p,x,y,z,r,m,sc)=>sphereMesh(p,x,y,z,r,m,sc);
  const segment=(p,a,b,r,m)=>{const d=new THREE.Vector3().subVectors(b,a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),10),m);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());mesh.castShadow=true;mesh.receiveShadow=true;p.add(mesh);return mesh;};
  const topY=.58;
- // Compact executive desk, with a clear front edge and a single continuous writing surface.
- const top=new THREE.Mesh(new THREE.BoxGeometry(.96,.085,.62),M.wood);top.position.set(0,.515,0);top.castShadow=true;top.receiveShadow=true;g.add(top);
- B(g,0,.565,0,.925,.012,.59,M.brass);B(g,0,.574,0,.90,.012,.565,M.wood);
- B(g,0,.385,-.015,.72,.10,.40,M.woodDark);
- for(const x of [-.375,.375]){B(g,x,.07,-.015,.085,.39,.49,M.woodDark);B(g,x,.07,.238,.09,.39,.018,M.brass);B(g,x,.018,-.015,.10,.035,.50,M.dark);}
- B(g,0,.385,.245,.68,.12,.035,M.woodDark);
+ // Executive variant of the IT desk: retain its compact rectangular top,
+ // four separated supports and restrained metal trim, but use walnut finishes.
+ const top=new THREE.Mesh(new THREE.BoxGeometry(.88,.075,.56),M.wood);top.position.set(0,.535,0);top.castShadow=true;top.receiveShadow=true;g.add(top);
+ B(g,0,.574,0,.90,.018,.575,M.brass);B(g,0,.584,0,.86,.012,.545,M.wood);
+ for(const x of [-.365,.365])for(const z of [-.205,.205]){
+  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.022,.032,.42,8),M.brass);leg.position.set(x,.29,z);leg.castShadow=true;g.add(leg);
+  B(g,x,.075,z,.075,.035,.075,M.dark);
+ }
+ B(g,0,.385,-.015,.70,.085,.38,M.woodDark);
+ B(g,0,.385,.245,.66,.105,.03,M.woodDark);
  // Chair is behind the desk; seat height matches the director's pelvis.
  const chair=new THREE.Group();g.add(chair);chair.position.set(0,0,-.39);
  B(chair,0,.49,-.015,.40,.09,.38,M.leather);B(chair,0,.54,.005,.36,.018,.33,M.leatherHi);
@@ -664,21 +668,21 @@ function createBoss(parent,o){
  };
  const rightArm=makeArm(1),leftArm=makeArm(-1);
  // Writing pad and one active sheet: its top face is exactly 8 mm above the desktop.
- const papers=new THREE.Group();g.add(papers);papers.position.set(-.02,topY+.008,.235);
+ const papers=new THREE.Group();g.add(papers);papers.position.set(-.015,topY+.008,.165);
  B(papers,0,.003,0,.34,.012,.225,M.leather);
  B(papers,0,.010,0,.325,.003,.212,M.paperShade);
  B(papers,0,.013,-.003,.312,.003,.202,M.paper);
  for(let row=0;row<7;row++)B(papers,-.005,.015,-.065+row*.021,.19-(row%3)*.018,.0015,.002,M.ink);
  for(let k=0;k<4;k++)B(papers,.105,.016,.025-(k%2)*.012,.012,.0015,.022+k*.006,[mat(0x4c9caa),mat(0x5c9b7d),mat(0xd0a65b),mat(0x6c8eb3)][k]);
  // Closed laptop lies flat at the far right; no raised screen to obstruct the hands.
- const laptop=new THREE.Group();g.add(laptop);laptop.position.set(.30,topY+.009,-.17);laptop.rotation.y=-.34;
+ const laptop=new THREE.Group();g.add(laptop);laptop.position.set(.285,topY+.009,-.145);laptop.rotation.y=-.34;
  B(laptop,0,.009,0,.25,.018,.18,M.dark);
  B(laptop,0,.019,0,.235,.006,.166,M.brass);
  B(laptop,0,.023,0,.226,.004,.157,mat(0x344957,.5,.3));
  B(laptop,0,.026,0,.19,.002,.125,mat(0x465b68,.45,.25));
  B(laptop,0,.028,.067,.045,.002,.008,M.brass);
  // Warm desk lamp on the far-left corner, safely inside the desktop footprint.
- const lamp=new THREE.Group();g.add(lamp);lamp.position.set(-.365,0,-.17);
+ const lamp=new THREE.Group();g.add(lamp);lamp.position.set(-.345,0,-.17);
  cylMesh(lamp,0,.49,0,.045,.05,.018,M.dark,20);cylMesh(lamp,0,.515,0,.038,.04,.014,M.brass,20);
  lineMesh(lamp,new THREE.Vector3(0,.525,0),new THREE.Vector3(.02,.69,0),.01,M.brass);
  lineMesh(lamp,new THREE.Vector3(.02,.69,0),new THREE.Vector3(.075,.77,.015),.009,M.brass);

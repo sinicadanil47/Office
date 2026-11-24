@@ -562,7 +562,7 @@ function createDesk(parent,o){
  if(lv===1){
   const ivory=M(0xeae6df,.68,.04),ivoryHi=M(0xf5f1e9,.48,.08),ivoryShade=M(0xc9c4ba,.72,.04),bezel=M(0xd8d3ca,.62,.06),screen=M(0x071d29,.2,.08,{emissive:0x062d38,emissiveIntensity:.34}),phosphor=M(0x72d49a,.24,.04,{emissive:0x2d9b62,emissiveIntensity:.72}),power=M(0x42d879,.2,.05,{emissive:0x19c85d,emissiveIntensity:1.6});
   B(mon,0,h*.52,-.018,.365,.315,.265,ivory);B(mon,0,h*.52,.105,.355,.304,.045,ivoryHi);B(mon,0,h*.52,.132,.329,.278,.025,bezel);
-  B(mon,0,h*.54,.147,.282,.222,.012,screen);S(mon,0,h*.54,.153,.139,.111,.012,screen);
+  const screenFace=B(mon,0,h*.54,.147,.282,.222,.012,screen);screenFace.userData.breakdownScreen=true;S(mon,0,h*.54,.153,.139,.111,.012,screen);
   for(let i=0;i<5;i++)B(mon,-.091,h*.72-i*.029,.166,.115-(i%2)*.028,.004,.003,phosphor);
   B(mon,.025,h*.38,.166,.105,.004,.003,phosphor);B(mon,-.145,h*.54,.164,.008,.224,.004,ivoryShade);
   for(let i=0;i<9;i++)B(mon,-.125+i*.031,h+.006,-.035,.018,.004,.105,ivoryShade);
@@ -570,7 +570,7 @@ function createDesk(parent,o){
   B(mon,0,-.035,-.015,.105,.075,.095,ivoryShade);B(mon,0,-.083,-.015,.125,.025,.115,ivory);B(mon,0,-.111,.005,.205,.025,.165,ivoryHi);B(mon,0,-.125,.005,.18,.008,.14,ivoryShade);
  }else{
   const shell=M([0x38434a,0x202e3b,0x172936,0x101d2b][lv-1],.38,lv>=3?.48:.25),glass=M(0x071827,.18,.1,{emissive:cyan,emissiveIntensity:lv===4?.58:.35});
-  B(mon,0,h/2,0,w,h,d,shell);B(mon,0,h/2,d/2+.006,w-.025,h-.026,.009,glass);
+  B(mon,0,h/2,0,w,h,d,shell);const screenFace=B(mon,0,h/2,d/2+.006,w-.025,h-.026,.009,glass);screenFace.userData.breakdownScreen=true;
   B(mon,0,h*.12,d/2+.012,w*.84,.008,.006,glow);if(lv>=3)B(mon,0,h/2,-d/2-.008,w*.94,h*.92,.012,metal);if(lv===4){B(mon,0,h+.008,0,w*.96,.012,.025,metal);B(mon,0,-.012,0,w*.96,.012,.025,metal);}
   B(mon,0,-.035,0,.055,.075,.045,metal);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.018,.024,.105,12),metal);neck.position.set(0,-.085,0);mon.add(neck);B(mon,0,-.14,.025,.19,.018,.105,metal);
   const ui=M(cyan,.3,.05,{emissive:cyan,emissiveIntensity:.5});
@@ -2426,6 +2426,8 @@ function sysadminSetBroken(o,value){
  const key=sysadminDeskKey(o);
  if(value)sysadminBrokenDesks[key]={floor:Number(floorTier)||0,at:Date.now()};
  else delete sysadminBrokenDesks[key];
+ const dg=threeFurnitureGroup?.children.find(g=>g.userData.object===o);
+ if(dg)sysadminPaintDesk(dg,!!value);
  sysadminPersist();save();updateUI();
 }
 function sysadminNotify(msg){if(typeof toast==="function")toast(msg);else console.info(msg);}
@@ -2481,9 +2483,22 @@ function sysadminMakeMarker(dg){
  warning.position.set(0,.74,.2);dg.add(warning);dg.userData.breakGlow=warning;
 }
 function sysadminPaintDesk(dg,broken){
- sysadminMakeMarker(dg);dg.userData.breakMarker.visible=broken;dg.userData.breakGlow.visible=broken;
- if(dg.userData.character){dg.userData.character.userData.state=broken?"wait":"work";}
- dg.traverse(n=>{if(n.isMesh&&n.material&&n.material.emissive){if(!n.userData.sysadminOrigEmissive){n.userData.sysadminOrigEmissive=n.material.emissive.getHex();n.userData.sysadminOrigIntensity=n.material.emissiveIntensity;}if(broken&&n.position.y>.55){n.material.emissive.setHex(0xff0000);n.material.emissiveIntensity=1.6;}else if(n.userData.sysadminOrigEmissive!==undefined){n.material.emissive.setHex(n.userData.sysadminOrigEmissive);n.material.emissiveIntensity=n.userData.sysadminOrigIntensity;}}});
+ sysadminMakeMarker(dg);
+ dg.userData.breakMarker.visible=!!broken;
+ dg.userData.breakGlow.visible=!!broken;
+ dg.traverse(n=>{
+  if(!n.isMesh||!n.userData.breakdownScreen||!n.material)return;
+  const mats=Array.isArray(n.material)?n.material:[n.material];
+  mats.forEach(m=>{
+   if(!m.emissive)return;
+   if(n.userData.sysadminOrigEmissive===undefined){
+    n.userData.sysadminOrigEmissive=m.emissive.getHex();
+    n.userData.sysadminOrigIntensity=m.emissiveIntensity;
+   }
+   if(broken){m.emissive.setHex(0xffc400);m.emissiveIntensity=1.6;}
+   else{m.emissive.setHex(n.userData.sysadminOrigEmissive);m.emissiveIntensity=n.userData.sysadminOrigIntensity;}
+  });
+ });
 }
 class SysadminRepairController{
  constructor(character,deskGroup,scene){

@@ -2193,7 +2193,7 @@ function beginMovePreview(index){
  moveMode=false;$("moveBtn").classList.remove("active");state.sellMode=false;state.selected=null;closeShop();
  if(threePreviewGroup){threeRoot.remove(threePreviewGroup);disposeThreeTree(threePreviewGroup);}
  threePreviewGroup=new THREE.Group();threeRoot.add(threePreviewGroup);
- const makers={desk:createDesk,coffee:createCoffee,server:createServer,boss:createBoss,meeting:createMeeting,security:createSecurity};
+ const makers={desk:createDesk,coffee:createCoffee,server:createServer,boss:(p,o)=>createBoss(p,o,false),meeting:createMeeting,security:createSecurity};
  const ghost=makers[o.type](threePreviewGroup,{...o});
  ghost.traverse(obj=>{if(!obj.isMesh||!obj.material)return;const wasArray=Array.isArray(obj.material),src=wasArray?obj.material:[obj.material];const cloned=src.map(m=>{const c=m.clone();c.transparent=true;c.opacity=.76;c.depthWrite=false;c.side=THREE.DoubleSide;c.userData.previewBaseColor=c.color?.clone?.()||new THREE.Color(0xffffff);return c;});obj.material=wasArray?cloned:cloned[0];obj.castShadow=false;obj.receiveShadow=false;obj.renderOrder=3;});
  const frameMat=new THREE.MeshBasicMaterial({color:0x35e3bb,transparent:true,opacity:.34,side:THREE.DoubleSide,depthWrite:false});

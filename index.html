@@ -601,14 +601,20 @@ function createBoss(parent,o){
  const wood=mat(0x38271f,.38,.18),woodTop=mat(0x765039,.42,.16),gold=mat(0xd1ad72,.32,.62),leather=mat(0x332722,.76,.06),leatherHi=mat(0x594137,.72,.08),stitch=mat(0xb88d5c,.62,.2),dark=mat(0x171d24,.58),skin=mat(0xd7a17e,.84),hair=mat(0x30251f,.9),suit=mat(0x26384b,.78),shirt=mat(0xf0e9dc,.72),tie=mat(0x9c493d,.62),shoe=mat(0x171b21,.48,.1),paper=mat(0xf5f1e8,.92),ink=mat(0x263d50,.55,.18);
  const B=(p,x,y,z,w,h,d,m)=>boxMesh(p,x,y,z,w,h,d,m);
  const S=(p,x,y,z,r,m,sc)=>sphereMesh(p,x,y,z,r,m,sc);
- // Executive desk rebuilt to the same 0.48 m working height and footprint as the IT desks.
- B(g,0,.405,0,.88,.075,.56,wood);B(g,0,.448,0,.90,.018,.575,gold);B(g,0,.463,0,.86,.014,.545,woodTop);
- B(g,0,.345,-.015,.72,.075,.40,wood);
- for(const x of [-.36,.36]){
-  B(g,x,.205,-.015,.075,.36,.46,wood);B(g,x,.205,.222,.078,.36,.014,gold);
-  for(let i=0;i<3;i++)B(g,x,.12+i*.085,.232,.04,.01,.008,gold);
-  B(g,x,.025,-.015,.09,.035,.48,dark);
+ // Clearly visible walnut desktop: centered explicitly above the pedestal, with a bright brass edge.
+ const deskTop=new THREE.Mesh(new THREE.BoxGeometry(.96,.085,.62),woodTop);deskTop.position.set(0,.515,0);deskTop.castShadow=true;deskTop.receiveShadow=true;g.add(deskTop);
+ const deskInlay=new THREE.Mesh(new THREE.BoxGeometry(.925,.012,.59),gold);deskInlay.position.set(0,.565,0);deskInlay.castShadow=true;g.add(deskInlay);
+ const deskSurface=new THREE.Mesh(new THREE.BoxGeometry(.90,.012,.565),woodTop);deskSurface.position.set(0,.574,0);deskSurface.castShadow=true;g.add(deskSurface);
+ B(g,0,.385,-.015,.72,.10,.40,wood);
+ for(const x of [-.375,.375]){
+  B(g,x,.07,-.015,.085,.39,.49,wood);
+  B(g,x,.07,.238,.09,.39,.018,gold);
+  for(let i=0;i<3;i++)B(g,x,.105+i*.105,.249,.045,.012,.008,gold);
+  B(g,x,.018,-.015,.10,.035,.50,dark);
  }
+ // Front fascia and a contrasting lower apron make the desk silhouette unmistakable.
+ B(g,0,.385,.245,.68,.12,.035,wood);
+ B(g,0,.455,.266,.62,.018,.012,gold);
  // Matching premium executive chair: seat height, back and overall scale follow the employee chairs.
  const chair=new THREE.Group();g.add(chair);chair.position.set(0,0,-.32);
  B(chair,0,.405,-.015,.39,.095,.37,leather);

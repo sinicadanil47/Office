@@ -457,103 +457,143 @@ function createDesk(parent,o){
  g.userData.workerSeatOffset=g.position.z+chair.position.z*g.scale.z;
  g.position.x+=o.x+.5;g.position.z+=o.y+.5;g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.level=lv;return g;
 }
-function createCoffee(parent,o){
- const g=new THREE.Group();parent.add(g);
- const M=(c,r=.62,me=0,e={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:me,...e});
- const shell=M(0xf4f2ed,.7,.025),shellDark=M(0xdedbd4,.62,.08),steel=M(0xc9d0d2,.24,.82),steelDark=M(0x879397,.34,.72),black=M(0x303b40,.28,.28),rubber=M(0x596166,.86),glass=M(0xa9d8df,.12,.12,{transparent:true,opacity:.34,depthWrite:false}),screen=M(0x102e38,.18,.22,{emissive:0x087e9b,emissiveIntensity:.9}),cyan=M(0x45d7e5,.22,.16,{emissive:0x16a9c0,emissiveIntensity:1.25}),amber=M(0xffbd58,.25,.1,{emissive:0xc87919,emissiveIntensity:.85}),white=M(0xfaf8f3,.34,.04),coffee=M(0x382014,.3,.04);
- const B=(p,x,y,z,w,h,d,m)=>boxMesh(p,x,y,z,w,h,d,m);
- const S=(p,x,y,z,r,m,scale=[1,1,1])=>sphereMesh(p,x,y,z,r,m,scale);
- const C=(p,x,y,z,r1,r2,h,m,seg=20)=>cylMesh(p,x,y,z,r1,r2,h,m,seg);
- // Heavy anti-vibration base and stainless drip tray.
- B(g,0,.035,0,.82,.07,.62,rubber);
- B(g,0,.105,0,.78,.075,.59,shellDark);
- B(g,0,.165,.025,.75,.055,.55,steelDark);
- B(g,0,.198,.045,.69,.025,.47,steel);
- const tray=B(g,0,.225,.105,.62,.025,.31,steelDark);
- for(let i=0;i<9;i++)B(g,-.25+i*.062,.241,.11,.012,.004,.245,black);
- // Main sculpted body with a stepped upper brewing module.
- B(g,0,.64,-.035,.72,.82,.49,shell);
- B(g,0,.67,.218,.65,.68,.035,steelDark);
- B(g,0,.685,.241,.59,.62,.018,shellDark);
- // Brushed-metal fascia and lower service door.
- B(g,0,.42,.255,.58,.31,.025,steel);
- B(g,0,.405,.273,.52,.255,.012,shell);
- B(g,0,.29,.282,.47,.035,.012,steelDark);
- // Tall black glass control panel with a crisp colour display.
- B(g,-.105,.91,.235,.31,.29,.035,black);
- B(g,-.105,.925,.256,.265,.225,.009,screen);
- B(g,-.105,.995,.263,.19,.012,.004,cyan);
- B(g,-.17,.955,.263,.085,.006,.004,cyan);
- B(g,-.17,.935,.263,.085,.006,.004,cyan);
- B(g,-.17,.915,.263,.085,.006,.004,cyan);
- B(g,-.105,.855,.263,.18,.009,.004,amber);
- // Touch controls, rotary selector and illuminated status indicators.
- for(let i=0;i<3;i++){
-  const x=.12+i*.105;
-  C(g,x,.91,.272,.034,.034,.018,steel,24);
-  C(g,x,.922,.285,.023,.023,.012,black,24);
-  S(g,x,.922,.296,.009,i===1?cyan:white,[1,.55,.45]);
- }
- C(g,.205,.785,.273,.065,.065,.035,steel,28);
- C(g,.205,.785,.296,.047,.047,.012,black,28);
- C(g,.205,.785,.305,.012,.012,.008,amber,20);
- for(let i=0;i<4;i++)S(g,-.22+i*.075,.76,.274,.012,i===0?amber:cyan,[1,1,.45]);
- // Cream upper housing and a transparent side/rear water reservoir.
- B(g,0,1.12,-.085,.36,.12,.32,shell);B(g,0,1.255,-.085,.30,.18,.26,glass);
- B(g,0,1.355,-.085,.34,.035,.30,shellDark);B(g,0,1.377,-.085,.27,.012,.23,steel);
- B(g,.385,.73,-.105,.105,.47,.30,glass);B(g,.385,.50,-.105,.112,.018,.31,steel);B(g,.385,.965,-.105,.112,.018,.31,steel);
- B(g,.385,.73,.052,.11,.47,.012,steel);B(g,.385,.73,-.262,.11,.47,.012,steel);
- for(let i=0;i<4;i++)B(g,.445,.58+i*.095,-.248,.003,.004,.006,steelDark);
- // Visible coffee beans inside the hopper.
- const beanMat=M(0x68432b,.82),beanHi=M(0x95623b,.76);
- for(let i=0;i<11;i++){
-  const a=i*2.399,r=.035+(i%3)*.026;
-  const bean=S(g,Math.cos(a)*r,1.18+(i%4)*.026,-.085+Math.sin(a)*r,.022,i%3?beanMat:beanHi,[1,.62,.72]);
-  bean.rotation.z=(i%2?1:-1)*.42;
- }
- // Side ventilation slots and a small service panel.
- B(g,.37,.68,-.045,.018,.36,.29,black);
- for(let i=0;i<7;i++)B(g,.382,.55+i*.038,-.045,.009,.012,.22,steelDark);
- B(g,-.37,.65,-.04,.018,.27,.28,steelDark);
- B(g,-.382,.65,-.04,.009,.20,.21,shellDark);
- // Brewing head, twin nozzles and the cup platform.
- B(g,.04,.53,.305,.25,.16,.11,black);
- B(g,.04,.47,.355,.19,.055,.055,steel);
- for(const x of [-.025,.105]){
-  C(g,x,.405,.355,.018,.018,.105,steel,16);
-  C(g,x,.348,.355,.012,.012,.025,black,16);
- }
- // Cup centred below the dual spouts, with a dark espresso surface and handle.
- C(g,.04,.265,.39,.075,.085,.12,white,28);
- C(g,.04,.326,.39,.078,.078,.012,coffee,28);
- C(g,.04,.334,.39,.055,.055,.004,M(0x9a6032,.24,.02),24);
- const handle=new THREE.Mesh(new THREE.TorusGeometry(.043,.009,10,22,Math.PI*1.55),white);
- handle.position.set(.125,.305,.39);handle.rotation.z=Math.PI/2;handle.castShadow=true;g.add(handle);
- // Small cup logo and a ceramic highlight.
- B(g,.04,.285,.476,.035,.022,.003,amber);
- // Hot-water wand and articulated metal nozzle on the right flank.
- C(g,.31,.49,.24,.025,.025,.20,steel,16);
- const wandJoint=S(g,.31,.385,.24,.035,steel);
- lineMesh(g,new THREE.Vector3(.31,.39,.24),new THREE.Vector3(.31,.28,.32),.012,steel);
- C(g,.31,.255,.32,.012,.012,.035,black,12);
- // Front lower access door, recessed handle and tiny fasteners.
- B(g,0,.34,.29,.32,.12,.018,steel);B(g,0,.35,.302,.22,.055,.009,shell);B(g,.125,.35,.311,.045,.012,.009,steelDark);
- for(const x of [-.29,.29])for(const y of [.31,.77])S(g,x,y,.278,.009,steel,[1,1,.4]);
- // Cup stack and compact syrup/sugar jars on the side ledge.
- for(let i=0;i<3;i++){C(g,-.30,.245+i*.047,.115,.052-i*.004,.043-i*.003,.045,white,20);C(g,-.30,.267+i*.047,.115,.052-i*.004,.052-i*.004,.006,steelDark,20);}
- for(let i=0;i<2;i++){B(g,.285,.285,.105+i*.105,.085,.12,.075,glass);C(g,.285,.35,.105+i*.105,.025,.025,.018,i?amber:coffee,16);B(g,.285,.355,.105+i*.105,.045,.009,.042,steel);}
- B(g,-.24,.255,.285,.10,.008,.008,amber);
- const pourGlow=M(0xffbd70,.3,.05,{emissive:0xff9b45,emissiveIntensity:.38,transparent:true,opacity:.42});B(g,.04,.355,.375,.19,.008,.045,pourGlow);
- // Animated wisps rise above the cup without obscuring the machine.
- const steamMat=M(0xe8f7ff,.35,0,{transparent:true,opacity:.38,emissive:0x8bbdca,emissiveIntensity:.16,depthWrite:false});
- for(let i=0;i<4;i++){
-  const p=S(g,.04+(i-1.5)*.045,.43+i*.045,.39,.018,steamMat,[.7,1.8,.7]);
-  p.userData.steam=true;p.userData.steamIndex=i;
- }
- // Grounded feet, rear power cable and compact premium silhouette.
- for(const x of [-.31,.31])for(const z of [-.22,.22])C(g,x,.005,z,.035,.035,.025,rubber,14);
- lineMesh(g,new THREE.Vector3(-.34,.2,-.22),new THREE.Vector3(-.42,.16,-.28),.012,black);
- normalizeFurnitureModel(g,.86);g.position.x+=o.x+.5;g.position.z+=o.y+.5;g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;
+function createCoffeeMachineModel() {
+    const group = new THREE.Group();
+
+    // Materials
+    const cabinetMat = new THREE.MeshStandardMaterial({ color: 0xf4f2ed, roughness: 0.45, metalness: 0.05 });
+    const woodTopMat = new THREE.MeshStandardMaterial({ color: 0xd8b894, roughness: 0.6, metalness: 0.05 });
+    const darkAccentMat = new THREE.MeshStandardMaterial({ color: 0x2b2f36, roughness: 0.5, metalness: 0.2 });
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd9dee3, roughness: 0.22, metalness: 0.85 });
+    const machineBodyMat = new THREE.MeshStandardMaterial({ color: 0xfaf8f5, roughness: 0.35, metalness: 0.1 });
+    const waterTankMat = new THREE.MeshPhysicalMaterial({
+        color: 0xaad8f5, transparent: true, opacity: 0.55, roughness: 0.1, metalness: 0.05
+    });
+    const screenMat = new THREE.MeshStandardMaterial({
+        color: 0x1e3a5f, emissive: 0x38bdf8, emissiveIntensity: 0.75, roughness: 0.2
+    });
+    const coffeeLiquidMat = new THREE.MeshStandardMaterial({ color: 0x3b1f0e, roughness: 0.15 });
+    const cupMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+
+    // 1. Light cabinet / counter base.
+    const cabW = 0.76, cabH = 0.52, cabD = 0.52;
+    const cabinet = new THREE.Mesh(new THREE.BoxGeometry(cabW, cabH, cabD), cabinetMat);
+    cabinet.position.y = cabH / 2;
+    cabinet.castShadow = true; cabinet.receiveShadow = true; group.add(cabinet);
+
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(cabW - 0.04, 0.05, cabD - 0.04), darkAccentMat);
+    plinth.position.y = 0.025; group.add(plinth);
+
+    // Front doors and chrome pulls (+Z).
+    const doorGeo = new THREE.BoxGeometry(cabW * 0.46, cabH - 0.1, 0.02);
+    const leftDoor = new THREE.Mesh(doorGeo, cabinetMat);
+    leftDoor.position.set(-cabW * 0.24, cabH / 2 + 0.01, cabD / 2 + 0.01); group.add(leftDoor);
+    const rightDoor = new THREE.Mesh(doorGeo, cabinetMat);
+    rightDoor.position.set(cabW * 0.24, cabH / 2 + 0.01, cabD / 2 + 0.01); group.add(rightDoor);
+    const handleGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.12, 8);
+    [-0.05, 0.05].forEach(hx => {
+        const handle = new THREE.Mesh(handleGeo, chromeMat);
+        handle.position.set(hx, cabH / 2 + 0.02, cabD / 2 + 0.028); group.add(handle);
+    });
+
+    const topH = 0.04;
+    const counterTop = new THREE.Mesh(new THREE.BoxGeometry(cabW + 0.04, topH, cabD + 0.04), woodTopMat);
+    counterTop.position.y = cabH + topH / 2;
+    counterTop.castShadow = true; counterTop.receiveShadow = true; group.add(counterTop);
+    const surfaceY = cabH + topH;
+
+    // 2. Light coffee machine on the counter.
+    const machine = new THREE.Group();
+    machine.position.set(-0.11, surfaceY, -0.02);
+
+    const base = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.05, 0.34), machineBodyMat);
+    base.position.y = 0.025; base.castShadow = true; machine.add(base);
+    const dripTray = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.012, 0.14), chromeMat);
+    dripTray.position.set(0, 0.054, 0.09); machine.add(dripTray);
+
+    const backTower = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.36, 0.20), machineBodyMat);
+    backTower.position.set(0, 0.23, -0.07); backTower.castShadow = true; machine.add(backTower);
+    const waterTank = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.28, 0.16), waterTankMat);
+    waterTank.position.set(-0.19, 0.20, -0.07); machine.add(waterTank);
+    const tankLid = new THREE.Mesh(new THREE.BoxGeometry(0.076, 0.018, 0.166), chromeMat);
+    tankLid.position.set(-0.19, 0.345, -0.07); machine.add(tankLid);
+
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.12, 0.34), machineBodyMat);
+    head.position.set(0, 0.35, 0); head.castShadow = true; machine.add(head);
+    const warmerPlate = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.012, 0.26), chromeMat);
+    warmerPlate.position.set(0, 0.415, -0.02); machine.add(warmerPlate);
+
+    const display = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.055, 0.012), screenMat);
+    display.position.set(0, 0.355, 0.172); machine.add(display);
+    const btnColors = [0x22c55e, 0xf59e0b, 0x3b82f6, 0xef4444];
+    btnColors.forEach((col, idx) => {
+        const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.012, 10),
+            new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.4 }));
+        btn.rotation.x = Math.PI / 2;
+        const bx = idx < 2 ? -0.105 : 0.105;
+        const by = idx % 2 === 0 ? 0.37 : 0.34;
+        btn.position.set(bx, by, 0.172); machine.add(btn);
+    });
+
+    const groupHead = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.04, 0.04, 16), chromeMat);
+    groupHead.position.set(0, 0.275, 0.08); machine.add(groupHead);
+    [-0.016, 0.016].forEach(nx => {
+        const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.004, 0.03, 8), chromeMat);
+        nozzle.position.set(nx, 0.245, 0.085); machine.add(nozzle);
+    });
+
+    const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.03, 0.075, 16), cupMat);
+    mug.position.set(0, 0.098, 0.085); mug.castShadow = true; machine.add(mug);
+    const coffee = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.005, 16), coffeeLiquidMat);
+    coffee.position.set(0, 0.132, 0.085); machine.add(coffee);
+
+    const brewLight = new THREE.PointLight(0xffb74d, 0.55, 1.1);
+    brewLight.position.set(0, 0.22, 0.12); machine.add(brewLight);
+    group.add(machine);
+
+    // 3. Paper cups and syrup bottles on the right side of the counter.
+    for (let i = 0; i < 4; i++) {
+        const paperCup = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.026, 0.075, 14), cupMat);
+        paperCup.position.set(0.22, surfaceY + 0.038 + i * 0.016, 0.08);
+        paperCup.castShadow = true; group.add(paperCup);
+    }
+
+    const syrupConfigs = [
+        { x: 0.18, z: -0.10, color: 0xd97706 },
+        { x: 0.27, z: -0.08, color: 0xeab308 }
+    ];
+    syrupConfigs.forEach(s => {
+        const bottleMat = new THREE.MeshPhysicalMaterial({
+            color: s.color, transparent: true, opacity: 0.8, roughness: 0.15
+        });
+        const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.14, 12), bottleMat);
+        bottle.position.set(s.x, surfaceY + 0.07, s.z);
+        bottle.castShadow = true; group.add(bottle);
+        const pump = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.035, 8), darkAccentMat);
+        pump.position.set(s.x, surfaceY + 0.155, s.z); group.add(pump);
+    });
+
+    // Center the full module and fit it within the 1x1 furniture tile.
+    const box = new THREE.Box3().setFromObject(group);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    group.children.forEach(child => {
+        child.position.x -= center.x;
+        child.position.z -= center.z;
+        child.position.y -= box.min.y;
+    });
+    const maxHoriz = Math.max(size.x, size.z);
+    if (maxHoriz > 0.84) group.scale.setScalar(0.84 / maxHoriz);
+    return group;
+}
+
+// Keep the existing scene and build-preview call sites unchanged.
+function createCoffee(parent, o) {
+    const g = createCoffeeMachineModel();
+    parent.add(g);
+    g.position.set(o.x + 0.5, 0, o.y + 0.5);
+    g.rotation.y = (Number(o.rot) || 0) * Math.PI / 2;
+    return g;
 }
 function createServer(parent,o){
  const g=new THREE.Group();parent.add(g);

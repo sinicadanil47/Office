@@ -2426,13 +2426,11 @@ function sysadminMakeMarker(dg){
  const ex=new THREE.Mesh(new THREE.BoxGeometry(.018,.11,.018),new THREE.MeshBasicMaterial({color:0xffffff}));ex.position.y=.005;marker.add(ex);
  const dot=new THREE.Mesh(new THREE.BoxGeometry(.018,.018,.018),new THREE.MeshBasicMaterial({color:0xffffff}));dot.position.y=-.04;marker.add(dot);
  dg.add(marker);dg.userData.breakMarker=marker;
- const warning=new THREE.Mesh(new THREE.PlaneGeometry(.28,.2),new THREE.MeshBasicMaterial({color:0xff2020,transparent:true,opacity:.38,side:THREE.DoubleSide}));
- warning.position.set(0,.74,.2);dg.add(warning);dg.userData.breakGlow=warning;
+
 }
 function sysadminPaintDesk(dg,broken){
  sysadminMakeMarker(dg);
  dg.userData.breakMarker.visible=!!broken;
- dg.userData.breakGlow.visible=!!broken;
  dg.traverse(n=>{
   if(!n.isMesh||!n.userData.breakdownScreen||!n.material)return;
   const mats=Array.isArray(n.material)?n.material:[n.material];

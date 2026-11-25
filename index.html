@@ -599,13 +599,13 @@ function updateUI(){
 const threeBackdrop=document.createElement("div");threeBackdrop.id="sceneBackdrop";document.body.insertBefore(threeBackdrop,document.body.firstChild);
 const threeCanvas=document.createElement("canvas");threeCanvas.id="threeRoom";document.body.insertBefore(threeCanvas,document.body.firstChild);
 const threeRenderer=new THREE.WebGLRenderer({canvas:threeCanvas,antialias:true,alpha:true,powerPreference:"high-performance"});
-threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-threeRenderer.shadowMap.enabled=true;threeRenderer.shadowMap.type=THREE.PCFSoftShadowMap;
+threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?1:1.5));
+const officeMobileGPU=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);threeRenderer.shadowMap.enabled=!officeMobileGPU;threeRenderer.shadowMap.type=THREE.PCFSoftShadowMap;
 threeRenderer.outputColorSpace=THREE.SRGBColorSpace;threeRenderer.toneMapping=THREE.ACESFilmicToneMapping;threeRenderer.toneMappingExposure=1.12;
 const threeScene=new THREE.Scene();threeScene.background=null;threeScene.fog=new THREE.Fog(0x111820,18,52);
 const threeAmbientLight=new THREE.AmbientLight(0x9aa9b8,.52);threeScene.add(threeAmbientLight);
 const threeHemisphereLight=new THREE.HemisphereLight(0xdde9f5,0x35414b,.46);threeScene.add(threeHemisphereLight);
-const keyLight=new THREE.DirectionalLight(0xb3c7d8,1.15);keyLight.position.set(-9,17,11);keyLight.castShadow=true;keyLight.shadow.mapSize.set(2048,2048);keyLight.shadow.camera.left=-18;keyLight.shadow.camera.right=18;keyLight.shadow.camera.top=18;keyLight.shadow.camera.bottom=-18;keyLight.shadow.bias=-.00035;keyLight.shadow.radius=4;threeScene.add(keyLight);
+const keyLight=new THREE.DirectionalLight(0xb3c7d8,1.15);keyLight.position.set(-9,17,11);keyLight.castShadow=true;keyLight.shadow.mapSize.set(1024,1024);keyLight.shadow.camera.left=-18;keyLight.shadow.camera.right=18;keyLight.shadow.camera.top=18;keyLight.shadow.camera.bottom=-18;keyLight.shadow.bias=-.00035;keyLight.shadow.radius=4;threeScene.add(keyLight);
 const fillLight=new THREE.DirectionalLight(0x566b80,.28);fillLight.position.set(12,9,-10);threeScene.add(fillLight);
 let threeEnvironmentGroup=null,threeEnvironmentTier=-1,threeAtmosphereTransition=null;
 const threeRoot=new THREE.Group();threeScene.add(threeRoot);
@@ -617,9 +617,9 @@ const mat=(color,roughness=.72,metalness=0,extra={})=>new THREE.MeshStandardMate
 const basementTextureLoader=new THREE.TextureLoader();
 const basementTextureCache={};
 function loadBasementTexture(key,files){
- const tex=new THREE.Texture();tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;basementTextureCache[key]=tex;
+ const tex=new THREE.Texture();tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(4,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;basementTextureCache[key]=tex;
  let attempt=0;
- const next=()=>{if(attempt>=files.length){console.error("Basement texture failed to load:",key,files);return;}const file=files[attempt++],url=/^https?:/.test(file)?file:new URL(file,document.baseURI).href;basementTextureLoader.load(url,loaded=>{tex.copy(loaded);tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(12,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.needsUpdate=true;console.info("Basement texture loaded:",key,url,loaded.image?.width,loaded.image?.height);applyBasementTextures();},undefined,error=>{console.error("Basement texture request failed:",url,error);next();});};
+ const next=()=>{if(attempt>=files.length){console.error("Basement texture failed to load:",key,files);return;}const file=files[attempt++],url=/^https?:/.test(file)?file:new URL(file,document.baseURI).href;basementTextureLoader.load(url,loaded=>{tex.copy(loaded);tex.colorSpace=THREE.SRGBColorSpace;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;tex.anisotropy=Math.min(4,threeRenderer.capabilities.getMaxAnisotropy());tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.generateMipmaps=true;tex.needsUpdate=true;console.info("Basement texture loaded:",key,url,loaded.image?.width,loaded.image?.height);applyBasementTextures();},undefined,error=>{console.error("Basement texture request failed:",url,error);next();});};
  next();return tex;
 }
 const basementFloorTex=loadBasementTexture("floor",["textures/basement_floor.PNG","textures/basement_floor.png","https://raw.githubusercontent.com/sinicadanil47/Office/main/textures/basement_floor.PNG"]);
@@ -1824,6 +1824,7 @@ function panThreeCameraByScreen(dx,dy){
 }
 function renderThreeScene(){
  if(!threeRenderer||!threeWidth||!threeHeight||!floorPageActive||document.hidden)return;
+ const renderNow=performance.now();if(renderNow-threeLastRenderAt<33)return;
  const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);
  if(sig!==threeSceneSignature)rebuildThreeScene();
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
@@ -2538,9 +2539,9 @@ $("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить бал
 let last=performance.now(),incomeTimer=0;
 function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="ceo");const eligible=workers.length?workers:state.layout.filter(o=>o.type==="desk");if(eligible.length){const o=eligible[Math.floor(Math.random()*eligible.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
-let gameFrameId=0;
+let gameFrameId=0,lastTickFrameAt=0;
 function scheduleGameLoop(){if(!gameFrameId&&!document.hidden)gameFrameId=requestAnimationFrame(tick);}
-function tick(now){gameFrameId=0;spawnVip();
+function tick(now){gameFrameId=0;if(now-lastTickFrameAt<32){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
  const dt=Math.min((now-last)/1000,.25);last=now;officeNpcTick(dt);/* employee movement is handled by the unified 3D OfficeCharacterController */
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  if(floorPageActive&&!document.hidden)draw();scheduleGameLoop();
@@ -2950,9 +2951,9 @@ $("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить бал
 let last=performance.now(),incomeTimer=0;
 function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="ceo");const eligible=workers.length?workers:state.layout.filter(o=>o.type==="desk");if(eligible.length){const o=eligible[Math.floor(Math.random()*eligible.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
-let gameFrameId=0;
+let gameFrameId=0,lastTickFrameAt=0;
 function scheduleGameLoop(){if(!gameFrameId&&!document.hidden)gameFrameId=requestAnimationFrame(tick);}
-function tick(now){gameFrameId=0;spawnVip();
+function tick(now){gameFrameId=0;if(now-lastTickFrameAt<32){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
  const dt=Math.min((now-last)/1000,.25);last=now;officeNpcTick(dt);/* employee movement is handled by the unified 3D OfficeCharacterController */
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  if(floorPageActive&&!document.hidden)draw();scheduleGameLoop();
@@ -3362,9 +3363,9 @@ $("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить бал
 let last=performance.now(),incomeTimer=0;
 function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="ceo");const eligible=workers.length?workers:state.layout.filter(o=>o.type==="desk");if(eligible.length){const o=eligible[Math.floor(Math.random()*eligible.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
-let gameFrameId=0;
+let gameFrameId=0,lastTickFrameAt=0;
 function scheduleGameLoop(){if(!gameFrameId&&!document.hidden)gameFrameId=requestAnimationFrame(tick);}
-function tick(now){gameFrameId=0;spawnVip();
+function tick(now){gameFrameId=0;if(now-lastTickFrameAt<32){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
  const dt=Math.min((now-last)/1000,.25);last=now;officeNpcTick(dt);/* employee movement is handled by the unified 3D OfficeCharacterController */
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  if(floorPageActive&&!document.hidden)draw();scheduleGameLoop();

@@ -99,8 +99,8 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 </style>
 <style>
 /* Three.js full 3D floor renderer */
-#sceneBackdrop{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:linear-gradient(180deg,#111820 0%,#202a34 55%,#101820 100%);transition:background 900ms ease}
-#sceneBackdrop::before,#sceneBackdrop::after{content:"";position:absolute;pointer-events:none;inset:0;transition:opacity 900ms ease}
+#sceneBackdrop{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#36b8b5!important;transition:none!important}
+#sceneBackdrop::before,#sceneBackdrop::after{display:none!important}
 #sceneBackdrop[data-tier="0"]{background:radial-gradient(ellipse at 50% 66%,rgba(173,111,57,.19),transparent 43%),linear-gradient(180deg,#11171d 0%,#20272e 54%,#0b1016 100%)}
 #sceneBackdrop[data-tier="1"]{background:radial-gradient(ellipse at 52% 78%,rgba(224,190,145,.17),transparent 43%),linear-gradient(180deg,#526f83 0%,#819aa7 48%,#394c5c 100%)}
 #sceneBackdrop[data-tier="1"]::before{inset:auto 0 0;height:15%;opacity:.45;background:linear-gradient(0deg,rgba(28,46,51,.65),transparent)}
@@ -599,8 +599,8 @@ function updateUI(){
 const threeBackdrop=document.createElement("div");threeBackdrop.id="sceneBackdrop";document.body.insertBefore(threeBackdrop,document.body.firstChild);
 const threeCanvas=document.createElement("canvas");threeCanvas.id="threeRoom";document.body.insertBefore(threeCanvas,document.body.firstChild);
 const threeRenderer=new THREE.WebGLRenderer({canvas:threeCanvas,antialias:true,alpha:true,powerPreference:"high-performance"});
-threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-threeRenderer.shadowMap.enabled=true;threeRenderer.shadowMap.type=THREE.PCFSoftShadowMap;
+threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.35));
+threeRenderer.shadowMap.enabled=false;threeRenderer.shadowMap.type=THREE.BasicShadowMap;
 threeRenderer.outputColorSpace=THREE.SRGBColorSpace;threeRenderer.toneMapping=THREE.ACESFilmicToneMapping;threeRenderer.toneMappingExposure=1.12;
 const threeScene=new THREE.Scene();threeScene.background=null;threeScene.fog=new THREE.Fog(0x111820,18,52);
 const threeAmbientLight=new THREE.AmbientLight(0x9aa9b8,.52);threeScene.add(threeAmbientLight);
@@ -1273,7 +1273,7 @@ function setThreeAtmosphere(tier,n=currentGridSize()){
  const p=FLOOR_ATMOSPHERES[Math.max(0,Math.min(4,tier))],now=performance.now();
  threeBackdrop.dataset.tier=String(Math.max(0,Math.min(4,tier)));
  const current=threeAtmosphereTransition?.to||{fog:threeScene.fog.color.clone(),near:threeScene.fog.near,far:threeScene.fog.far,ambient:threeAmbientLight.color.clone(),ambientI:threeAmbientLight.intensity,key:keyLight.color.clone(),keyI:keyLight.intensity,fill:fillLight.color.clone(),fillI:fillLight.intensity};
- threeAtmosphereTransition={from:{fog:threeScene.fog.color.clone(),near:threeScene.fog.near,far:threeScene.fog.far,ambient:threeAmbientLight.color.clone(),ambientI:threeAmbientLight.intensity,key:keyLight.color.clone(),keyI:keyLight.intensity,fill:fillLight.color.clone(),fillI:fillLight.intensity},to:{fog:new THREE.Color(p.fog),near:p.near,far:p.far,ambient:new THREE.Color(p.ambient),ambientI:p.ambientI,key:new THREE.Color(p.key),keyI:p.keyI,fill:new THREE.Color(p.fill),fillI:p.fillI},start:now,duration:1050};
+ threeAtmosphereTransition=null;threeScene.fog=new THREE.Fog(0x36b8b5,Math.max(30,n*4),Math.max(70,n*9));threeAmbientLight.color.set(0xffffff);threeAmbientLight.intensity=.82;keyLight.color.set(0xffffff);keyLight.intensity=1.15;fillLight.color.set(0xffffff);fillLight.intensity=.35;threeHemisphereLight.intensity=.45;
  threeScene.fog=new THREE.Fog(threeScene.fog.color,threeScene.fog.near,threeScene.fog.far);
  buildFloorEnvironment(tier,n);threeEnvironmentTier=tier;
 }
@@ -1796,7 +1796,7 @@ const DECOR_TYPES=new Set([...DECOR_FLOOR_TYPES,...DECOR_WALL_TYPES,...DECOR_PAI
 function isDecorType(t){return DECOR_TYPES.has(t);}
 function decorEdgeKey(x,y,rot){return (rot%2===0?"z":"x")+":"+x+":"+y;}
 function decorEdgePosition(o){const r=(Number(o.rot)||0)%2;return r===0?{x:o.x+.5,z:o.y}:{x:o.x,z:o.y+.5};}
-function createDecor3D(parent,o){const g=new THREE.Group();parent.add(g);let model;if(o.type==="wall_partition")model=DecorModels.createPartitionWall(1);else if(o.type==="wall_door")model=DecorModels.createPartitionWallWithDoor(1);else if(o.type==="entrance_door")model=DecorModels.createEntranceDoor(1);else if(o.type.startsWith("painting_")){model=DecorModels.createPainting(Number(o.type.slice(-1)));model.position.y=0;}else if(o.type.startsWith("plant_"))model=DecorModels.createPottedPlant(o.type.replace("plant_",""));else if(o.type==="bookshelf")model=DecorModels.createBookshelf();if(model)g.add(model);g.userData.object=o;const rot=(Number(o.rot)||0)*Math.PI/2;if(o.type==="wall_partition"||o.type==="wall_door"){const p=decorEdgePosition(o);g.position.set(p.x,0,p.z);g.rotation.y=rot;}else if(o.type==="entrance_door"){g.position.set(Number(o.posX??(o.x+.5))||0,Number(o.posY)||0,Number(o.posZ??-.11));g.rotation.y=Number(o.rotationY??rot);}else if(o.type.startsWith("painting_")){g.position.set(Number(o.posX??(o.x+.5)),Number(o.posY)||1.55,Number(o.posZ??(o.y+.5)));g.rotation.y=Number(o.rotationY??rot);}else{g.position.set(Number(o.posX??(o.x+.5)),Number(o.posY)||0,Number(o.posZ??(o.y+.5)));g.rotation.y=Number(o.rotationY??rot);if(o.type==="bookshelf")g.rotation.y+=Math.PI;}return g;}
+function createDecor3D(parent,o){const g=new THREE.Group();parent.add(g);let model;if(o.type==="wall_partition")model=DecorModels.createPartitionWall(1);else if(o.type==="wall_door")model=DecorModels.createPartitionWallWithDoor(1);else if(o.type==="entrance_door")model=DecorModels.createEntranceDoor(1);else if(o.type.startsWith("painting_")){model=DecorModels.createPainting(Number(o.type.slice(-1)));model.position.y=0;}else if(o.type.startsWith("plant_"))model=DecorModels.createPottedPlant(o.type.replace("plant_",""));else if(o.type==="bookshelf")model=DecorModels.createBookshelf();if(model)g.add(model);g.userData.object=o;const rot=(Number(o.rot)||0)*Math.PI/2;if(o.type==="wall_partition"||o.type==="wall_door"){const p=decorEdgePosition(o);g.position.set(p.x,0,p.z);g.rotation.y=rot;}else if(o.type==="entrance_door"){g.position.set(Number(o.posX??(o.x+.5))||0,Number(o.posY)||0,Number(o.posZ??-.24));g.rotation.y=Number(o.rotationY??rot);}else if(o.type.startsWith("painting_")){g.position.set(Number(o.posX??(o.x+.5)),Number(o.posY)||1.55,Number(o.posZ??(o.y+.5)));g.rotation.y=Number(o.rotationY??rot);}else{g.position.set(Number(o.posX??(o.x+.5)),Number(o.posY)||0,Number(o.posZ??(o.y+.5)));g.rotation.y=Number(o.rotationY??rot);if(o.type==="bookshelf")g.rotation.y+=Math.PI;g.rotation.z=Math.PI/2;}return g;}
 function rebuildThreeScene(){
  threeOfficeControllers.forEach(c=>c.forceDock());threeOfficeControllers.clear();dev3dGameMixers.forEach(m=>m.stopAllAction());dev3dGameMixers.length=0;dev3dProceduralRigs.length=0;dev3dTypingControllers.length=0;const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level,o.posX,o.posY,o.posZ,o.rotationY,o.edgeKey,o.wallKey,o.floor])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}officeNpcRuntime.mesh=null;threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();
  floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);threeWorkerGroups.set(o,g);break;case"ceo":g=createCEO(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;case"reception":g=createReception(threeFurnitureGroup,o);break;case"manager":g=createManagerDesk(threeFurnitureGroup,o);break;default:if(isDecorType(o.type))g=createDecor3D(threeFurnitureGroup,o);}if(g){g.userData.object=o;if(o.type==="desk")attachCyberLockIndicator(g);}});
@@ -2243,9 +2243,31 @@ function draw(){
 function cellFromEvent(e){
  const r=threeCanvas.getBoundingClientRect(),w=Math.max(1,r.width),h=Math.max(1,r.height);const x=((e.clientX-r.left)/w)*2-1,y=-((e.clientY-r.top)/h)*2+1;threePointer.set(x,y);threeCamera.updateMatrixWorld(true);threeRaycaster.setFromCamera(threePointer,threeCamera);if(!threeRaycaster.ray.intersectPlane(threeGround,threeHit))return{x:-1,y:-1};return{x:Math.floor(threeHit.x),y:Math.floor(threeHit.z)};
 }
+function decorWallCellFromEvent(e){
+ const r=canvas.getBoundingClientRect();threePointer.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);
+ threeCamera.updateMatrixWorld(true);threeRaycaster.setFromCamera(threePointer,threeCamera);
+ const ray=threeRaycaster.ray,n=currentGridSize(),candidates=[];
+ // Exterior wall planes. The wall-grid coordinate is 1m per segment; only accept hits in room bounds.
+ const planes=[{axis:"z",value:-.11,rotation:0},{axis:"x",value:-.11,rotation:1}];
+ for(const pl of planes){const plane=pl.axis==="z"?new THREE.Plane(new THREE.Vector3(0,0,1),-pl.value):new THREE.Plane(new THREE.Vector3(1,0,0),-pl.value);const pt=new THREE.Vector3();if(ray.intersectPlane(plane,pt)&&pt.y>=.15&&pt.y<=2.5&&((pl.axis==="z"&&pt.x>=0&&pt.x<n)||(pl.axis==="x"&&pt.z>=0&&pt.z<n))){candidates.push({axis:pl.axis,pt,dist:pt.distanceTo(ray.origin)});}}
+ // Partition walls are selectable through their actual mesh, but snap to wall segment coordinates.
+ if(threeFurnitureGroup){const hits=threeRaycaster.intersectObjects(threeFurnitureGroup.children,true);for(const h of hits){let node=h.object;while(node&&node.parent!==threeFurnitureGroup)node=node.parent;const o=node?.userData?.object;if(o&&(o.type==="wall_partition"||o.type==="wall_door")){const ep=decorEdgePosition(o);candidates.push({axis:o.rot%2===0?"z":"x",pt:h.point,dist:h.distance,partition:o,edge:ep});}}}
+ candidates.sort((a,b)=>a.dist-b.dist);const h=candidates[0];if(!h)return null;
+ if(h.partition){const o=h.partition;return{x:o.x,y:o.y,wallTarget:o,axis:h.axis,wallCoord:h.axis==="z"?o.y:o.x,segment:h.axis==="z"?o.x:o.y};}
+ return h.axis==="z"?{x:Math.floor(h.pt.x),y:0,axis:"z",wallCoord:-.11,segment:Math.floor(h.pt.x),wallTarget:"external"}:{x:0,y:Math.floor(h.pt.z),axis:"x",wallCoord:-.11,segment:Math.floor(h.pt.z),wallTarget:"external"};
+}
+function updateDecorPreviewFromEvent(e){
+ if(!buildPreviewState||!isDecorType(buildPreviewState.type))return false;
+ const p=buildPreviewState,type=p.type;
+ if(DECOR_PAINT_TYPES.has(type)||type==="entrance_door"||type==="bookshelf"||type==="wall_partition"||type==="wall_door"){
+  const hit=decorWallCellFromEvent(e);
+  if(hit){p.wallHit=hit;p.x=hit.x;p.y=hit.y;updateBuildPreviewVisual();draw();return true;}
+ }
+ const c=cellFromEvent(e);if(c.x>=0&&c.x<gridSize&&c.y>=0&&c.y<gridSize){setBuildPreviewCell(c.x,c.y);return true;}return false;
+}
 function handleRoomTap(e){
  if(state.viewing)return;const c=cellFromEvent(e);if(c.x<0||c.x>=gridSize||c.y<0||c.y>=gridSize)return;
- if(buildPreviewState){setBuildPreviewCell(c.x,c.y);return;}
+ if(buildPreviewState){if(isDecorType(buildPreviewState.type)){updateDecorPreviewFromEvent(e);return;}setBuildPreviewCell(c.x,c.y);return;}
  haptic();const i=state.layout.findIndex(o=>objectHitCells(o).some(cell=>cell.x===c.x&&cell.y===c.y));
  if(activeVip&&Date.now()<activeVip.expires&&i>=0&&state.layout[i].x===activeVip.x&&state.layout[i].y===activeVip.y){closeVipDeal();return;}
  if(state.sellMode){if(i>=0){const o=state.layout[i],controller=threeOfficeControllers.get(o);if(controller){controller.dispose();threeOfficeControllers.delete(o);}if(o.type==="desk")delete cyberSecurityState.activeDebuffs.blockedDesks[o.id];state.layout.splice(i,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
@@ -2274,7 +2296,7 @@ canvas.addEventListener("pointermove",e=>{
   if(!point.dragged&&Math.hypot(x-point.startX,y-point.startY)>5){point.dragged=true;suppressTap=true;pointer=null;}
   if(point.dragged){
    panThreeCameraByScreen(dx,dy);draw();
-  }else if(buildPreviewState){const c=cellFromEvent(e);if(c.x>=0&&c.x<gridSize&&c.y>=0&&c.y<gridSize)setBuildPreviewCell(c.x,c.y);}
+  }else if(buildPreviewState){if(isDecorType(buildPreviewState.type))updateDecorPreviewFromEvent(e);else{const c=cellFromEvent(e);if(c.x>=0&&c.x<gridSize&&c.y>=0&&c.y<gridSize)setBuildPreviewCell(c.x,c.y);}}
   else if(!state.viewing&&(state.selected||moveMode)){pointer=cellFromEvent(e);draw();}
  }
  if(activePointers.size>=2&&pinchState){
@@ -2382,9 +2404,9 @@ function decorOccupiedEdge(key,ignore=null){return state.layout.some(o=>o!==igno
 function decorEntranceExists(ignore=null){return state.layout.some(o=>o!==ignore&&o.type==="entrance_door"&&Number(o.floor??floorTier)===floorTier);}
 function decorPaintingOccupied(wallKey,ignore=null){return state.layout.some(o=>o!==ignore&&DECOR_PAINT_TYPES.has(o.type)&&o.wallKey===wallKey);}
 function decorSnap(p,x,y){const type=p.type,rot=Number(p.rot)||0;if(type==="wall_partition"||type==="wall_door"){const r=rot%2,key=decorEdgeKey(x,y,r),inside=r===0?(x>=0&&x<gridSize&&y>0&&y<gridSize):(x>0&&x<gridSize&&y>=0&&y<gridSize);return{valid:inside&&!decorOccupiedEdge(key,p.movingObject),edgeKey:key,posX:r===0?x+.5:x,posZ:r===0?y:y+.5,rotationY:rot*Math.PI/2};}
- if(type==="entrance_door"){const r=rot%2,exists=decorEntranceExists(p.movingObject);if(r===0)return{valid:x>=0&&x<gridSize&&!exists,posX:x+.5,posZ:-.11,rotationY:0,edgeKey:"outer:z:"+x};return{valid:y>=0&&y<gridSize&&!exists,posX:-.11,posZ:y+.5,rotationY:Math.PI/2,edgeKey:"outer:x:"+y};}
+ if(type==="entrance_door"){const r=rot%2,exists=decorEntranceExists(p.movingObject);if(r===0)return{valid:x>=0&&x<gridSize&&!exists,posX:x+.5,posZ:-.24,rotationY:0,edgeKey:"outer:z:"+x};return{valid:y>=0&&y<gridSize&&!exists,posX:-.24,posZ:y+.5,rotationY:Math.PI/2,edgeKey:"outer:x:"+y};}
  if(DECOR_PAINT_TYPES.has(type)){const r=rot%2;let candidates=[];if(r===0){candidates.push({wallKey:"outer:z:"+x,posX:x+.5,posZ:.04,rotationY:0,wall:"external"});for(const o of state.layout.filter(q=>q.type==="wall_partition"&&q.rot%2===0&&q.x===x&&(q.y===y||q.y===y+1)))candidates.push({wallKey:o.edgeKey,posX:x+.5,posZ:o.y+.14,rotationY:0,wall:o});}else{candidates.push({wallKey:"outer:x:"+y,posX:.04,posZ:y+.5,rotationY:Math.PI/2,wall:"external"});for(const o of state.layout.filter(q=>q.type==="wall_partition"&&q.rot%2===1&&q.y===y&&(q.x===x||q.x===x+1)))candidates.push({wallKey:o.edgeKey,posX:o.x+.14,posZ:y+.5,rotationY:Math.PI/2,wall:o});}const free=candidates.filter(q=>!decorPaintingOccupied(q.wallKey,p.movingObject));const found=free.sort((a,b)=>Math.abs((r===0?threeHit.z:threeHit.x)-(r===0?a.posZ:a.posX))-Math.abs((r===0?threeHit.z:threeHit.x)-(r===0?b.posZ:b.posX)))[0];if(!found)return{valid:false,wallKey:null,posX:x+.5,posZ:y+.5,rotationY:rot*Math.PI/2};return{...found,valid:true};}
- return{valid:buildFootprintValid(type,x,y,rot,p.movingObject||null),posX:x+.5,posZ:y+.5,rotationY:(rot*Math.PI/2)+(type==="bookshelf"?Math.PI:0)};}
+ if(type==="bookshelf"&&p.wallHit){const wh=p.wallHit,axis=wh.axis,segment=wh.segment??(axis==="z"?x:y),wallKey=wh.wallTarget&&typeof wh.wallTarget==="object"?wh.wallTarget.edgeKey:"outer:"+axis+":"+segment;const occupied=state.layout.some(o=>o!==p.movingObject&&o.type==="bookshelf"&&o.wallKey===wallKey);return{valid:!occupied,posX:axis==="z"?segment+.5:-.18,posZ:axis==="z"?-.18:segment+.5,rotationY:axis==="z"?0:Math.PI/2,wallKey};}return{valid:buildFootprintValid(type,x,y,rot,p.movingObject||null),posX:x+.5,posZ:y+.5,rotationY:rot*Math.PI/2};}
 function buildCellBlocked(x,y,ignoreObject=null){if(state.layout.some(o=>o!==ignoreObject&&objectFootprintCells(o).some(c=>c.x===x&&c.y===y)))return true;return state.layout.some(o=>{if(o===ignoreObject||o.type!=="desk")return false;const rt=employeeMotion.get(employeeKey(o));return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===x&&Math.floor(rt.pos.y)===y;});}
 function buildFootprintValid(type,x,y,rot,ignoreObject=null){if(isDecorType(type)&&!DECOR_FLOOR_TYPES.has(type))return decorSnap({type,rot,movingObject:ignoreObject},x,y).valid;const cells=type==="meeting"?(rot%2===0?[{x,y},{x:x+1,y}]:[{x,y},{x,y:y+1}]):[{x,y}];return cells.every(c=>c.x>=0&&c.y>=0&&c.x<gridSize&&c.y<gridSize&&!buildCellBlocked(c.x,c.y,ignoreObject));}
 function buildCellValid(x,y){return x>=0&&x<gridSize&&y>=0&&y<gridSize&&!buildCellBlocked(x,y)&&(devFreeBuild||state.balance>=TYPES[buildPreviewState.type].cost);}

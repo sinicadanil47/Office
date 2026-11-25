@@ -2300,6 +2300,10 @@ $("devMapZoomOut").addEventListener("click",()=>{devMapScale=Math.max(.38,devMap
 $("devMapCenter").addEventListener("click",developmentCenter);
 developmentRenderMap();
 function go(page){if(page!=="floor"&&buildPreviewState)clearBuildPreview();document.body.classList.toggle("development-fullscreen",page==="development");document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+page));document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===page));$("floorActions").style.display=page==="floor"&&!buildPreviewState?"flex":"none";floorPageActive=page==="floor";if(page==="floor"){closeShop();draw();}if(page==="business")businessRender();if(page==="development")setTimeout(developmentCenter,60);haptic();}
+// Restore delegated bottom navigation routing
+if(!window.__officeNavBound){window.__officeNavBound=true;document.querySelector(".bottom-nav").addEventListener("click",e=>{const btn=e.target.closest(".nav-btn[data-page]");if(btn){e.preventDefault();go(btn.dataset.page);}});}
+$("devMapExit")?.addEventListener("click",()=>go("floor"));
+
 function closeShop(){$("shop").classList.remove("open");$("installBar").classList.remove("show");}
 function showUpgradeCard(index){
  const o=state.layout[index];if(!o)return;

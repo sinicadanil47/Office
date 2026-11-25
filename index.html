@@ -1571,9 +1571,11 @@ function addRoom3D(){
   floor.position.set(n/2,-.0075,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
   const wallH=2.55;
   // Walls extend slightly into the slab so their bases visibly meet the floor instead of floating.
-  const wallBase=-.045,wallCenter=(wallH+wallBase)/2,wallHeight=wallH-wallBase;
-  boxMesh(threeFloorGroup,n/2,wallCenter,-.11,n+.04,wallHeight,.22,wallMat);
-  boxMesh(threeFloorGroup,-.11,wallCenter,n/2,.22,wallHeight,n+.04,wallMat);
+  const wallBase=-.12,wallHeight=wallH+.12;
+  // boxMesh takes Y as the bottom coordinate (not the center). Start walls at the slab bottom,
+  // so they intersect the floor slab and emerge flush from the walking surface.
+  boxMesh(threeFloorGroup,n/2,wallBase,-.11,n+.04,wallHeight,.22,wallMat);
+  boxMesh(threeFloorGroup,-.11,wallBase,n/2,.22,wallHeight,n+.04,wallMat);
  }
  // Keep only the functional cell hover indicator; no room decor or floor ornaments.
  const hoverGroup=new THREE.Group(),hoverMat=mat(0xdce8ed,.32,.2,{emissive:0x536b78,emissiveIntensity:.35,transparent:true,opacity:.58});

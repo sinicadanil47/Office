@@ -1872,15 +1872,15 @@ function zoomAt(nextZoom,x,y){
  if(Math.abs(z-oldZoom)<.0001)return;
  cameraOffsetX=x-(x-cameraOffsetX)*(z/oldZoom);
  cameraOffsetY=y-(y-cameraOffsetY)*(z/oldZoom);
- cameraZoom=z;if(!threeRenderer)draw();
+ cameraZoom=z;draw();
 }
 function animateCameraHome(){
  if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);
  const start={x:cameraOffsetX,y:cameraOffsetY,z:cameraZoom,px:threePanX,pz:threePanZ},begin=performance.now(),duration=320;
  const step=now=>{
   const t=Math.min(1,(now-begin)/duration),ease=1-Math.pow(1-t,3);
-  cameraOffsetX=start.x*(1-ease);cameraOffsetY=start.y*(1-ease);threePanX=start.px*(1-ease);threePanZ=start.pz*(1-ease);cameraZoom=start.z+(1-start.z)*ease;if(!threeRenderer)draw();
-  if(t<1)cameraResetFrame=requestAnimationFrame(step);else{cameraOffsetX=0;cameraOffsetY=0;threePanX=0;threePanZ=0;cameraZoom=1;cameraResetFrame=0;if(!threeRenderer)draw();}
+  cameraOffsetX=start.x*(1-ease);cameraOffsetY=start.y*(1-ease);threePanX=start.px*(1-ease);threePanZ=start.pz*(1-ease);cameraZoom=start.z+(1-start.z)*ease;draw();
+  if(t<1)cameraResetFrame=requestAnimationFrame(step);else{cameraOffsetX=0;cameraOffsetY=0;threePanX=0;threePanZ=0;cameraZoom=1;cameraResetFrame=0;draw();}
  };
  cameraResetFrame=requestAnimationFrame(step);
 }
@@ -2276,7 +2276,7 @@ canvas.addEventListener("pointermove",e=>{
  if(activePointers.size===1){
   if(!point.dragged&&Math.hypot(x-point.startX,y-point.startY)>5){point.dragged=true;suppressTap=true;pointer=null;}
   if(point.dragged){
-   panThreeCameraByScreen(dx,dy);if(!threeRenderer)draw();
+   panThreeCameraByScreen(dx,dy);draw();
   }else if(buildPreviewState){const c=cellFromEvent(e);if(c.x>=0&&c.x<gridSize&&c.y>=0&&c.y<gridSize)setBuildPreviewCell(c.x,c.y);}
   else if(!state.viewing&&(state.selected||moveMode)){pointer=cellFromEvent(e);draw();}
  }
@@ -2284,7 +2284,7 @@ canvas.addEventListener("pointermove",e=>{
   const pts=[...activePointers.values()].slice(0,2),px=pts[1].x-pts[0].x,py=pts[1].y-pts[0].y,dist=Math.max(1,Math.hypot(px,py)),center={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};
   panThreeCameraByScreen(center.x-pinchState.center.x,center.y-pinchState.center.y);
   zoomAt(cameraZoom*dist/pinchState.distance,center.x,center.y);
-  pinchState.center=center;pinchState.distance=dist;pointer=null;if(!threeRenderer)draw();
+  pinchState.center=center;pinchState.distance=dist;pointer=null;
  }
 });
 function finishPointer(e,cancelled=false){

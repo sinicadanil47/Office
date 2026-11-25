@@ -2390,9 +2390,20 @@ function buildFootprintValid(type,x,y,rot,ignoreObject=null){if(isDecorType(type
 function buildCellValid(x,y){return x>=0&&x<gridSize&&y>=0&&y<gridSize&&!buildCellBlocked(x,y)&&(devFreeBuild||state.balance>=TYPES[buildPreviewState.type].cost);}
 function updateBuildPreviewVisual(){
  if(!buildPreviewState||!threePreviewGroup)return;
- const p=buildPreviewState,isDecor=isDecorType(p.type),snap=isDecor?decorSnap(p,p.x,p.y):null;
- const valid=(isDecor?snap.valid:buildFootprintValid(p.type,p.x,p.y,p.rot,p.movingObject||null))&&(p.movingObject||devFreeBuild||state.balance>=TYPES[p.type].cost);
- p.valid=valid;if(isDecor&&snap){Object.assign(p,snap);}
+ const p=buildPreviewState,isDecor=isDecorType(p.type),canPay=p.movingObject||devFreeBuild||state.balance>=TYPES[p.type].cost;
+ let snap=isDecor?decorSnap(p,p.x,p.y):null;
+ let placeValid=(isDecor?snap.valid:buildFootprintValid(p.type,p.x,p.y,p.rot,p.movingObject||null));
+ // If the starting cell is invalid, automatically move preview to the nearest valid cell.
+ if(!placeValid&&canPay&&!p.movingObject){
+  let best=null,center=(gridSize-1)/2;
+  for(let yy=0;yy<gridSize;yy++)for(let xx=0;xx<gridSize;xx++){
+   const ok=isDecor?decorSnap(p,xx,yy).valid:buildFootprintValid(p.type,xx,yy,p.rot,null);
+   if(ok){const d=(xx-center)**2+(yy-center)**2;if(!best||d<best.d)best={x:xx,y:yy,d};}
+  }
+  if(best){p.x=best.x;p.y=best.y;snap=isDecor?decorSnap(p,p.x,p.y):null;placeValid=true;}
+ }
+ const valid=!!placeValid&&!!canPay;
+ p.valid=valid;if(isDecor&&snap){Object.assign(p,snap);p.valid=valid;}
  if(p.ghost){if(isDecor)p.ghost.position.set(p.posX??0,DECOR_PAINT_TYPES.has(p.type)?1.55:(p.posY??(DECOR_FLOOR_TYPES.has(p.type)?0.012:0.006)),p.posZ??0);else p.ghost.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),0,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.ghost.rotation.y=isDecor?(p.rotationY||p.rot*Math.PI/2):p.rot*Math.PI/2;p.ghost.traverse(o=>{if(!o.isMesh||!o.material)return;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m.userData.previewBaseColor)m.userData.previewBaseColor=m.color.clone();m.color.copy(m.userData.previewBaseColor).lerp(new THREE.Color(valid?0x43e6c1:0xff4d61),.26);});});}
  if(p.frame&&!isDecor){p.frame.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),.018,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.frame.rotation.y=p.rot*Math.PI/2;p.frame.material.color.setHex(valid?0x35e3bb:0xff4358);p.frame.material.opacity=valid?.34:.42;}if(p.outline&&!isDecor){p.outline.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),.025,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.outline.rotation.y=p.rot*Math.PI/2;p.outline.material.color.setHex(valid?0x8effe5:0xff8290);}
  const cost=p.movingObject?"БЕСПЛАТНО · перемещение":(devFreeBuild?"БЕСПЛАТНО":money(TYPES[p.type].cost));

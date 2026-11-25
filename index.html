@@ -1818,13 +1818,15 @@ function fitLargeFloorCamera(){
  cameraOffsetX=0;cameraOffsetY=0;threePanX=0;threePanZ=0;pointer=null;
  updateThreeCamera();
 }
+const threePanRight=new THREE.Vector3(),threePanUp=new THREE.Vector3();
 function panThreeCameraByScreen(dx,dy){
  if(!threeCamera||!threeWidth||!threeHeight)return;
- threeCamera.updateMatrixWorld(true);
- const q=threeCamera.quaternion,right=new THREE.Vector3(1,0,0).applyQuaternion(q),up=new THREE.Vector3(0,1,0).applyQuaternion(q);
+ // Reuse camera basis vectors; do not force matrix traversal or allocate vectors per pointer event.
+ threePanRight.set(1,0,0).applyQuaternion(threeCamera.quaternion);
+ threePanUp.set(0,1,0).applyQuaternion(threeCamera.quaternion);
  const worldPerPixel=(threeCamera.right-threeCamera.left)/(Math.max(1,threeWidth)*Math.max(.01,threeCamera.zoom));
- threePanX-=((right.x*dx)-(up.x*dy))*worldPerPixel;
- threePanZ-=((right.z*dx)-(up.z*dy))*worldPerPixel;
+ threePanX-=((threePanRight.x*dx)-(threePanUp.x*dy))*worldPerPixel;
+ threePanZ-=((threePanRight.z*dx)-(threePanUp.z*dy))*worldPerPixel;
 }
 function renderThreeScene(){
  if(!threeRenderer||!threeWidth||!threeHeight||!floorPageActive||document.hidden)return;
@@ -1873,15 +1875,15 @@ function zoomAt(nextZoom,x,y){
  if(Math.abs(z-oldZoom)<.0001)return;
  cameraOffsetX=x-(x-cameraOffsetX)*(z/oldZoom);
  cameraOffsetY=y-(y-cameraOffsetY)*(z/oldZoom);
- cameraZoom=z;draw();
+ cameraZoom=z;if(!threeRenderer)draw();
 }
 function animateCameraHome(){
  if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);
  const start={x:cameraOffsetX,y:cameraOffsetY,z:cameraZoom,px:threePanX,pz:threePanZ},begin=performance.now(),duration=320;
  const step=now=>{
   const t=Math.min(1,(now-begin)/duration),ease=1-Math.pow(1-t,3);
-  cameraOffsetX=start.x*(1-ease);cameraOffsetY=start.y*(1-ease);threePanX=start.px*(1-ease);threePanZ=start.pz*(1-ease);cameraZoom=start.z+(1-start.z)*ease;draw();
-  if(t<1)cameraResetFrame=requestAnimationFrame(step);else{cameraOffsetX=0;cameraOffsetY=0;threePanX=0;threePanZ=0;cameraZoom=1;cameraResetFrame=0;draw();}
+  cameraOffsetX=start.x*(1-ease);cameraOffsetY=start.y*(1-ease);threePanX=start.px*(1-ease);threePanZ=start.pz*(1-ease);cameraZoom=start.z+(1-start.z)*ease;if(!threeRenderer)draw();
+  if(t<1)cameraResetFrame=requestAnimationFrame(step);else{cameraOffsetX=0;cameraOffsetY=0;threePanX=0;threePanZ=0;cameraZoom=1;cameraResetFrame=0;if(!threeRenderer)draw();}
  };
  cameraResetFrame=requestAnimationFrame(step);
 }
@@ -2277,7 +2279,7 @@ canvas.addEventListener("pointermove",e=>{
  if(activePointers.size===1){
   if(!point.dragged&&Math.hypot(x-point.startX,y-point.startY)>5){point.dragged=true;suppressTap=true;pointer=null;}
   if(point.dragged){
-   panThreeCameraByScreen(dx,dy);draw();
+   panThreeCameraByScreen(dx,dy);if(!threeRenderer)draw();
   }else if(buildPreviewState){const c=cellFromEvent(e);if(c.x>=0&&c.x<gridSize&&c.y>=0&&c.y<gridSize)setBuildPreviewCell(c.x,c.y);}
   else if(!state.viewing&&(state.selected||moveMode)){pointer=cellFromEvent(e);draw();}
  }

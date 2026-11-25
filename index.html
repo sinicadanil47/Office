@@ -965,9 +965,9 @@ function attachOfficerAndAlertToSecurityDesk(deskGroup){
  deskGroup.userData.setCyberAlert=isActive=>{alertGroup.visible=!!isActive;};
  deskGroup.userData.updateCyberAlert=elapsedTime=>{if(!alertGroup.visible)return;const pulse=(Math.sin(elapsedTime*8)+1)*.5;beacon.rotation.y=elapsedTime*3.5;beacon.position.y=Math.sin(elapsedTime*5)*.03;beaconMat.emissiveIntensity=.7+pulse*1.5;alertLight.intensity=.6+pulse*1.6;};
 }
-function createSecurityDeskModel(){
-const group=new THREE.Group();
-const deskDarkMat=new THREE.MeshStandardMaterial({color:0x1e242b,roughness:.55,metalness:.25}),deskTrimMat=new THREE.MeshStandardMaterial({color:0x3b4452,roughness:.4,metalness:.45}),chromeMat=new THREE.MeshStandardMaterial({color:0xcbd5e1,roughness:.25,metalness:.8}),chairSeatMat=new THREE.MeshStandardMaterial({color:0x262d36,roughness:.65}),chairAccentMat=new THREE.MeshStandardMaterial({color:0x2563eb,roughness:.5}),ledBlueMat=new THREE.MeshStandardMaterial({color:0x38bdf8,emissive:0x0ea5e9,emissiveIntensity:.9});
+function createSecurityDeskModel(level=1){
+const lvl=Math.max(1,Math.min(4,Number(level)||1));const group=new THREE.Group();
+const deskDarkMat=new THREE.MeshStandardMaterial({color:[0x57534e,0x1e293b,0x0f172a,0x090d16][lvl-1],roughness:.55,metalness:.25}),deskTrimMat=new THREE.MeshStandardMaterial({color:[0xc8b9a6,0x475569,0x334155,0x1e293b][lvl-1],roughness:.4,metalness:.45}),chromeMat=new THREE.MeshStandardMaterial({color:0xcbd5e1,roughness:.25,metalness:.8}),chairSeatMat=new THREE.MeshStandardMaterial({color:[0x44403c,0x1e293b,0x0f172a,0x090d16][lvl-1],roughness:.65}),chairAccentMat=new THREE.MeshStandardMaterial({color:[0x3b82f6,0x0ea5e9,0x38bdf8,0x22d3ee][lvl-1],roughness:.5}),ledBlueMat=new THREE.MeshStandardMaterial({color:[0x3b82f6,0x0ea5e9,0x38bdf8,0x22d3ee][lvl-1],emissive:[0x3b82f6,0x0ea5e9,0x38bdf8,0x22d3ee][lvl-1],emissiveIntensity:lvl>=3?.95:.35});
 function createCctvScreenTexture(mode){const canvas=document.createElement('canvas');canvas.width=128;canvas.height=96;const ctx=canvas.getContext('2d');ctx.fillStyle=mode===3?'#071912':'#081426';ctx.fillRect(0,0,128,96);ctx.strokeStyle=mode===3?'#10b981':'#38bdf8';ctx.lineWidth=2;ctx.strokeRect(4,4,120,88);if(mode===3){ctx.beginPath();ctx.arc(64,48,32,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(64,48,16,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#34d399';ctx.fillRect(72,34,5,5);ctx.fillStyle='#ef4444';ctx.fillRect(48,56,5,5);}else{ctx.fillStyle='#1e3a5f';ctx.fillRect(14,24,100,56);ctx.fillStyle='#0f294a';ctx.fillRect(24,38,34,28);ctx.fillRect(70,32,32,34);ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(16,14,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e2e8f0';ctx.font='bold 10px monospace';ctx.fillText('CAM-0'+(mode+1),24,17);}const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;return tex;}
 const deskW=.8,deskH=.44,deskD=.44,deskZ=-.14,legGeo=new THREE.BoxGeometry(.14,deskH,deskD-.04);
 [-deskW/2+.09,deskW/2-.09].forEach(x=>{const m=new THREE.Mesh(legGeo,deskDarkMat);m.position.set(x,deskH/2,deskZ);m.castShadow=true;m.receiveShadow=true;group.add(m);});
@@ -986,10 +986,10 @@ for(let i=0;i<5;i++){const an=i/5*Math.PI*2,l=new THREE.Mesh(new THREE.BoxGeomet
 const seat=new THREE.Mesh(new THREE.BoxGeometry(.28,.045,.26),chairSeatMat);seat.position.y=.25;seat.castShadow=true;chair.add(seat);const backrest=new THREE.Mesh(new THREE.BoxGeometry(.26,.30,.045),chairSeatMat);backrest.position.set(0,.42,.11);backrest.rotation.x=-.1;backrest.castShadow=true;chair.add(backrest);const stripe=new THREE.Mesh(new THREE.BoxGeometry(.08,.24,.05),chairAccentMat);stripe.position.set(0,.42,.112);stripe.rotation.x=-.1;chair.add(stripe);
 [-.15,.15].forEach(x=>{const sup=new THREE.Mesh(new THREE.BoxGeometry(.02,.11,.02),chromeMat);sup.position.set(x,.30,.02);chair.add(sup);const pad=new THREE.Mesh(new THREE.BoxGeometry(.032,.018,.16),deskDarkMat);pad.position.set(x,.36,.02);chair.add(pad);});group.add(chair);
 const glow=new THREE.PointLight(0x38bdf8,.5,1.2);glow.position.set(0,surfaceY+.18,deskZ+.06);group.add(glow);
-attachOfficerAndAlertToSecurityDesk(group);
+attachOfficerAndAlertToSecurityDesk(group);group.userData.level=lvl;if(lvl>=3){for(let n=0;n<lvl;n++){const panel=new THREE.Mesh(new THREE.BoxGeometry(.1,.055,.012),ledBlueMat);panel.position.set(-.28+n*.14,surfaceY+.025,deskZ+.18);group.add(panel);}}
 const box=new THREE.Box3().setFromObject(group),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());group.children.forEach(child=>{child.position.x-=center.x;child.position.z-=center.z;child.position.y-=box.min.y;});if(group.userData.character)group.userData.seatLocalPos.copy(group.userData.character.position);const maxHoriz=Math.max(size.x,size.z);if(maxHoriz>.85)group.scale.setScalar(.85/maxHoriz);return group;
 }
-function createSecurity(parent,o){const g=createSecurityDeskModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
+function createSecurity(parent,o){const g=createSecurityDeskModel(o.level||1);parent.add(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;return g;}
 function createWorker3D(parent,desk){
  // Refined isometric office character: natural proportions, tailored clothing,
  // layered hair and a restrained face. The articulated rig/API stays unchanged.
@@ -2152,7 +2152,7 @@ function handleRoomTap(e){
  if(activeVip&&Date.now()<activeVip.expires&&i>=0&&state.layout[i].x===activeVip.x&&state.layout[i].y===activeVip.y){closeVipDeal();return;}
  if(state.sellMode){if(i>=0){const o=state.layout[i],controller=threeOfficeControllers.get(o);if(controller){controller.dispose();threeOfficeControllers.delete(o);}if(o.type==="desk")delete cyberSecurityState.activeDebuffs.blockedDesks[o.id];state.layout.splice(i,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}
  if(moveMode){if(i>=0){beginMovePreview(i);}else toast("Сначала выберите установленный объект");return;}
- if(state.selected){if(i>=0){toast("Клетка занята");return;}if(!buildFootprintValid(state.selected,c.x,c.y,state.rotation)){toast("Для переговорной нужны две свободные соседние клетки");return;}const movingEmployee=state.layout.some(o=>{if(o.type!=="desk")return false;const rt=employeeMotion.get(employeeKey(o));return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===c.x&&Math.floor(rt.pos.y)===c.y;});if(movingEmployee){toast("Сотрудник проходит по этой клетке");return;}const t=TYPES[state.selected];if(!devFreeBuild&&state.balance<t.cost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=t.cost;state.layout.push({id:makeCyberObjectId(),type:state.selected,x:c.x,y:c.y,rot:state.rotation,level:state.selected==="security"?1:undefined});save();state.selected=null;closeShop();updateUI();haptic();toast(t.name+" установлен");draw();return;}
+ if(state.selected){if(i>=0){toast("Клетка занята");return;}if(!buildFootprintValid(state.selected,c.x,c.y,state.rotation)){toast("Для переговорной нужны две свободные соседние клетки");return;}const movingEmployee=state.layout.some(o=>{if(o.type!=="desk")return false;const rt=employeeMotion.get(employeeKey(o));return rt&&rt.state==="walk"&&Math.floor(rt.pos.x)===c.x&&Math.floor(rt.pos.y)===c.y;});if(movingEmployee){toast("Сотрудник проходит по этой клетке");return;}const t=TYPES[state.selected];if(!devFreeBuild&&state.balance<t.cost){toast("Недостаточно средств");return;}if(!devFreeBuild)state.balance-=t.cost;state.layout.push({id:makeCyberObjectId(),type:state.selected,x:c.x,y:c.y,rot:state.rotation,level:(state.selected==="security"||state.selected==="sysadmin")?1:undefined});save();state.selected=null;closeShop();updateUI();haptic();toast(t.name+" установлен");draw();return;}
  if(i>=0){if(state.layout[i].type==="desk"){const rt=employeeMotion.get(employeeKey(state.layout[i]));if(rt&&(rt.state==="sleep"||rt.state==="walk"||rt.state==="coffee")){wakeEmployee(state.layout[i]);return;}}showUpgradeCard(i);return;}
  if(currentGridSize()>=11){quickBuildCell={x:c.x,y:c.y};$("shop").classList.add("open");toast("Выберите объект — предпросмотр откроется в клетке "+(c.x+1)+", "+(c.y+1));return;}
  toast("Выберите действие или объект в магазине");
@@ -2211,9 +2211,9 @@ function closeShop(){$("shop").classList.remove("open");$("installBar").classLis
 function showUpgradeCard(index){
  const o=state.layout[index];if(!o)return;
  const name=TYPES[o.type]?.name||"Объект",level=Math.max(1,Number(o.level)||1),baseCost=Math.floor(TYPES[o.type].cost*(.65+level*.45)),cost=devFreeBuild?0:baseCost;
- const coffee=o.type==="coffee",security=o.type==="security",upgradeable=o.type==="desk"||coffee||security,maxed=(coffee||security)&&level>=4;
+ const coffee=o.type==="coffee",security=o.type==="security",sysadmin=o.type==="sysadmin",upgradeable=o.type==="desk"||coffee||security||sysadmin,maxed=(coffee||security||sysadmin)&&level>=4;
  const mitigation=[0,5,10,15,20][Math.min(4,level)]||0;
- const desc=security?"Снижение финансового ущерба "+mitigation+"% · базовая защита +25%":coffee?"Бонус: "+(25+Math.min(3,level-1)*5)+"% к доходу соседних IT-столов · бодрость 45 сек":(TYPES[o.type].base||0)+"$/сек";
+ const desc=security?"Снижение финансового ущерба "+mitigation+"% · базовая защита +25%":sysadmin?"Ремонтирует IT-столы уровня "+level+" и ниже":coffee?"Бонус: "+(25+Math.min(3,level-1)*5)+"% к доходу соседних IT-столов · бодрость 45 сек":(TYPES[o.type].base||0)+"$/сек";
  const employee=o.type==="desk"?employeeMotion.get(employeeKey(o)):null,workerStatus=employee?({work:"Работает",sleep:"Спит · нажмите, чтобы разбудить",walk:"Прогуливается",coffee:"Пьёт кофе"}[employee.state]||"Работает"):"",energy=employee?Math.round(employee.energy??(employee.coffeeUntil>Date.now()?100:78)):0;
  const securityInfo=security?'<div class="cyber-upgrade-info"><b>КИБЕРЗАЩИТА · УРОВЕНЬ '+level+'/4</b><small>Уровень 2: скидка 10% на экстренную защиту · Уровень 3: автоотражение DDoS и шифровальщика · Уровень 4: предупреждение за 60 секунд.</small></div>':"";
  $("upgradeCard").innerHTML='<div class="upgrade-top"><div class="upgrade-title-wrap">'+spriteMarkup(o.type,64,level)+'<div><b>'+escapeHtml(name)+'</b><small>Уровень '+level+(o.type==="desk"?" / 4+":security?" / 4":"")+" · "+escapeHtml(desc)+'</small></div></div><button id="closeUpgrade">✕</button></div>'+(o.type==="desk"?'<div class="employee-status"><canvas id="employeePortrait" width="58" height="58"></canvas><div><b>'+workerStatus+'</b><small>Настроение и бодрость</small><div class="employee-mood"><i style="width:'+energy+'%"></i></div><small>'+energy+'% · '+(energy>75?"Отличное":energy>45?"Нормальное":"Низкое")+' состояние</small></div></div>':"")+securityInfo+'<div class="upgrade-actions">'+(upgradeable?'<button id="upgradeObject" class="primary" '+(maxed?'disabled':'')+'>'+(maxed?"Максимальный уровень":'Улучшить за '+money(cost))+'</button>':'')+'<button id="sellObject" class="danger" style="margin-top:7px">Продать · вернуть '+money(Math.floor(TYPES[o.type].cost*.5))+'</button></div>';
@@ -2223,8 +2223,8 @@ function showUpgradeCard(index){
  if($("upgradeObject"))$("upgradeObject").onclick=()=>{
   if(maxed)return;if(!devFreeBuild&&state.balance<baseCost){toast("Недостаточно средств");return;}
   if(!devFreeBuild)state.balance-=baseCost;o.level=level+1;
-  if(!security)o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));
-  save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");renderAllFurniturePreviews();draw();toast(security?"Уровень отдела безопасности повышен до "+o.level:"Уровень объекта повышен");
+  if(!security&&!sysadmin)o.baseBonus=(o.baseBonus||0)+Math.max(1,Math.floor((TYPES[o.type].base||0)*.15));
+  save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");renderAllFurniturePreviews();draw();toast(security?"Уровень отдела безопасности повышен до "+o.level:sysadmin?"Сисадмин теперь ремонтирует ПК до "+o.level+" уровня":"Уровень объекта повышен");
  };
  $("sellObject").onclick=()=>{const at=state.layout.indexOf(o);if(at<0)return;const controller=threeOfficeControllers.get(o);if(controller){controller.dispose();threeOfficeControllers.delete(o);}if(o.type==="desk")delete cyberSecurityState.activeDebuffs.blockedDesks[o.id];state.layout.splice(at,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();syncPlayer(false);updateUI();$("upgradeCard").classList.remove("show");draw();toast("Объект продан · возвращено "+money(Math.floor(TYPES[o.type].cost*.5)));};
 }
@@ -2395,7 +2395,7 @@ function sysadminTryManualRepair(event){
   let node=hit.object;while(node&&node.parent!==threeFurnitureGroup)node=node.parent;
   const desk=node?.userData?.object;if(!desk||desk.type!=="desk"||!sysadminIsBroken(desk))continue;
   event.preventDefault();event.stopImmediatePropagation();
-  if(currentLayout().some(o=>o.type==="sysadmin")){sysadminNotify("Сисадмин уже направляется на ремонт.");return;}
+  const capable=currentLayout().some(o=>o.type==="sysadmin"&&Number(o.level||1)>=Number(desk.level||1));if(capable){sysadminNotify("Сисадмин уже направляется на ремонт.");return;}const maxAdmin=currentLayout().filter(o=>o.type==="sysadmin").reduce((m,o)=>Math.max(m,Number(o.level)||1),0);if(maxAdmin>0&&maxAdmin<Number(desk.level||1))sysadminNotify("Требуется Сисадмин ур. "+(Number(desk.level)||1)+" (или ручной ремонт)");
   const price=150*Math.max(1,Math.min(4,Number(desk.level)||1));
   if(state.balance<price){sysadminNotify("Недостаточно средств для ремонта: $"+price);return;}
   if(!confirm("Сломанный компьютер. Выполнить самостоятельный ремонт за $"+price+"?"))return;
@@ -2428,14 +2428,16 @@ function createSysadminCharacter(){
  const base=c.userData.update;c.userData.update=function(t){if(base)base(t);const rig=c.userData.rig;if(c.userData.state==="repair"){tool.visible=true;if(rig){rig.torso.rotation.x=.24;rig.left.shoulder.rotation.set(-1.18,.08,.16);rig.left.elbow.rotation.x=-1.25;rig.right.shoulder.rotation.set(-1.28,-.12,-.12);rig.right.elbow.rotation.x=-1.35;}}else{tool.visible=false;}};
  return c;
 }
-function createSysadminDeskModel(){
- const g=new THREE.Group(),dark=new THREE.MeshStandardMaterial({color:0x27272a,roughness:.55,metalness:.25}),topMat=new THREE.MeshStandardMaterial({color:0x3f3f46,roughness:.45,metalness:.3}),orange=new THREE.MeshStandardMaterial({color:0xea580c,emissive:0xea580c,emissiveIntensity:.3}),metal=new THREE.MeshStandardMaterial({color:0xcbd5e1,metalness:.8,roughness:.25});
+function createSysadminDeskModel(level=1){
+ const lvl=Math.max(1,Math.min(4,Number(level)||1));
+ const g=new THREE.Group(),dark=new THREE.MeshStandardMaterial({color:[0x8b8174,0x27272a,0x18181b,0x090d16][lvl-1],roughness:.55,metalness:.25}),topMat=new THREE.MeshStandardMaterial({color:[0xd6cfc2,0x9ca3af,0x27272a,0x0f172a][lvl-1],roughness:.45,metalness:.3}),orange=new THREE.MeshStandardMaterial({color:[0xd97706,0xea580c,0xf97316,0xfb923c][lvl-1],emissive:[0xd97706,0xea580c,0xf97316,0xfb923c][lvl-1],emissiveIntensity:lvl>=3?.8:.3}),metal=new THREE.MeshStandardMaterial({color:0xcbd5e1,metalness:.8,roughness:.25});
  const box=(w,h,d,m,x,y,z)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);q.position.set(x,y,z);q.castShadow=true;g.add(q);return q;};
  box(.8,.04,.44,topMat,0,.44,-.1);box(.22,.42,.4,dark,.27,.21,-.1);box(.22,.42,.4,dark,-.27,.21,-.1);box(.8,.014,.014,orange,0,.47,.125);
  box(.34,.19,.025,dark,-.1,.64,-.13);
  const cv=document.createElement("canvas");cv.width=128;cv.height=96;const x=cv.getContext("2d");x.fillStyle="#08111e";x.fillRect(0,0,128,96);x.strokeStyle="#f97316";x.strokeRect(4,4,120,88);x.fillStyle="#22c55e";[14,46].forEach(a=>x.fillRect(a,18,22,14));x.fillStyle="#ef4444";x.fillRect(78,18,22,14);x.fillStyle="#38bdf8";[96,72,84].forEach((w,i)=>x.fillRect(14,44+i*14,w,5));
  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;const screen=new THREE.Mesh(new THREE.PlaneGeometry(.31,.16),new THREE.MeshStandardMaterial({map:tex,emissive:0xffffff,emissiveMap:tex,emissiveIntensity:.65}));screen.position.set(-.1,.64,-.114);g.add(screen);
  box(.18,.08,.2,dark,.24,.52,-.08);box(.22,.012,.08,metal,-.1,.47,.06);
+ if(lvl>=2){box(.16,.18,.2,dark,.24,.52,-.08);box(.12,.012,.08,orange,.24,.62,-.08);}if(lvl>=3){box(.012,.012,.42,orange,0,.47,-.1);box(.34,.025,.02,orange,-.1,.73,-.13);}if(lvl>=4){for(let k=0;k<2;k++){const panel=new THREE.Mesh(new THREE.BoxGeometry(.17,.16,.02),dark);panel.position.set(-.29+k*.38,.66,-.13);g.add(panel);const scr2=new THREE.Mesh(new THREE.PlaneGeometry(.15,.14),new THREE.MeshStandardMaterial({map:tex,emissive:0xffffff,emissiveMap:tex,emissiveIntensity:.8}));scr2.position.set(-.29+k*.38,.66,-.118);g.add(scr2);}box(.13,.24,.18,orange,.31,.55,-.1);}
  const chair=new THREE.Group();chair.position.set(-.08,0,.18);
  // Ножка и пятилучевое основание офисного кресла сисадмина
  const chairPost=new THREE.Mesh(new THREE.CylinderGeometry(.018,.025,.17,12),metal);chairPost.position.set(0,.145,0);chair.add(chairPost);
@@ -2447,7 +2449,7 @@ function createSysadminDeskModel(){
   wheel.position.set(Math.cos(a)*.145,.025,Math.sin(a)*.145);chair.add(wheel);
  }box(.24,.04,.22,dark,-.08,.24,.18);box(.23,.25,.035,dark,-.08,.39,.27);
  const admin=createSysadminCharacter();admin.position.set(-.08,.26,.17);admin.rotation.y=Math.PI;g.add(chair,admin);
- g.userData.character=admin;g.userData.seatLocalPos=admin.position.clone();g.userData.seatLocalRotY=Math.PI;
+ g.userData.character=admin;g.userData.level=lvl;g.userData.seatLocalPos=admin.position.clone();g.userData.seatLocalRotY=Math.PI;
  const bounds=new THREE.Box3().setFromObject(g),center=bounds.getCenter(new THREE.Vector3()),min=bounds.min.y;
  g.children.forEach(c=>{c.position.x-=center.x;c.position.z-=center.z;c.position.y-=min;});
  g.userData.seatLocalPos.x-=center.x;g.userData.seatLocalPos.z-=center.z;g.userData.seatLocalPos.y-=min;
@@ -2455,7 +2457,7 @@ function createSysadminDeskModel(){
  return g;
 }
 function createSysadminFurniture(parent,o){
- const g=createSysadminDeskModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);
+ const g=createSysadminDeskModel(o.level||1);parent.add(g);g.position.set(o.x+.5,0,o.y+.5);
  g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
 }
 
@@ -2514,7 +2516,7 @@ class SysadminRepairController{
  update(dt,time){
   if(!this.character?.parent||!this.deskGroup?.parent)return;
   this.character.userData.update?.(time);
-  const broken=currentLayout().find(o=>o.type==="desk"&&sysadminIsBroken(o));
+  const broken=currentLayout().find(o=>o.type==="desk"&&sysadminIsBroken(o)&&Number(o.level||1)<=Number(this.deskGroup.userData.object?.level||1));
   // A breakdown has priority over a coffee break: interrupt coffee immediately.
   if(broken&&this.phase.startsWith("coffee")){
    this.phase="idle";this.character.userData.state="walk";

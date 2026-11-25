@@ -2567,6 +2567,7 @@ const _sysadminLocalSave=localSave;
 localSave=function(){_sysadminLocalSave();sysadminPersist();};
 const _sysadminRebuild=rebuildThreeScene;
 rebuildThreeScene=function(){
+ const saved=new Map();threeFurnitureGroup?.children.forEach(g=>{const o=g.userData.object,ch=g.userData.character;if(o?.type==="sysadmin"&&ch){saved.set(o,{ch,pos:ch.position.clone(),rot:ch.rotation.clone(),state:ch.userData.state});g.remove(ch);}});
  sysadminControllers.forEach(c=>c.dispose());sysadminControllers.clear();
  _sysadminRebuild();
  const floor=currentLayout();
@@ -2577,8 +2578,10 @@ rebuildThreeScene=function(){
   }
   if(o.type==="sysadmin"){
    const dg=createSysadminFurniture(threeFurnitureGroup,o);
-   const character=dg.userData.character;
-   if(character)sysadminControllers.set(o,new SysadminRepairController(character,dg,threeScene));
+   const character=dg.userData.character,old=saved.get(o);
+   if(old&&character){dg.remove(character);dg.add(old.ch);old.ch.position.copy(old.pos);old.ch.rotation.copy(old.rot);old.ch.userData.state=old.state;dg.userData.character=old.ch;dg.userData.seatLocalPos.copy(old.pos);}
+   const active=dg.userData.character;
+   if(active)sysadminControllers.set(o,new SysadminRepairController(active,dg,threeScene));
   }
  });
 };

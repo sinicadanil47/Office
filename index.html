@@ -1820,6 +1820,7 @@ function fitLargeFloorCamera(){
 }
 function panThreeCameraByScreen(dx,dy){
  if(!threeCamera||!threeWidth||!threeHeight)return;
+ threeCamera.updateMatrixWorld(true);
  const q=threeCamera.quaternion,right=new THREE.Vector3(1,0,0).applyQuaternion(q),up=new THREE.Vector3(0,1,0).applyQuaternion(q);
  const worldPerPixel=(threeCamera.right-threeCamera.left)/(Math.max(1,threeWidth)*Math.max(.01,threeCamera.zoom));
  threePanX-=((right.x*dx)-(up.x*dy))*worldPerPixel;

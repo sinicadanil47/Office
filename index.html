@@ -81,6 +81,19 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 #shop .build-category-ribbon button{flex:0 0 auto;white-space:nowrap;border:1px solid #40536e;border-radius:999px;background:#1c2b42;color:#aebed2;padding:9px 13px;font-size:10px;font-weight:800;}
 #shop .build-category-ribbon button.active{background:#755014;border-color:#e7ad3b;color:#ffe5a8;box-shadow:0 0 0 1px #f59e0b33}
 #shop .item.category-hidden{display:none!important}
+
+/* Compact landscape furniture carousel */
+#shop{display:none;grid-template-columns:1fr;}
+#shop.open{display:block;}
+#shop .shop-items-scroll{display:flex;flex-direction:row;gap:8px;overflow-x:auto;overflow-y:hidden;padding:2px 1px 7px;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x;overscroll-behavior-x:contain;}
+#shop .shop-items-scroll::-webkit-scrollbar{display:none;}
+#shop .item{flex:0 0 190px;min-height:86px;height:86px;display:grid;grid-template-columns:54px minmax(0,1fr);grid-template-rows:auto auto auto;align-items:center;gap:2px 7px;padding:7px 8px;text-align:left;position:relative;}
+#shop .item .sprite-preview{grid-column:1;grid-row:1/4;width:52px;height:60px;object-fit:contain;}
+#shop .item b{grid-column:2;grid-row:1;font-size:10px;line-height:1.15;}
+#shop .item small{grid-column:2;grid-row:2;font-size:8px;line-height:1.2;}
+#shop .item strong{grid-column:2;grid-row:3;font-size:10px;margin-top:0;align-self:end;}
+#shop .item .desk-level-strip{grid-column:2;grid-row:3;font-size:8px;margin:0;justify-self:end;}
+#shop .expansion-card{margin-bottom:8px;}
 </style>
 <style>
 /* Three.js full 3D floor renderer */
@@ -120,15 +133,15 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 </div>
 <div class="legend"><span><i class="dot" style="background:#10B981"></i>Доход</span><span><i class="dot" style="background:#F59E0B"></i>Престиж</span><span><i class="dot" style="background:#64748b"></i>Синергия</span></div>
 <div class="section-head"><h2>Строительство</h2><span>ВЫБЕРИТЕ ОБЪЕКТ</span></div>
-<div class="shop" id="shop"><div class="build-category-ribbon" id="buildCategoryRibbon" aria-label="Категории строительства"><button type="button" class="active" data-build-category="all">Все</button><button type="button" data-build-category="work">Рабочие места</button><button type="button" data-build-category="infra">Инфраструктура</button><button type="button" data-build-category="rooms">Комнаты</button><button type="button" data-build-category="security">Безопасность</button><button type="button" data-build-category="management">Руководство</button></div>
+<div class="shop" id="shop">
 <div class="expansion-card"><div class="expansion-copy" id="shopExpansionStatus">Переезд на следующий этаж</div><button class="primary" id="expandShopBtn" type="button">📐 Расширить этаж</button></div>
-<button class="item" data-type="desk" data-build-category="work"><canvas class="sprite-preview" data-sprite="desk" data-preview-type="desk" data-level="1" width="56" height="56" aria-hidden="true"></canvas><b>IT-стол · уровень 1</b><small>Программист · +$25/сек</small><strong>$500</strong><span class="desk-level-strip">L1 → L2 → L3 → L4+</span></button>
-<button class="item" data-type="coffee" data-build-category="infra"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>Кофе команде · +25% дохода соседних IT-столов</small><strong>$800</strong></button>
-<button class="item" data-type="server" data-build-category="infra"><canvas class="sprite-preview" data-sprite="server" width="56" height="56" aria-hidden="true"></canvas><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
-<button class="item" data-type="meeting" data-build-category="rooms"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security" data-build-category="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита · киберзащита</small><strong>$4 000</strong></button>
-<button class="item" data-type="sysadmin" data-build-category="work"><canvas class="sprite-preview" data-sprite="sysadmin" width="56" height="56" aria-hidden="true"></canvas><b>Рабочее место сисадмина</b><small>Автоматически чинит сломанные ПК в офисе · +$18/сек · +12 престижа</small><strong>$3 200</strong></button>
-<button class="item" data-type="ceo" data-build-category="management"><canvas class="sprite-preview" data-sprite="ceo" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>Шеф · +$140/сек · +45 престижа · VIP-контракты</small><strong>$6 500</strong></button>
-</div>
+<div class="shop-items-scroll"><button class="item" data-type="desk"><canvas class="sprite-preview" data-sprite="desk" data-preview-type="desk" data-level="1" width="56" height="56" aria-hidden="true"></canvas><b>IT-стол · уровень 1</b><small>Программист · +$25/сек</small><strong>$500</strong><span class="desk-level-strip">L1 → L2 → L3 → L4+</span></button>
+<button class="item" data-type="coffee"><canvas class="sprite-preview" data-sprite="coffee" width="56" height="56" aria-hidden="true"></canvas><b>Кофемашина</b><small>Кофе команде · +25% дохода соседних IT-столов</small><strong>$800</strong></button>
+<button class="item" data-type="server"><canvas class="sprite-preview" data-sprite="server" width="56" height="56" aria-hidden="true"></canvas><b>Серверная стойка</b><small>+$90/сек · +15% соседям</small><strong>$2 000</strong></button>
+<button class="item" data-type="meeting"><canvas class="sprite-preview" data-sprite="meeting" width="56" height="56" aria-hidden="true"></canvas><b>Переговорная</b><small>+$110/сек · +20 престижа</small><strong>$3 500</strong></button><button class="item" data-type="security"><canvas class="sprite-preview" data-sprite="security" width="56" height="56" aria-hidden="true"></canvas><b>Отдел безопасности</b><small>+$80/сек · +30 престижа · +25% защита · киберзащита</small><strong>$4 000</strong></button>
+<button class="item" data-type="sysadmin"><canvas class="sprite-preview" data-sprite="sysadmin" width="56" height="56" aria-hidden="true"></canvas><b>Рабочее место сисадмина</b><small>Автоматически чинит сломанные ПК в офисе · +$18/сек · +12 престижа</small><strong>$3 200</strong></button>
+<button class="item" data-type="ceo"><canvas class="sprite-preview" data-sprite="ceo" width="56" height="56" aria-hidden="true"></canvas><b>Стол руководителя</b><small>Шеф · +$140/сек · +45 престижа · VIP-контракты</small><strong>$6 500</strong></button>
+</div></div>
 <div class="tools"><button class="tool-btn" id="rotateBtn">↻ Повернуть (90°)</button><button class="tool-btn" id="sellBtn">⌫ Режим продажи</button></div>
 </section>
 <section class="page modal-page" id="page-top">
@@ -2259,8 +2272,6 @@ canvas.addEventListener("pointercancel",e=>finishPointer(e,true));
 canvas.addEventListener("wheel",e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(cameraZoom*Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
 canvas.addEventListener("pointerleave",()=>{if(activePointers.size===0)pointer=null;});
 
-// Swipeable construction categories: filter only shop cards, preserve expansion card.
-(function initBuildCategories(){const ribbon=document.getElementById("buildCategoryRibbon"),shop=document.getElementById("shop");if(!ribbon||!shop)return;ribbon.addEventListener("click",e=>{const b=e.target.closest("[data-build-category]");if(!b||!b.closest("#buildCategoryRibbon"))return;const cat=b.dataset.buildCategory;ribbon.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));shop.querySelectorAll(".item[data-type]").forEach(card=>card.classList.toggle("category-hidden",cat!=="all"&&card.dataset.buildCategory!==cat));});})();
 $("shop").addEventListener("click",e=>{const b=e.target.closest("[data-type]");if(!b||state.viewing)return;haptic();selectBuild(b.dataset.type);pointer=null;});
 $("rotateBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.rotation=(state.rotation+1)%4;save();toast("Поворот: "+(state.rotation*90)+"°");});
 $("sellBtn").addEventListener("click",()=>{if(state.viewing)return;haptic();state.sellMode=!state.sellMode;moveMode=false;$("moveBtn").classList.remove("active");state.selected=null;updateUI();toast(state.sellMode?"Выберите объект для продажи":"Режим продажи выключен");draw();});

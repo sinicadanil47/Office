@@ -1473,10 +1473,10 @@ function addRoom3D(){
  if(tier===0){
   // Basement slab extends beneath the full wall thickness and slightly beyond the room.
   // The playable 5x5 grid remains n-by-n; only the supporting slab footprint is enlarged.
-  const slabDepth=.28,slabOverhang=.12,slabSize=n+slabOverhang*2;
+  const slabDepth=.28,slabSize=n+.43;
   const floorMaterials=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0}));
   floor=new THREE.Mesh(new THREE.BoxGeometry(slabSize,slabDepth,slabSize),floorMaterials);
-  floor.position.set(n/2-.12,-slabDepth/2,n/2-.12);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
+  floor.position.set(n/2-.1075,-slabDepth/2,n/2-.1075);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
   threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();
  }else{
   // Preserve the existing floor construction on the other four office levels.
@@ -2461,11 +2461,11 @@ function createSysadminFurniture(parent,o){
 
 function setDeskBrokenVisual(deskId,isBroken){
  const id=String(deskId),desk=currentLayout().find(o=>String(o.id||sysadminDeskKey(o))===id)||null;
- const key=desk?sysadminDeskKey(desk):id;
- if(isBroken)sysadminBrokenDesks[key]={floor:Number(floorTier)||0,at:Date.now()};else delete sysadminBrokenDesks[key];
- const dg=desk?threeFurnitureGroup?.children.find(g=>g.userData.object===desk):threeFurnitureGroup?.children.find(g=>String(g.userData.object?.id||sysadminDeskKey(g.userData.object||{}))===id);
- if(dg)sysadminPaintDesk(dg,!!isBroken);
- if(desk&&!isBroken){const controller=threeOfficeControllers.get(desk);if(controller){controller.phase="working";controller.timer=18;controller.character.userData.state="sit";}}
+ const key=desk?sysadminDeskKey(desk):id,broken=!!isBroken;
+ if(broken)sysadminBrokenDesks[key]={floor:Number(floorTier)||0,at:Date.now()};else delete sysadminBrokenDesks[key];
+ if(desk)desk.isBroken=broken; const dg=desk?threeFurnitureGroup?.children.find(g=>g.userData.object===desk):threeFurnitureGroup?.children.find(g=>String(g.userData.object?.id||sysadminDeskKey(g.userData.object||{}))===id);
+ if(dg)sysadminPaintDesk(dg,broken);
+ if(desk&&!broken){const controller=threeOfficeControllers.get(desk);if(controller){controller.phase="working";controller.timer=18;controller.character.userData.state="sit";}if(dg?.userData.character)dg.userData.character.userData.state="sit";}
  sysadminPersist();save();updateUI();
 }
 function sysadminPaintDesk(dg,broken){

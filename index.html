@@ -2288,10 +2288,13 @@ function developmentApplyTransform(){const world=$("devMapWorld");if(world)world
 function developmentSelectNode(id){developmentSelectedNode=id;developmentRenderMap();}
 function developmentCenter(){devMapScale=.42;devMapX=5;devMapY=20;developmentApplyTransform();}
 $("devMapNodes").addEventListener("click",e=>{const b=e.target.closest("[data-dev-node]");if(b)developmentSelectNode(b.dataset.devNode);});
-const vp=$("devMapViewport");vp.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;devMapDragging=true;devMapPointer={x:e.clientX,y:e.clientY,tx:devMapX,ty:devMapY};vp.classList.add("dragging");vp.setPointerCapture(e.pointerId);});
-vp.addEventListener("pointermove",e=>{if(!devMapDragging||!devMapPointer)return;devMapX=devMapPointer.tx+(e.clientX-devMapPointer.x);devMapY=devMapPointer.ty+(e.clientY-devMapPointer.y);developmentApplyTransform();});
-function endDevDrag(){devMapDragging=false;devMapPointer=null;vp.classList.remove("dragging");}
-vp.addEventListener("pointerup",endDevDrag);vp.addEventListener("pointercancel",endDevDrag);
+const vp=$("devMapViewport");
+let devPointers=new Map(),devPinch=null;
+vp.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;vp.setPointerCapture(e.pointerId);devPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(devPointers.size===1){devMapDragging=true;devMapPointer={x:e.clientX,y:e.clientY,tx:devMapX,ty:devMapY};vp.classList.add("dragging");}if(devPointers.size===2){devMapDragging=false;devMapPointer=null;const p=[...devPointers.values()];devPinch={dist:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),scale:devMapScale,cx:(p[0].x+p[1].x)/2,cy:(p[0].y+p[1].y)/2,tx:devMapX,ty:devMapY};}});
+vp.addEventListener("pointermove",e=>{if(!devPointers.has(e.pointerId))return;devPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(devPointers.size===1&&devMapDragging&&devMapPointer){devMapX=devMapPointer.tx+e.clientX-devMapPointer.x;devMapY=devMapPointer.ty+e.clientY-devMapPointer.y;developmentApplyTransform();}else if(devPointers.size===2&&devPinch){const p=[...devPointers.values()],d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),cx=(p[0].x+p[1].x)/2,cy=(p[0].y+p[1].y)/2,s=Math.max(.25,Math.min(1.25,devPinch.scale*d/devPinch.dist)),q=s/devPinch.scale;devMapX=cx-(cx-devPinch.tx)*q+(cx-devPinch.cx);devMapY=cy-(cy-devPinch.ty)*q+(cy-devPinch.cy);devMapScale=s;developmentApplyTransform();}});
+function devPointerEnd(e){devPointers.delete(e.pointerId);if(devPointers.size<2)devPinch=null;if(devPointers.size===1){const p=[...devPointers.values()][0];devMapPointer={x:p.x,y:p.y,tx:devMapX,ty:devMapY};devMapDragging=true;}else{devMapDragging=false;devMapPointer=null;}vp.classList.toggle("dragging",devMapDragging);}
+vp.addEventListener("pointerup",devPointerEnd);vp.addEventListener("pointercancel",devPointerEnd);vp.addEventListener("lostpointercapture",devPointerEnd);
+$("devMapExit").addEventListener("click",()=>go("floor"));
 $("devMapZoomIn").addEventListener("click",()=>{devMapScale=Math.min(1.15,devMapScale+.12);developmentApplyTransform();});
 $("devMapZoomOut").addEventListener("click",()=>{devMapScale=Math.max(.38,devMapScale-.12);developmentApplyTransform();});
 $("devMapCenter").addEventListener("click",developmentCenter);

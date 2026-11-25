@@ -610,7 +610,7 @@ const fillLight=new THREE.DirectionalLight(0x566b80,.28);fillLight.position.set(
 let threeEnvironmentGroup=null,threeEnvironmentTier=-1,threeAtmosphereTransition=null;
 const threeRoot=new THREE.Group();threeScene.add(threeRoot);
 const threeRaycaster=new THREE.Raycaster(),threePointer=new THREE.Vector2(),threeGround=new THREE.Plane(new THREE.Vector3(0,1,0),0),threeHit=new THREE.Vector3();
-let threeCamera=null,threeFloorGroup=null,threeFurnitureGroup=null,threeWorkerGroups=new Map(),threeOfficeControllers=new Map(),threeSceneSignature="",threeLastSceneCheckAt=0,threeWidth=0,threeHeight=0,floorPageActive=true,threeLastRenderAt=0;
+let threeCamera=null,threeFloorGroup=null,threeFurnitureGroup=null,threeWorkerGroups=new Map(),threeOfficeControllers=new Map(),threeSceneSignature="",threeLastSceneCheckAt=0,threeLastAnimationUpdateAt=0,threeSteamObjects=[],threeDustObjects=[],threeBrokenDeskGroups=[],threeCyberDeskGroups=[],threeWidth=0,threeHeight=0,floorPageActive=true,threeLastRenderAt=0;
 let buildPreviewState=null,threePreviewGroup=null,moveMode=false,quickBuildCell=null;
 let threePanX=0,threePanZ=0;
 const mat=(color,roughness=.72,metalness=0,extra={})=>new THREE.MeshStandardMaterial({color,roughness,metalness,...extra});
@@ -1802,6 +1802,10 @@ function rebuildThreeScene(){
  floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);threeWorkerGroups.set(o,g);break;case"ceo":g=createCEO(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;case"reception":g=createReception(threeFurnitureGroup,o);break;case"manager":g=createManagerDesk(threeFurnitureGroup,o);break;default:if(isDecorType(o.type))g=createDecor3D(threeFurnitureGroup,o);}if(g){g.userData.object=o;if(o.type==="desk")attachCyberLockIndicator(g);}});
  floor.forEach(o=>{if(o.type==="ceo"||o.type==="desk"||o.type==="coffee"||o.type==="security"||o.type==="reception"||o.type==="manager"||isDecorType(o.type))return;const key=o.type;const custom=dev3dUsePreset(threeFurnitureGroup,o,key);if(custom){const base=threeFurnitureGroup.children.find(c=>c.userData.object===o);if(base)base.visible=false;}});
  floor.forEach(o=>{if(o.type!=="desk"&&o.type!=="ceo"&&o.type!=="security")return;const dg=threeFurnitureGroup.children.find(c=>c.userData.object===o),character=dg?.userData.character;if(dg&&character)threeOfficeControllers.set(o,new OfficeCharacterController({character,deskGroup:dg,scene:threeScene,getCoffeeMachineGroup:()=>threeFurnitureGroup?.children.find(c=>c.userData.object?.type==="coffee")||null}));});
+ // Cache animated effect nodes after scene rebuild, avoiding full-tree traversals every frame.
+ threeSteamObjects=[];threeDustObjects=[];threeBrokenDeskGroups=[];threeCyberDeskGroups=[];
+ threeFurnitureGroup.traverse(node=>{if(node.userData.steam)threeSteamObjects.push(node);if(node.userData.updateCyberAlert||node.userData.cyberLockIndicator)threeCyberDeskGroups.push(node);if(node.userData.object?.type==="desk")threeBrokenDeskGroups.push(node);});
+ threeFloorGroup?.traverse(node=>{if(node.userData.dustMote)threeDustObjects.push(node);});threeLastAnimationUpdateAt=0;
 }
 function updateThreeCamera(){if(!threeCamera)return;const n=currentGridSize(),span=n+5,aspect=Math.max(.5,threeWidth/Math.max(1,threeHeight));threeCamera.left=-span*aspect*.5;threeCamera.right=span*aspect*.5;threeCamera.top=span*.5;threeCamera.bottom=-span*.5;threeCamera.zoom=cameraZoom;const center=new THREE.Vector3(n/2+cameraOffsetX*.018+threePanX,0,n/2+cameraOffsetY*.018+threePanZ),d=span*1.75;threeCamera.position.copy(center).add(new THREE.Vector3(d,d,d));threeCamera.lookAt(center);threeCamera.updateProjectionMatrix();}
 function fitLargeFloorCamera(){
@@ -1827,20 +1831,19 @@ function renderThreeScene(){
  const renderNow=performance.now();
  // Render at the display refresh rate; expensive scene-signature checks are throttled separately.
  if(renderNow-threeLastSceneCheckAt>=250){threeLastSceneCheckAt=renderNow;const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);if(sig!==threeSceneSignature)rebuildThreeScene();}
- const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
- threePreviewGroup?.traverse(node=>{const character=node.userData?.character||node.userData?.worker;if(character?.userData?.update)character.userData.update(now);});
- threeOfficeControllers.forEach(controller=>controller.update(frameDt,now));officeEnsureVisitorMesh();
- sysadminControllers.forEach(controller=>controller.update(frameDt,now));
+ const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;
+ // Animate characters and visual effects at 30Hz; render remains uncapped at display refresh.
+ const updateAnimationBatch=nowMs-threeLastAnimationUpdateAt>=33;if(updateAnimationBatch){threeLastAnimationUpdateAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
+ threePreviewGroup?.traverse(node=>{const character=node.userData?.character||node.userData?.worker;if(character?.userData?.update)character.userData.update(now);});threeOfficeControllers.forEach(controller=>controller.update(frameDt,now));officeEnsureVisitorMesh();sysadminControllers.forEach(controller=>controller.update(frameDt,now));}
  if(Date.now()>=sysadminNextBreakAt){
   const candidates=currentLayout().filter(o=>o.type==="desk"&&!sysadminIsBroken(o));
   if(candidates.length){const chosen=candidates[Math.floor(Math.random()*candidates.length)];sysadminSetBroken(chosen,true);sysadminNotify("⚠️ Сломался ПК на рабочем месте!");}
   sysadminNextBreakAt=Date.now()+45000+Math.random()*45000;
  }
- threeFurnitureGroup?.children.forEach(dg=>{const o=dg.userData.object;if(o?.type==="desk"){const broken=sysadminIsBroken(o);if(dg.userData.isBroken!==broken)setDeskBrokenVisual(o.id||sysadminDeskKey(o),broken);if(broken){dg.userData.brokenScreenController?.update(now);if(dg.userData.character)dg.userData.character.userData.state="idle_broken";}}});
-
- threeFurnitureGroup?.children.forEach(deskGroup=>{if(deskGroup.userData.updateCyberAlert){deskGroup.userData.setCyberAlert?.(!!cyberSecurityState.activeThreat&&!state.viewing);deskGroup.userData.updateCyberAlert(now);}const obj=deskGroup.userData.object;if(obj?.type==="desk"&&deskGroup.userData.cyberLockIndicator){const until=cyberSecurityState.activeDebuffs.blockedDesks?.[obj.id]||0;deskGroup.userData.cyberLockIndicator.visible=until>Date.now();}});
- threeFurnitureGroup?.traverse(o=>{if(o.userData.steam){o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);}});
- threeFloorGroup?.traverse(o=>{if(o.userData.dustMote){o.position.y=o.userData.baseY+Math.sin(now*1.7+o.userData.baseX)*.035;o.position.x=o.userData.baseX+Math.sin(now*.7+o.userData.baseY)*.045;}});
+ if(updateAnimationBatch){threeBrokenDeskGroups.forEach(dg=>{const o=dg.userData.object;if(o){const broken=sysadminIsBroken(o);if(dg.userData.isBroken!==broken)setDeskBrokenVisual(o.id||sysadminDeskKey(o),broken);if(broken){dg.userData.brokenScreenController?.update(now);if(dg.userData.character)dg.userData.character.userData.state="idle_broken";}}});
+ threeCyberDeskGroups.forEach(deskGroup=>{if(deskGroup.userData.updateCyberAlert){deskGroup.userData.setCyberAlert?.(!!cyberSecurityState.activeThreat&&!state.viewing);deskGroup.userData.updateCyberAlert(now);}const obj=deskGroup.userData.object;if(obj?.type==="desk"&&deskGroup.userData.cyberLockIndicator){const until=cyberSecurityState.activeDebuffs.blockedDesks?.[obj.id]||0;deskGroup.userData.cyberLockIndicator.visible=until>Date.now();}});
+ threeSteamObjects.forEach(o=>{o.position.y=.95+((now+o.position.x)*.5%1)*.22;o.material.opacity=.35+.2*Math.sin(now*3+o.position.x);});
+ threeDustObjects.forEach(o=>{o.position.y=o.userData.baseY+Math.sin(now*1.7+o.userData.baseX)*.035;o.position.x=o.userData.baseX+Math.sin(now*.7+o.userData.baseY)*.045;});}
  if(buildPreviewState)updateBuildPreviewVisual();
  const hover=threeFloorGroup?.userData.hoverTile,hoverActive=!!(pointer&&!buildPreviewState&&!state.viewing&&(state.selected||moveMode)&&pointer.x>=0&&pointer.y>=0&&pointer.x<currentGridSize()&&pointer.y<currentGridSize());
  if(hover){hover.visible=hoverActive;if(hoverActive)hover.position.set(pointer.x,0,pointer.y);}

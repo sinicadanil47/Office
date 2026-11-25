@@ -406,7 +406,7 @@ const currentLayout=()=>state.viewing?state.viewing.layout:state.layout;
 function updateExpansionUI(){
  const next=FLOORS[floorTier+1],prestige=prestigeFor(state.layout);
  const status=next?"Следующий этаж: "+next.name+" · "+next.gridSize+"×"+next.gridSize+"\nБонус: +"+next.bonus+"% ко всему доходу\nПрестиж: "+prestige+" / "+next.reqPrestige+" ★\nЦена переезда: "+money(next.cost):"Максимальный уровень — Пентхаус · доход ×2.0";
- $("shopExpansionStatus").textContent=status;$("officeExpansionStatus").textContent=status;
+ if($("shopExpansionStatus"))$("shopExpansionStatus").textContent=status;if($("officeExpansionStatus"))$("officeExpansionStatus").textContent=status;
  ["expandShopBtn","expandOfficeBtn"].forEach(id=>{const b=$(id);if(!b)return;b.disabled=!next||prestige<next.reqPrestige||state.balance<next.cost||!!state.viewing;b.textContent=!next?"Максимальный этаж":"🏢 Переехать на этаж выше · "+money(next.cost);});
 }
 function buyExpansion(){

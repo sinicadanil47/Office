@@ -972,7 +972,7 @@ function createServerRackModel(){
  return group;
 }
 function createServer(parent,o){
- const g=createServerRackModel();parent.add(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
+ const g=createServerRackModel();parent.add(g);alignFurnitureToFloor(g);g.position.set(o.x+.5,0,o.y+.5);g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
 }
 
 // Normalize a furniture diorama to a predictable square footprint and floor contact.
@@ -1036,7 +1036,7 @@ function createMeetingRoom2x1Model(){
  return group;
 }
 function createMeeting(parent,o){
- const g=createMeetingRoom2x1Model();parent.add(g);
+ const g=createMeetingRoom2x1Model();parent.add(g);alignFurnitureToFloor(g);
  const rot=((Number(o.rot)||0)%4+4)%4,horizontal=rot%2===0;
  g.position.set(o.x+(horizontal?1:.5),0,o.y+(horizontal?.5:1));
  g.rotation.y=rot*Math.PI/2;g.userData.object=o;return g;
@@ -2632,7 +2632,7 @@ function createSysadminDeskModel(level=1){
  return g;
 }
 function createSysadminFurniture(parent,o){
- const g=createSysadminDeskModel(o.level||1);parent.add(g);g.position.set(o.x+.5,0,o.y+.5);
+ const g=createSysadminDeskModel(o.level||1);parent.add(g);alignFurnitureToFloor(g);g.position.set(o.x+.5,0,o.y+.5);
  g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
 }
 
@@ -3044,7 +3044,7 @@ function createSysadminDeskModel(level=1){
  return g;
 }
 function createSysadminFurniture(parent,o){
- const g=createSysadminDeskModel(o.level||1);parent.add(g);g.position.set(o.x+.5,0,o.y+.5);
+ const g=createSysadminDeskModel(o.level||1);parent.add(g);alignFurnitureToFloor(g);g.position.set(o.x+.5,0,o.y+.5);
  g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
 }
 
@@ -3456,7 +3456,7 @@ function createSysadminDeskModel(level=1){
  return g;
 }
 function createSysadminFurniture(parent,o){
- const g=createSysadminDeskModel(o.level||1);parent.add(g);g.position.set(o.x+.5,0,o.y+.5);
+ const g=createSysadminDeskModel(o.level||1);parent.add(g);alignFurnitureToFloor(g);g.position.set(o.x+.5,0,o.y+.5);
  g.rotation.y=(Number(o.rot)||0)*Math.PI/2;g.userData.object=o;return g;
 }
 

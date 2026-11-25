@@ -2542,11 +2542,11 @@ $("resetBtn").addEventListener("click",()=>{if(!confirm("Сбросить бал
 let last=performance.now(),incomeTimer=0;
 function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if(!activeVip&&Date.now()-lastVipAt>=35000){const workers=state.layout.filter(o=>o.type==="ceo");const eligible=workers.length?workers:state.layout.filter(o=>o.type==="desk");if(eligible.length){const o=eligible[Math.floor(Math.random()*eligible.length)];activeVip={x:o.x,y:o.y,expires:Date.now()+15000};lastVipAt=Date.now();toast("Появилась VIP-сделка!");}}}
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
-let gameFrameId=0;
+let gameFrameId=0,lastLogicUpdateAt=0;
 function scheduleGameLoop(){if(!gameFrameId&&!document.hidden)gameFrameId=requestAnimationFrame(tick);}
-function tick(now){gameFrameId=0;spawnVip();
+function tick(now){gameFrameId=0;const logicDue=now-lastLogicUpdateAt>=33;if(logicDue){lastLogicUpdateAt=now;spawnVip();
  const dt=Math.min((now-last)/1000,.1);last=now;officeNpcTick(dt);/* employee movement is handled by the unified 3D OfficeCharacterController */
- if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
+ if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type===\"desk\");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}}
  if(floorPageActive&&!document.hidden)draw();scheduleGameLoop();
 }
 window.addEventListener("resize",resize);

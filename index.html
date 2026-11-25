@@ -598,9 +598,9 @@ function updateUI(){
 // input surface and is retained for the small furniture previews used by the shop UI.
 const threeBackdrop=document.createElement("div");threeBackdrop.id="sceneBackdrop";document.body.insertBefore(threeBackdrop,document.body.firstChild);
 const threeCanvas=document.createElement("canvas");threeCanvas.id="threeRoom";document.body.insertBefore(threeCanvas,document.body.firstChild);
-const threeRenderer=new THREE.WebGLRenderer({canvas:threeCanvas,antialias:true,alpha:true,powerPreference:"high-performance"});
-threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?1:1.5));
-const officeMobileGPU=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);threeRenderer.shadowMap.enabled=!officeMobileGPU;threeRenderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const officeMobileGPU=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);const threeRenderer=new THREE.WebGLRenderer({canvas:threeCanvas,antialias:!officeMobileGPU,alpha:true,powerPreference:"low-power"});
+threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,officeMobileGPU?.75:1.25));
+threeRenderer.shadowMap.enabled=false;threeRenderer.shadowMap.type=THREE.PCFSoftShadowMap;
 threeRenderer.outputColorSpace=THREE.SRGBColorSpace;threeRenderer.toneMapping=THREE.ACESFilmicToneMapping;threeRenderer.toneMappingExposure=1.12;
 const threeScene=new THREE.Scene();threeScene.background=null;threeScene.fog=new THREE.Fog(0x111820,18,52);
 const threeAmbientLight=new THREE.AmbientLight(0x9aa9b8,.52);threeScene.add(threeAmbientLight);
@@ -1824,7 +1824,7 @@ function panThreeCameraByScreen(dx,dy){
 }
 function renderThreeScene(){
  if(!threeRenderer||!threeWidth||!threeHeight||!floorPageActive||document.hidden)return;
- const renderNow=performance.now();if(renderNow-threeLastRenderAt<33)return;
+ const renderNow=performance.now();if(renderNow-threeLastRenderAt<(officeMobileGPU?66:40))return;
  const sig=JSON.stringify([currentFloorTier(),currentGridSize(),currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level])]);
  if(sig!==threeSceneSignature)rebuildThreeScene();
  const nowMs=performance.now();updateThreeAtmosphere(nowMs);const now=nowMs/1000,frameDt=Math.min(.05,Math.max(.001,(nowMs-(threeLastRenderAt||nowMs-16))/1000));threeLastRenderAt=nowMs;dev3dGameMixers.forEach(m=>m.update(frameDt));dev3dTypingControllers.forEach(r=>r.update(frameDt));dev3dProceduralRigs.forEach(r=>{const t=now+r.phase;r.arms.forEach((b,i)=>{b.rotation.z=Math.sin(t*4+i*.7)*.10;b.rotation.x=Math.sin(t*6+i)*.06;});r.heads.forEach(b=>{b.rotation.x=.035+Math.sin(t*.8)*.025;});});
@@ -2541,7 +2541,7 @@ function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
 let gameFrameId=0,lastTickFrameAt=0;
 function scheduleGameLoop(){if(!gameFrameId&&!document.hidden)gameFrameId=requestAnimationFrame(tick);}
-function tick(now){gameFrameId=0;if(now-lastTickFrameAt<32){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
+function tick(now){gameFrameId=0;if(now-lastTickFrameAt<(officeMobileGPU?66:40)){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
  const dt=Math.min((now-last)/1000,.25);last=now;officeNpcTick(dt);/* employee movement is handled by the unified 3D OfficeCharacterController */
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  if(floorPageActive&&!document.hidden)draw();scheduleGameLoop();
@@ -2953,7 +2953,7 @@ function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
 let gameFrameId=0,lastTickFrameAt=0;
 function scheduleGameLoop(){if(!gameFrameId&&!document.hidden)gameFrameId=requestAnimationFrame(tick);}
-function tick(now){gameFrameId=0;if(now-lastTickFrameAt<32){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
+function tick(now){gameFrameId=0;if(now-lastTickFrameAt<(officeMobileGPU?66:40)){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
  const dt=Math.min((now-last)/1000,.25);last=now;officeNpcTick(dt);/* employee movement is handled by the unified 3D OfficeCharacterController */
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  if(floorPageActive&&!document.hidden)draw();scheduleGameLoop();
@@ -3365,7 +3365,7 @@ function spawnVip(){if(activeVip&&Date.now()>activeVip.expires)activeVip=null;if
 function closeVipDeal(){if(!activeVip)return;const amount=incomeFor(state.layout)*15;state.balance+=amount;state.prestige+=5;floaters.push({x:activeVip.x,y:activeVip.y,amount,t:performance.now()});activeVip=null;const msg="СДЕЛКА! +"+money(amount)+" · +5 престижа";showNotice(msg);addEventFeed(msg);save();syncPlayer(false);updateUI();haptic();}
 let gameFrameId=0,lastTickFrameAt=0;
 function scheduleGameLoop(){if(!gameFrameId&&!document.hidden)gameFrameId=requestAnimationFrame(tick);}
-function tick(now){gameFrameId=0;if(now-lastTickFrameAt<32){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
+function tick(now){gameFrameId=0;if(now-lastTickFrameAt<(officeMobileGPU?66:40)){scheduleGameLoop();return;}lastTickFrameAt=now;spawnVip();
  const dt=Math.min((now-last)/1000,.25);last=now;officeNpcTick(dt);/* employee movement is handled by the unified 3D OfficeCharacterController */
  if(!state.viewing){const inc=incomeFor(state.layout);if(inc>0){const earned=inc*dt;state.balance+=earned;state.totalEarned+=earned;incomeTimer+=dt;if(incomeTimer>=3){incomeTimer=0;const workers=state.layout.filter(o=>o.type==="desk");workers.forEach(o=>floaters.push({x:o.x,y:o.y,amount:25,t:now}));localSave();updateUI();}}}
  if(floorPageActive&&!document.hidden)draw();scheduleGameLoop();

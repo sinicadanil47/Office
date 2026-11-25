@@ -2276,8 +2276,12 @@ function updateDecorPreviewFromEvent(e){
  const c=cellFromEvent(e);if(c.x>=0&&c.x<gridSize&&c.y>=0&&c.y<gridSize){setBuildPreviewCell(c.x,c.y);return true;}return false;
 }
 function handleRoomTap(e){
- if(state.viewing)return;const c=cellFromEvent(e);if(c.x<0||c.x>=gridSize||c.y<0||c.y>=gridSize)return;
- if(buildPreviewState&&isDecorType(buildPreviewState.type)){updateDecorPreviewFromEvent(e);return;}if(c.x<0||c.x>=gridSize||c.y<0||c.y>=gridSize)return;if(buildPreviewState){setBuildPreviewCell(c.x,c.y);return;}
+ if(state.viewing)return;
+ // Wall decor must process the screen-space wall hit before floor-cell bounds:
+ // exterior walls sit outside the playable grid, so cellFromEvent rejects them.
+ if(buildPreviewState&&isDecorType(buildPreviewState.type)){updateDecorPreviewFromEvent(e);return;}
+ const c=cellFromEvent(e);if(c.x<0||c.x>=gridSize||c.y<0||c.y>=gridSize)return;
+ if(buildPreviewState){setBuildPreviewCell(c.x,c.y);return;}
  haptic();const i=state.layout.findIndex(o=>objectHitCells(o).some(cell=>cell.x===c.x&&cell.y===c.y));
  if(activeVip&&Date.now()<activeVip.expires&&i>=0&&state.layout[i].x===activeVip.x&&state.layout[i].y===activeVip.y){closeVipDeal();return;}
  if(state.sellMode){if(i>=0){const o=state.layout[i],controller=threeOfficeControllers.get(o);if(controller){controller.dispose();threeOfficeControllers.delete(o);}if(o.type==="desk")delete cyberSecurityState.activeDebuffs.blockedDesks[o.id];state.layout.splice(i,1);state.balance+=Math.floor(TYPES[o.type].cost*.5);save();updateUI();toast("Объект продан · возвращено "+money(TYPES[o.type].cost*.5));}else toast("На этой клетке нет объекта");draw();return;}

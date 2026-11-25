@@ -1542,110 +1542,43 @@ function addInteriorDecor(parent,n,tier,wallH){
 function addRoom3D(){
  if(threeFloorGroup){threeRoot.remove(threeFloorGroup);disposeThreeTree(threeFloorGroup);}
  threeFloorGroup=new THREE.Group();threeRoot.add(threeFloorGroup);
- const n=currentGridSize(),tier=currentFloorTier();
- const edgeColors=[0x69747a,0xb18a61,0x7b858b,0x277c80,0xc69d60];
- const sideMat=mat(edgeColors[tier],.46,.35),under=mat(tier===4?0x171722:tier===3?0x101b24:0x333b40,.72,.18);
- let floor;
+ const n=currentGridSize(),tier=currentFloorTier();let floor;
  if(tier===0){
-  // Basement slab extends beneath the full wall thickness and slightly beyond the room.
-  // The playable 5x5 grid remains n-by-n; only the supporting slab footprint is enlarged.
+  // Basement retains its existing textured architecture.
   const slabDepth=.28,slabSize=n+.43;
   const floorMaterials=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0}));
   floor=new THREE.Mesh(new THREE.BoxGeometry(slabSize,slabDepth,slabSize),floorMaterials);
   floor.position.set(n/2-.1075,-slabDepth/2,n/2-.1075);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
   threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();
- }else{
-  // Preserve the existing floor construction on the other four office levels.
-  boxMesh(threeFloorGroup,n/2-.0925,-.62,n/2-.0925,n+.245,.14,n+.245,under);
-  boxMesh(threeFloorGroup,n/2-.0925,-.49,n/2-.0925,n+.245,.49,n+.245,sideMat);
-  boxMesh(threeFloorGroup,n/2-.0925,-.105,n/2-.0925,n+.245,.13,n+.245,under);
-  floor=new THREE.Mesh(new THREE.BoxGeometry(n,.035,n),makeInteriorFloorMaterial(tier,n));
-  floor.position.set(n/2,-.0175,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
- }
- {
- // Fine tile joints are aligned exactly to the playable grid (one world unit per cell).
- const tileGrid=new THREE.Group();
- const gridMat=tier===0?new THREE.MeshBasicMaterial({color:0xd5dce4,transparent:true,opacity:.42,depthWrite:false,toneMapped:false}):mat(tier===4?0xc8a66e:tier===3?0x83c9c4:0x5d686c,.82,.12,{transparent:true,opacity:.48,depthWrite:false});
- for(let k=0;k<=n;k++){
-  const thickness=tier===0?.022:(k===0||k===n?.022:.012);
-  const y=tier===0?.006:.001,h=tier===0?.012:.008;
-  const vx=boxMesh(tileGrid,k,y,n/2,thickness,h,n,gridMat);
-  const hz=boxMesh(tileGrid,n/2,y,k,n,h,thickness,gridMat);
-  vx.castShadow=hz.castShadow=false;vx.receiveShadow=hz.receiveShadow=false;
- }
- threeFloorGroup.add(tileGrid);
- }
- if(tier!==0){
- // Fascia seams, corner plates and exposed fasteners make the cutaway slab read as a real floor plate.
- const fascia=mat(tier===4?0x272733:tier===3?0x14232b:0x424b50,.42,.62);
- const seam=mat(tier===4?0xd5b779:tier===3?0x37cfc8:0x89959a,.34,.72,tier>=3?{emissive:tier===3?0x087c79:0x60451f,emissiveIntensity:.45}:{});
- boxMesh(threeFloorGroup,n/2-.0925,-.34,n+.016,n+.245,.035,.028,fascia);boxMesh(threeFloorGroup,n+.016,-.34,n/2-.0925,.028,.035,n+.245,fascia);
- boxMesh(threeFloorGroup,n/2-.0925,-.23,n+.016,n+.245,.018,.018,seam);boxMesh(threeFloorGroup,n+.016,-.23,n/2-.0925,.018,.018,n+.245,seam);
- for(let i=0;i<=n;i+=2){sphereMesh(threeFloorGroup,.12+i,-.355,n-.005,.035,seam);sphereMesh(threeFloorGroup,n-.005,-.355,.12+i,.035,seam);}
- // Inlaid perimeter zoning and a restrained central medallion give empty floors a finished plan.
- const zoneColor=tier===4?0xc7a15e:tier===3?0x3dcac4:tier===0?0x707c80:tier===1?0x9a7654:0x9aabb0;
- const zoneMat=mat(zoneColor,.48,.35,{transparent:true,opacity:.58,depthWrite:false,emissive:tier>=3?zoneColor:0x000000,emissiveIntensity:tier>=3?.28:0});
- const zoneY=.002,zoneT=.018,zoneInset=.18;
- boxMesh(threeFloorGroup,n/2,zoneY,zoneInset,n-2*zoneInset,.006,zoneT,zoneMat);
- boxMesh(threeFloorGroup,n/2,zoneY,n-zoneInset,n-2*zoneInset,.006,zoneT,zoneMat);
- boxMesh(threeFloorGroup,zoneInset,zoneY,n/2,zoneT,.006,n-2*zoneInset,zoneMat);
- boxMesh(threeFloorGroup,n-zoneInset,zoneY,n/2,zoneT,.006,n-2*zoneInset,zoneMat);
- if(tier!==1){
-  const medallion=new THREE.Mesh(new THREE.RingGeometry(.68,.70,48),new THREE.MeshBasicMaterial({color:zoneColor,transparent:true,opacity:.26,depthWrite:false,side:THREE.DoubleSide}));
-  medallion.rotation.x=-Math.PI/2;medallion.position.set(n/2,.004,n/2);threeFloorGroup.add(medallion);
- }
- const rim=mat(edgeColors[tier],.38,.48,tier===4?{emissive:0x65451d,emissiveIntensity:.28}:{});
-
-
- // Four narrow perimeter rails stay outside the playable cells.
- boxMesh(threeFloorGroup,n/2,.018,.045,n+.24,.055,.09,rim);
- boxMesh(threeFloorGroup,n/2,.018,n-.045,n+.24,.055,.09,rim);
- boxMesh(threeFloorGroup,.045,.018,n/2,.09,.055,n+.24,rim);
- boxMesh(threeFloorGroup,n-.045,.018,n/2,.09,.055,n+.24,rim);
- }
- const wallH=2.55;
- const wallColors=[0x596166,0xe5e6df,0xd1d5d6,0x14232d,0x252532];
- const wallMat=tier===4?mat(0x9eb6c9,.25,.18,{transparent:true,opacity:.12,depthWrite:false}):mat(wallColors[tier],tier===2?.48:.84,tier===2?.08:0);
- // Exactly two rear walls. Their fronts remain fully open for the isometric cutaway view.
- if(tier===0){
-  // Textured solid wall boxes: the same wall image wraps the front, rear, side returns and top edge.
-  const wallThickness=.24,wallOverlap=wallThickness/2;
+  const wallH=2.55,wallThickness=.24;
   const leftWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex,roughness:.92,metalness:.02}));
   const rightWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex,roughness:.92,metalness:.02}));
-  // Both inner wall faces meet exactly on the floor's x=0 / z=0 edges.
-  // Extend each wall by half its thickness at the shared corner so no light gap can show through.
-  // Butt-joint: extend the left wall back by one wall thickness so its end meets
-  // the inner face of the right wall. No decorative corner post or cap.
   const leftWall=new THREE.Mesh(new THREE.BoxGeometry(n+wallThickness,wallH,wallThickness),leftWallMat);
-  leftWall.position.set(n/2-wallThickness/2,wallH/2,-wallOverlap);leftWall.castShadow=true;leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
-  const rightWall=new THREE.Mesh(new THREE.BoxGeometry(wallThickness,wallH,n,),rightWallMat);
-  rightWall.position.set(-wallOverlap,wallH/2,n/2);rightWall.castShadow=true;rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
+  leftWall.position.set(n/2-wallThickness/2,wallH/2,-wallThickness/2);leftWall.castShadow=true;leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
+  const rightWall=new THREE.Mesh(new THREE.BoxGeometry(wallThickness,wallH,n),rightWallMat);
+  rightWall.position.set(-wallThickness/2,wallH/2,n/2);rightWall.castShadow=true;rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
   threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall};
   const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(.12,2.15,n*.72);threeFloorGroup.add(lampGlow);
   const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(n/2,1.05,.12);threeFloorGroup.add(windowGlow);
   applyBasementTextures();
  }else{
-  boxMesh(threeFloorGroup,n/2,0,-.105,n+.06,wallH,.22,wallMat);
-  boxMesh(threeFloorGroup,-.105,0,n/2,.22,wallH,n+.06,wallMat);
+  // Floors 2–5: stripped architectural shell only — plain floor and two bare walls.
+  const floorMat=mat(0xb8b9b5,.94,0),slabMat=mat(0x777b7c,.9,0),wallMat=mat(0xd8d8d5,.96,0);
+  boxMesh(threeFloorGroup,n/2,-.12,n/2,n+.08,.24,n+.08,slabMat);
+  floor=new THREE.Mesh(new THREE.BoxGeometry(n,.025,n),floorMat);
+  floor.position.set(n/2,-.0075,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
+  const wallH=2.55;
+  boxMesh(threeFloorGroup,n/2,wallH/2,-.11,n+.04,wallH,.22,wallMat);
+  boxMesh(threeFloorGroup,-.11,wallH/2,n/2,.22,wallH,n+.04,wallMat);
  }
- if(tier!==0)addInteriorDecor(threeFloorGroup,n,tier,wallH);
- // A restrained cell outline appears only for the active pointer or build preview.
- const hoverGroup=new THREE.Group(),hoverMat=mat(tier===4?0xe5c98d:tier===3?0x48e5d7:0xdce8ed,.32,.2,{emissive:tier===3?0x126b66:tier===4?0x6b4b1d:0x536b78,emissiveIntensity:.65,transparent:true,opacity:.72});
+ // Keep only the functional cell hover indicator; no room decor or floor ornaments.
+ const hoverGroup=new THREE.Group(),hoverMat=mat(0xdce8ed,.32,.2,{emissive:0x536b78,emissiveIntensity:.35,transparent:true,opacity:.58});
  boxMesh(hoverGroup,.5,.002,.035,.91,.012,.018,hoverMat);
  boxMesh(hoverGroup,.5,.002,.965,.91,.012,.018,hoverMat);
  boxMesh(hoverGroup,.035,.002,.5,.018,.012,.91,hoverMat);
  boxMesh(hoverGroup,.965,.002,.5,.018,.012,.91,hoverMat);
  hoverGroup.visible=false;threeFloorGroup.add(hoverGroup);threeFloorGroup.userData.hoverTile=hoverGroup;
- if(tier===4){
-  const gold=mat(0xd6b36f,.32,.7,{emissive:0x674719,emissiveIntensity:.32});
-  // Gold outline on the exposed outer edge of the penthouse display plinth.
-  boxMesh(threeFloorGroup,n/2,-.37,.27,n+.52,.035,.035,gold);
-  boxMesh(threeFloorGroup,n/2,-.37,n-.27,n+.52,.035,.035,gold);
-  boxMesh(threeFloorGroup,.27,-.37,n/2,.035,.035,n+.52,gold);
-  boxMesh(threeFloorGroup,n-.27,-.37,n/2,.035,.035,n+.52,gold);
- }
 }
-
 /* ── Dev 3D assembly editor: model loaders, per-cell assembly presets ── */
 const dev3dState={type:"desk_1",tab:"furniture",parts:[],selected:-1,assets:{},names:[],ready:false,loading:false,renderer:null,scene:null,camera:null,root:null,raf:0,mixer:null,previewObjects:[],raycaster:null,pointer:null};
 const dev3dPresets=(()=>{try{const p=JSON.parse(localStorage.getItem("office_custom_presets")||"{}")||{};if(p.ceo){delete p.ceo;localStorage.setItem("office_custom_presets",JSON.stringify(p));}return p;}catch(e){return {};}})();const dev3dGameMixers=[],dev3dProceduralRigs=[],dev3dTypingControllers=[];

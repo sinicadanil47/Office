@@ -1566,8 +1566,11 @@ function addRoom3D(){
  if(threeFloorGroup){threeRoot.remove(threeFloorGroup);disposeThreeTree(threeFloorGroup);}
  threeFloorGroup=new THREE.Group();threeRoot.add(threeFloorGroup);
  const n=currentGridSize(),tier=currentFloorTier();let floor;
+ const entrance=currentLayout().find(o=>o.type==="entrance_door");
+ const doorWidth=.66,doorHeight=2.15;
+ const isDoorOn=(axis)=>!!entrance&&String(entrance.edgeKey||"").startsWith("outer:"+axis+":");
  if(tier===0){
-  // Basement retains its existing textured architecture.
+  // Basement floor and textured outer walls, split around the entrance opening.
   const slabDepth=.28,slabSize=n+.43;
   const floorMaterials=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementFloorTex,roughness:.9,metalness:0}));
   floor=new THREE.Mesh(new THREE.BoxGeometry(slabSize,slabDepth,slabSize),floorMaterials);
@@ -1576,28 +1579,38 @@ function addRoom3D(){
   const wallH=2.55,wallThickness=.24;
   const leftWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex,roughness:.92,metalness:.02}));
   const rightWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex,roughness:.92,metalness:.02}));
-  const leftWall=new THREE.Mesh(new THREE.BoxGeometry(n+wallThickness,wallH,wallThickness),leftWallMat);
-  leftWall.position.set(n/2-wallThickness/2,wallH/2,-wallThickness/2);leftWall.castShadow=true;leftWall.receiveShadow=true;threeFloorGroup.add(leftWall);
-  const rightWall=new THREE.Mesh(new THREE.BoxGeometry(wallThickness,wallH,n),rightWallMat);
-  rightWall.position.set(-wallThickness/2,wallH/2,n/2);rightWall.castShadow=true;rightWall.receiveShadow=true;threeFloorGroup.add(rightWall);
-  threeFloorGroup.userData.basementWalls={left:leftWall,right:rightWall};
+  const splitTexturedWall=(axis,materials)=>{
+   const doorOn=isDoorOn(axis),center=axis==="z"?Number(entrance?.posX??entrance?.x+.5):Number(entrance?.posZ??entrance?.y+.5);
+   const add=(along,len,y,h)=>{if(len<=.005||h<=.005)return;const geo=axis==="z"?new THREE.BoxGeometry(len,h,wallThickness):new THREE.BoxGeometry(wallThickness,h,len),m=new THREE.Mesh(geo,materials);m.position.set(axis==="z"?along:-wallThickness/2,y+h/2,axis==="z"?-wallThickness/2:along);m.castShadow=true;m.receiveShadow=true;threeFloorGroup.add(m);};
+   if(!doorOn){add(n/2,n,0,wallH);return;}
+   const half=doorWidth/2,left=Math.max(0,center-half),right=Math.min(n,center+half);
+   add(left/2,left,0,wallH);add((right+n)/2,n-right,0,wallH);add(center,doorWidth,doorHeight,wallH-doorHeight);
+  };
+  splitTexturedWall("z",leftWallMat);splitTexturedWall("x",rightWallMat);
+  threeFloorGroup.userData.basementWalls={entranceOpening:!!entrance};
   const lampGlow=new THREE.PointLight(0xffbd73,1.15,5.2,2);lampGlow.position.set(.12,2.15,n*.72);threeFloorGroup.add(lampGlow);
   const windowGlow=new THREE.PointLight(0xffd4a0,.72,4.2,2);windowGlow.position.set(n/2,1.05,.12);threeFloorGroup.add(windowGlow);
   applyBasementTextures();
  }else{
-  // Floors 2–5: stripped architectural shell only — plain floor and two bare walls.
+  // Upper-floor perimeter walls have a physical opening where the entrance door is installed.
   const floorMat=mat(0xb8b9b5,.94,0),slabMat=mat(0x777b7c,.9,0),wallMat=mat(0xd8d8d5,.96,0);
   boxMesh(threeFloorGroup,n/2,-.12,n/2,n+.08,.12,n+.08,slabMat);
   floor=new THREE.Mesh(new THREE.BoxGeometry(n,.025,n),floorMat);
   floor.position.set(n/2,-.0075,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
-  const wallH=2.55;
-  // Walls extend slightly into the slab so their bases visibly meet the floor instead of floating.
-  const wallBase=-.12,wallHeight=wallH+.12;
-  // boxMesh takes Y as the bottom coordinate (not the center). Start walls at the slab bottom,
-  // so they intersect the floor slab and emerge flush from the walking surface.
-  boxMesh(threeFloorGroup,n/2,wallBase,-.11,n+.04,wallHeight,.22,wallMat);
-  boxMesh(threeFloorGroup,-.11,wallBase,n/2,.22,wallHeight,n+.04,wallMat);
+  const wallH=2.55,wallBase=-.12,wallHeight=wallH+.12;
+  const splitWall=(axis)=>{
+   const doorOn=isDoorOn(axis),center=axis==="z"?Number(entrance?.posX??entrance?.x+.5):Number(entrance?.posZ??entrance?.y+.5);
+   const add=(along,len,y,h)=>{if(len<=.005||h<=.005)return;boxMesh(threeFloorGroup,axis==="z"?along:-.11,y,axis==="z"?-.11:along,axis==="z"?len:.22,h,axis==="z"?.22:len,wallMat);};
+   if(!doorOn){add(n/2,n+.04,wallBase,wallHeight);return;}
+   const half=doorWidth/2,left=Math.max(0,center-half),right=Math.min(n,center+half);
+   add(left/2,left,wallBase,wallHeight);add((right+n)/2,n-right,wallBase,wallHeight);add(center,doorWidth,wallBase+doorHeight,wallHeight-doorHeight);
+  };
+  splitWall("z");splitWall("x");
  }
+ // Visible floor-cell grid appears only during object movement and its placement preview.
+ const moveGrid=new THREE.Group(),gridMat=new THREE.LineBasicMaterial({color:0x63d8cf,transparent:true,opacity:.48,depthWrite:false});
+ const gridPoints=[];for(let i=0;i<=n;i++){gridPoints.push(new THREE.Vector3(i,.025,0),new THREE.Vector3(i,.025,n),new THREE.Vector3(0,.025,i),new THREE.Vector3(n,.025,i));}
+ moveGrid.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(gridPoints),gridMat));moveGrid.visible=false;threeFloorGroup.add(moveGrid);threeFloorGroup.userData.moveGrid=moveGrid;
  // Keep only the functional cell hover indicator; no room decor or floor ornaments.
  const hoverGroup=new THREE.Group(),hoverMat=mat(0xdce8ed,.32,.2,{emissive:0x536b78,emissiveIntensity:.35,transparent:true,opacity:.58});
  boxMesh(hoverGroup,.5,.002,.035,.91,.012,.018,hoverMat);
@@ -1844,6 +1857,7 @@ function renderThreeScene(){
  if(buildPreviewState)updateBuildPreviewVisual();
  const hover=threeFloorGroup?.userData.hoverTile,hoverActive=!!(pointer&&!buildPreviewState&&!state.viewing&&(state.selected||moveMode)&&pointer.x>=0&&pointer.y>=0&&pointer.x<currentGridSize()&&pointer.y<currentGridSize());
  if(hover){hover.visible=hoverActive;if(hoverActive)hover.position.set(pointer.x,0,pointer.y);}
+ const moveGrid=threeFloorGroup?.userData.moveGrid;if(moveGrid)moveGrid.visible=!!(moveMode||buildPreviewState?.movingObject)&&!state.viewing;
  updateThreeCamera();threeRenderer.render(threeScene,threeCamera);
 }
 

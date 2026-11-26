@@ -1567,7 +1567,7 @@ function addRoom3D(){
  threeFloorGroup=new THREE.Group();threeRoot.add(threeFloorGroup);
  const n=currentGridSize(),tier=currentFloorTier();let floor;
  const entrance=currentLayout().find(o=>o.type==="entrance_door");
- const doorWidth=.66,doorHeight=2.15;
+ const doorWidth=.66,doorHeight=.9;
  const isDoorOn=(axis)=>!!entrance&&String(entrance.edgeKey||"").startsWith("outer:"+axis+":");
  if(tier===0){
   // Basement floor and textured outer walls, split around the entrance opening.
@@ -1576,7 +1576,7 @@ function addRoom3D(){
   floor=new THREE.Mesh(new THREE.BoxGeometry(slabSize,slabDepth,slabSize),floorMaterials);
   floor.position.set(n/2-.1075,-slabDepth/2,n/2-.1075);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
   threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();
-  const wallH=2.55,wallThickness=.24;
+  const wallH=.98,wallThickness=.24;
   const leftWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex,roughness:.92,metalness:.02}));
   const rightWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex,roughness:.92,metalness:.02}));
   const splitTexturedWall=(axis,materials)=>{
@@ -1597,7 +1597,7 @@ function addRoom3D(){
   boxMesh(threeFloorGroup,n/2,-.12,n/2,n+.08,.12,n+.08,slabMat);
   floor=new THREE.Mesh(new THREE.BoxGeometry(n,.025,n),floorMat);
   floor.position.set(n/2,-.0075,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
-  const wallH=2.55,wallBase=-.12,wallHeight=wallH+.12;
+  const wallH=.98,wallBase=-.12,wallHeight=wallH+.12;
   const splitWall=(axis)=>{
    const doorOn=isDoorOn(axis),center=axis==="z"?Number(entrance?.posX??entrance?.x+.5):Number(entrance?.posZ??entrance?.y+.5);
    const add=(along,len,y,h)=>{if(len<=.005||h<=.005)return;boxMesh(threeFloorGroup,axis==="z"?along:-.11,y,axis==="z"?-.11:along,axis==="z"?len:.22,h,axis==="z"?.22:len,wallMat);};
@@ -1809,7 +1809,7 @@ const DECOR_TYPES=new Set([...DECOR_FLOOR_TYPES,...DECOR_WALL_TYPES,...DECOR_PAI
 function isDecorType(t){return DECOR_TYPES.has(t);}
 function decorEdgeKey(x,y,rot){return (rot%2===0?"z":"x")+":"+x+":"+y;}
 function decorEdgePosition(o){const r=(Number(o.rot)||0)%2;return r===0?{x:o.x+.5,z:o.y}:{x:o.x,z:o.y+.5};}
-function createDecor3D(parent,o){const g=new THREE.Group();parent.add(g);let model;if(o.type==="wall_partition")model=DecorModels.createPartitionWall(1);else if(o.type==="wall_door")model=DecorModels.createPartitionWallWithDoor(1);else if(o.type==="entrance_door")model=DecorModels.createEntranceDoor(1);else if(o.type.startsWith("painting_")){model=DecorModels.createPainting(Number(o.type.slice(-1)));model.position.y=0;}else if(o.type.startsWith("plant_"))model=DecorModels.createPottedPlant(o.type.replace("plant_",""));else if(o.type==="bookshelf")model=DecorModels.createBookshelf();if(model)g.add(model);g.userData.object=o;const rot=(Number(o.rot)||0)*Math.PI/2;if(o.type==="wall_partition"||o.type==="wall_door"){const p=decorEdgePosition(o);g.position.set(p.x,0,p.z);g.rotation.y=rot;}else if(o.type==="entrance_door"){g.position.set(Number(o.posX??o.x)||0,Number(o.posY)||0,Number(o.posZ??o.y)||0);g.rotation.y=Number(o.rotationY??rot);}else if(o.type.startsWith("painting_")){g.position.set(Number(o.posX??(o.x+.5)),Number(o.posY)||1.55,Number(o.posZ??(o.y+.5)));g.rotation.y=Number(o.rotationY??rot);}else{g.position.set(Number(o.posX??(o.x+.5)),Number(o.posY??(DECOR_FLOOR_TYPES.has(o.type)?0.012:0)),Number(o.posZ??(o.y+.5)));g.rotation.y=Number(o.rotationY??rot);}if(o.type==="wall_partition"||o.type==="wall_door")g.position.y=0.006;return g;}
+function createDecor3D(parent,o){const g=new THREE.Group();parent.add(g);let model;if(o.type==="wall_partition")model=DecorModels.createPartitionWall(1);else if(o.type==="wall_door")model=DecorModels.createPartitionWallWithDoor(1);else if(o.type==="entrance_door"){model=DecorModels.createEntranceDoor(1);model.scale.y=.42;}else if(o.type.startsWith("painting_")){model=DecorModels.createPainting(Number(o.type.slice(-1)));model.position.y=0;}else if(o.type.startsWith("plant_"))model=DecorModels.createPottedPlant(o.type.replace("plant_",""));else if(o.type==="bookshelf")model=DecorModels.createBookshelf();if(model)g.add(model);g.userData.object=o;const rot=(Number(o.rot)||0)*Math.PI/2;if(o.type==="wall_partition"||o.type==="wall_door"){const p=decorEdgePosition(o);g.position.set(p.x,0,p.z);g.rotation.y=rot;}else if(o.type==="entrance_door"){g.position.set(Number(o.posX??o.x)||0,Number(o.posY)||0,Number(o.posZ??o.y)||0);g.rotation.y=Number(o.rotationY??rot);}else if(o.type.startsWith("painting_")){g.position.set(Number(o.posX??(o.x+.5)),Number(o.posY)||1.55,Number(o.posZ??(o.y+.5)));g.rotation.y=Number(o.rotationY??rot);}else{g.position.set(Number(o.posX??(o.x+.5)),Number(o.posY??(DECOR_FLOOR_TYPES.has(o.type)?0.012:0)),Number(o.posZ??(o.y+.5)));g.rotation.y=Number(o.rotationY??rot);}if(o.type==="wall_partition"||o.type==="wall_door")g.position.y=0.006;return g;}
 function rebuildThreeScene(){
  threeOfficeControllers.forEach(c=>c.forceDock());threeOfficeControllers.clear();dev3dGameMixers.forEach(m=>m.stopAllAction());dev3dGameMixers.length=0;dev3dProceduralRigs.length=0;dev3dTypingControllers.length=0;const tier=currentFloorTier(),n=currentGridSize();if(tier!==threeEnvironmentTier)setThreeAtmosphere(tier,n);threeSceneSignature=JSON.stringify([tier,n,currentLayout().map(o=>[o.type,o.x,o.y,o.rot,o.level,o.posX,o.posY,o.posZ,o.rotationY,o.edgeKey,o.wallKey,o.floor])]);if(threeFurnitureGroup){threeRoot.remove(threeFurnitureGroup);disposeThreeTree(threeFurnitureGroup);}officeNpcRuntime.mesh=null;threeFurnitureGroup=new THREE.Group();threeRoot.add(threeFurnitureGroup);threeWorkerGroups.clear();addRoom3D();const floor=currentLayout();
  floor.forEach(o=>{let g;switch(o.type){case"desk":g=createDesk(threeFurnitureGroup,o);threeWorkerGroups.set(o,g);break;case"ceo":g=createCEO(threeFurnitureGroup,o);break;case"coffee":g=createCoffee(threeFurnitureGroup,o);break;case"server":g=createServer(threeFurnitureGroup,o);break;case"meeting":g=createMeeting(threeFurnitureGroup,o);break;case"security":g=createSecurity(threeFurnitureGroup,o);break;case"reception":g=createReception(threeFurnitureGroup,o);break;case"manager":g=createManagerDesk(threeFurnitureGroup,o);break;default:if(isDecorType(o.type))g=createDecor3D(threeFurnitureGroup,o);}if(g){g.userData.object=o;if(o.type==="desk")attachCyberLockIndicator(g);}});

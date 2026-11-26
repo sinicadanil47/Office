@@ -2822,9 +2822,14 @@ function updateBuildPreviewVisual(){
  p.valid=valid;
  if(p.ghost){p.ghost.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),0,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.ghost.rotation.y=p.rot*Math.PI/2;p.ghost.traverse(o=>{if(!o.isMesh||!o.material)return;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m.userData.previewBaseColor)m.userData.previewBaseColor=m.color.clone();m.color.copy(m.userData.previewBaseColor).lerp(new THREE.Color(valid?0x43e6c1:0xff4d61),.2);});});}
  if(p.frame){p.frame.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),.018,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.frame.rotation.y=p.rot*Math.PI/2;p.frame.material.color.setHex(valid?0x35e3bb:0xff4358);p.frame.material.opacity=valid?.34:.42;}if(p.outline){p.outline.position.set(p.x+(p.type==="meeting"&&p.rot%2===0?1:.5),.025,p.y+(p.type==="meeting"&&p.rot%2===1?1:.5));p.outline.rotation.y=p.rot*Math.PI/2;p.outline.material.color.setHex(valid?0x8effe5:0xff8290);}
- const cost=p.movingObject?"БЕСПЛАТНО · перемещение":(devFreeBuild?"БЕСПЛАТНО":money(TYPES[p.type].cost));
- $("buildPreviewInfo").textContent=TYPES[p.type].name+" · "+cost+" · клетка "+(p.x+1)+", "+(p.y+1)+(valid?" · доступно":" · недоступно");
- $("previewAccept").disabled=!valid;
+ const price=p.movingObject||devFreeBuild?0:TYPES[p.type].cost;
+ const cost=p.movingObject?"БЕСПЛАТНО · перемещение":(devFreeBuild?"БЕСПЛАТНО":money(price));
+ const fundsShort=!p.movingObject&&!devFreeBuild&&state.balance<price;
+ const reason=fundsShort?" · НЕ ХВАТАЕТ СРЕДСТВ (нужно "+money(price)+", у вас "+money(state.balance)+")":(!placeValid?" · КЛЕТКА ЗАНЯТА":" · доступно");
+ $("buildPreviewInfo").textContent=TYPES[p.type].name+" · "+cost+" · клетка "+(p.x+1)+", "+(p.y+1)+reason;
+ // Keep the button clickable even when invalid so the player receives a clear explanation.
+ $("previewAccept").disabled=false;
+ $("previewAccept").textContent=fundsShort?"Недостаточно средств":(!placeValid?"Место недоступно":"Установить");
 }
 function setBuildPreviewCell(x,y){if(!buildPreviewState)return;buildPreviewState.x=x;buildPreviewState.y=y;updateBuildPreviewVisual();draw();}
 function clearBuildPreview(){
@@ -2871,8 +2876,9 @@ function beginMovePreview(index){
 }
 function confirmBuildPreview(){
  const p=buildPreviewState;if(!p)return;
- if(!p.valid){updateBuildPreviewVisual();toast("Клетка занята или недостаточно средств");return;}
  const t=TYPES[p.type];
+ if(!p.movingObject&&!devFreeBuild&&state.balance<t.cost){updateBuildPreviewVisual();toast("Недостаточно средств: нужно "+money(t.cost)+", у вас "+money(state.balance)+".");return;}
+ if(!p.valid){updateBuildPreviewVisual();toast("Эта клетка занята или недоступна. Выберите другую.");return;}
  if(p.movingObject){p.movingObject.x=p.x;p.movingObject.y=p.y;p.movingObject.rot=p.rot;clearBuildPreview();save();syncPlayer(false);updateUI();haptic();toast(t.name+" перемещён");draw();return;}
  if(!devFreeBuild)state.balance-=t.cost;
  state.layout.push({type:p.type,x:p.x,y:p.y,rot:p.rot,level:1});clearBuildPreview();save();syncPlayer(false);updateUI();haptic();toast(t.name+" установлен");draw();

@@ -1587,7 +1587,7 @@ function addRoom3D(){
  }else{
   // Floors 2–5: stripped architectural shell only — plain floor and two bare walls.
   const floorMat=mat(0xb8b9b5,.94,0),slabMat=mat(0x777b7c,.9,0),wallMat=mat(0xd8d8d5,.96,0);
-  boxMesh(threeFloorGroup,n/2,-.12,n/2,n+.08,.24,n+.08,slabMat);
+  boxMesh(threeFloorGroup,n/2,-.12,n/2,n+.08,.12,n+.08,slabMat);
   floor=new THREE.Mesh(new THREE.BoxGeometry(n,.025,n),floorMat);
   floor.position.set(n/2,-.0075,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
   const wallH=2.55;

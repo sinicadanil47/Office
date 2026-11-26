@@ -598,8 +598,8 @@ function updateUI(){
 // input surface and is retained for the small furniture previews used by the shop UI.
 const threeBackdrop=document.createElement("div");threeBackdrop.id="sceneBackdrop";document.body.insertBefore(threeBackdrop,document.body.firstChild);
 const threeCanvas=document.createElement("canvas");threeCanvas.id="threeRoom";document.body.insertBefore(threeCanvas,document.body.firstChild);
-const officeMobileGPU=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);const officeBaseRenderScale=officeMobileGPU ? .82 : 1;let officeRenderScale=officeBaseRenderScale,officeFrameSampleAt=performance.now(),officeFrameSampleCount=0,officeFrameSampleTotal=0;const threeRenderer=new THREE.WebGLRenderer({canvas:threeCanvas,antialias:false,alpha:true,powerPreference:"high-performance"});
-threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,officeMobileGPU?1:1.25)*officeRenderScale);
+const officeMobileGPU=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);const threeRenderer=new THREE.WebGLRenderer({canvas:threeCanvas,antialias:true,alpha:true,powerPreference:"high-performance"});
+threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,officeMobileGPU?1:1.25));
 threeRenderer.shadowMap.enabled=false;threeRenderer.shadowMap.type=THREE.PCFSoftShadowMap;
 threeRenderer.outputColorSpace=THREE.SRGBColorSpace;threeRenderer.toneMapping=THREE.ACESFilmicToneMapping;threeRenderer.toneMappingExposure=1.12;
 const threeScene=new THREE.Scene();threeScene.background=null;threeScene.fog=new THREE.Fog(0x111820,18,52);
@@ -1863,7 +1863,7 @@ function renderThreeScene(){
  const hover=threeFloorGroup?.userData.hoverTile,hoverActive=!!(pointer&&!buildPreviewState&&!state.viewing&&(state.selected||moveMode)&&pointer.x>=0&&pointer.y>=0&&pointer.x<currentGridSize()&&pointer.y<currentGridSize());
  if(hover){hover.visible=hoverActive;if(hoverActive)hover.position.set(pointer.x,0,pointer.y);}
  const moveGrid=threeFloorGroup?.userData.moveGrid;if(moveGrid)moveGrid.visible=!!(moveMode||buildPreviewState?.movingObject)&&!state.viewing;
- updateThreeCamera();const renderStart=performance.now();threeRenderer.render(threeScene,threeCamera);const renderCost=performance.now()-renderStart;officeFrameSampleCount++;officeFrameSampleTotal+=Math.max(frameDt*1000,renderCost);const sampleNow=performance.now();if(sampleNow-officeFrameSampleAt>=1200){const avg=officeFrameSampleTotal/Math.max(1,officeFrameSampleCount);let next=officeRenderScale;if(avg>22)next=Math.max(officeMobileGPU ? .62 : .72,officeRenderScale-.08);else if(avg<16.8)next=Math.min(officeMobileGPU ? .95 : 1.2,officeRenderScale+.025);if(Math.abs(next-officeRenderScale)>=.02){officeRenderScale=next;threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,officeMobileGPU?1:1.25)*officeRenderScale);threeRenderer.setSize(threeWidth,threeHeight,false);}officeFrameSampleAt=sampleNow;officeFrameSampleCount=0;officeFrameSampleTotal=0;}
+ updateThreeCamera();threeRenderer.render(threeScene,threeCamera);
 }
 
 function resizeThree(){const r=canvas.getBoundingClientRect();threeWidth=window.innerWidth;threeHeight=window.innerHeight;threeRenderer.setSize(threeWidth,threeHeight,false);if(!threeCamera){threeCamera=new THREE.OrthographicCamera(-10,10,10,-10,.1,200);}threeCameraCacheKey="";updateThreeCamera();requestThreeRender();}

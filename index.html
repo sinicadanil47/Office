@@ -1877,7 +1877,9 @@ function iso(x,y){return {x:originX+(x-y)*cellW,y:originY+(x+y)*cellH};}
 function screenToGrid(screenX,screenY){
  const worldX=(screenX-cameraOffsetX)/cameraZoom,worldY=(screenY-cameraOffsetY)/cameraZoom;
  const a=(worldX-originX)/cellW,b=(worldY-originY)/cellH;
- return {x:(a+b)function groundPointAtScreen(x,y){if(!threeCamera||!threeWidth||!threeHeight)return null;const r=threeCanvas.getBoundingClientRect(),v=new THREE.Vector2((x-r.left)/Math.max(1,r.width)*2-1,-(y-r.top)/Math.max(1,r.height)*2+1);threeCamera.updateMatrixWorld(true);threeRaycaster.setFromCamera(v,threeCamera);return threeRaycaster.ray.intersectPlane(threeGround,new THREE.Vector3());}
+ return {x:(a+b)/2,y:(b-a)/2};
+}
+function groundPointAtScreen(x,y){if(!threeCamera||!threeWidth||!threeHeight)return null;const v=new THREE.Vector2(x/Math.max(1,threeWidth)*2-1,-y/Math.max(1,threeHeight)*2+1);threeCamera.updateMatrixWorld(true);threeRaycaster.setFromCamera(v,threeCamera);return threeRaycaster.ray.intersectPlane(threeGround,new THREE.Vector3());}
 function requestRoomDraw(){if(roomDrawFrame)return;roomDrawFrame=requestAnimationFrame(()=>{roomDrawFrame=0;if(floorPageActive&&!document.hidden)draw();});}
 function zoomAt(nextZoom,x,y){
  const oldZoom=cameraZoom,z=Math.max(.28,Math.min(2.2,nextZoom));
@@ -1887,7 +1889,6 @@ function zoomAt(nextZoom,x,y){
  const anchor=groundPointAtScreen(x,y);cameraZoom=z;
  if(anchor&&threeCamera){updateThreeCamera();const after=groundPointAtScreen(x,y);if(after){threePanX+=anchor.x-after.x;threePanZ+=anchor.z-after.z;updateThreeCamera();}}
  requestRoomDraw();
-}aZoom=z;draw();
 }
 function animateCameraHome(){
  if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);

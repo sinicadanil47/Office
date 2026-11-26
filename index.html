@@ -636,8 +636,8 @@ function applyBasementTextures(){
  }
  const walls=threeFloorGroup.userData.basementWalls;
  if(walls){
-  if(basementWallLeftTex?.image){walls.left.material.forEach(m=>{m.map=basementWallLeftTex;m.color.set(0xffffff);m.needsUpdate=true;});walls.left.visible=true;}
-  if(basementWallRightTex?.image){walls.right.material.forEach(m=>{m.map=basementWallRightTex;m.color.set(0xffffff);m.needsUpdate=true;});walls.right.visible=true;}
+  const applyWall=(items,tex)=>{if(!tex?.image)return;(Array.isArray(items)?items:[items]).filter(Boolean).forEach(mesh=>{const mats=Array.isArray(mesh.material)?mesh.material:[mesh.material];mats.forEach(m=>{m.map=tex;m.color.set(0xffffff);m.needsUpdate=true;});mesh.visible=true;});};
+  applyWall(walls.left,basementWallLeftTex);applyWall(walls.right,basementWallRightTex);
  }
 }
 

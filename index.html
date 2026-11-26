@@ -599,7 +599,7 @@ function updateUI(){
 const threeBackdrop=document.createElement("div");threeBackdrop.id="sceneBackdrop";document.body.insertBefore(threeBackdrop,document.body.firstChild);
 const threeCanvas=document.createElement("canvas");threeCanvas.id="threeRoom";document.body.insertBefore(threeCanvas,document.body.firstChild);
 const officeMobileGPU=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);const threeRenderer=new THREE.WebGLRenderer({canvas:threeCanvas,antialias:!officeMobileGPU,alpha:true,powerPreference:"low-power"});
-threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,officeMobileGPU?1:1.5));
+threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,officeMobileGPU?1:1.25));
 threeRenderer.shadowMap.enabled=false;threeRenderer.shadowMap.type=THREE.PCFSoftShadowMap;
 threeRenderer.outputColorSpace=THREE.SRGBColorSpace;threeRenderer.toneMapping=THREE.ACESFilmicToneMapping;threeRenderer.toneMappingExposure=1.12;
 const threeScene=new THREE.Scene();threeScene.background=null;threeScene.fog=new THREE.Fog(0x111820,18,52);
@@ -1865,7 +1865,7 @@ function resizeThree(){const r=canvas.getBoundingClientRect();threeWidth=window.
 
 const canvas=$("room");let ctx=canvas.getContext("2d");
 const employeeMotion=new Map();
-let W=0,H=0,dpr=1,cellW=0,cellH=0,originX=0,originY=0,pointer=null,floaters=[],cameraOffsetX=0,cameraOffsetY=0,cameraZoom=1;const activePointers=new Map();let pinchState=null,suppressTap=false,lastTap=null,cameraResetFrame=0;
+let W=0,H=0,dpr=1,cellW=0,cellH=0,originX=0,originY=0,pointer=null,floaters=[],cameraOffsetX=0,cameraOffsetY=0,cameraZoom=1;const activePointers=new Map();let pinchState=null,suppressTap=false,lastTap=null,cameraResetFrame=0,roomDrawFrame=0;
 function resize(){
  const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;
  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);resizeThree();
@@ -1877,14 +1877,17 @@ function iso(x,y){return {x:originX+(x-y)*cellW,y:originY+(x+y)*cellH};}
 function screenToGrid(screenX,screenY){
  const worldX=(screenX-cameraOffsetX)/cameraZoom,worldY=(screenY-cameraOffsetY)/cameraZoom;
  const a=(worldX-originX)/cellW,b=(worldY-originY)/cellH;
- return {x:(a+b)/2,y:(b-a)/2};
-}
+ return {x:(a+b)function groundPointAtScreen(x,y){if(!threeCamera||!threeWidth||!threeHeight)return null;const r=threeCanvas.getBoundingClientRect(),v=new THREE.Vector2((x-r.left)/Math.max(1,r.width)*2-1,-(y-r.top)/Math.max(1,r.height)*2+1);threeCamera.updateMatrixWorld(true);threeRaycaster.setFromCamera(v,threeCamera);return threeRaycaster.ray.intersectPlane(threeGround,new THREE.Vector3());}
+function requestRoomDraw(){if(roomDrawFrame)return;roomDrawFrame=requestAnimationFrame(()=>{roomDrawFrame=0;if(floorPageActive&&!document.hidden)draw();});}
 function zoomAt(nextZoom,x,y){
  const oldZoom=cameraZoom,z=Math.max(.28,Math.min(2.2,nextZoom));
  if(Math.abs(z-oldZoom)<.0001)return;
  cameraOffsetX=x-(x-cameraOffsetX)*(z/oldZoom);
  cameraOffsetY=y-(y-cameraOffsetY)*(z/oldZoom);
- cameraZoom=z;draw();
+ const anchor=groundPointAtScreen(x,y);cameraZoom=z;
+ if(anchor&&threeCamera){updateThreeCamera();const after=groundPointAtScreen(x,y);if(after){threePanX+=anchor.x-after.x;threePanZ+=anchor.z-after.z;updateThreeCamera();}}
+ requestRoomDraw();
+}aZoom=z;draw();
 }
 function animateCameraHome(){
  if(cameraResetFrame)cancelAnimationFrame(cameraResetFrame);
@@ -2288,7 +2291,7 @@ canvas.addEventListener("pointermove",e=>{
  if(activePointers.size===1){
   if(!point.dragged&&Math.hypot(x-point.startX,y-point.startY)>5){point.dragged=true;suppressTap=true;pointer=null;}
   if(point.dragged){
-   panThreeCameraByScreen(dx,dy);draw();
+   panThreeCameraByScreen(dx,dy);requestRoomDraw();
   }else if(buildPreviewState){const c=cellFromEvent(e);if(c.x>=0&&c.x<gridSize&&c.y>=0&&c.y<gridSize)setBuildPreviewCell(c.x,c.y);}
   else if(!state.viewing&&(state.selected||moveMode)){pointer=cellFromEvent(e);draw();}
  }
@@ -2310,7 +2313,7 @@ function finishPointer(e,cancelled=false){
 }
 canvas.addEventListener("pointerup",e=>finishPointer(e,false));
 canvas.addEventListener("pointercancel",e=>finishPointer(e,true));
-canvas.addEventListener("wheel",e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(cameraZoom*Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
+canvas.addEventListener("wheel",e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(cameraZoom*Math.exp(-e.deltaY*.0012),e.clientX-r.left,e.clientY-r.top);},{passive:false});
 canvas.addEventListener("pointerleave",()=>{if(activePointers.size===0)pointer=null;});
 
 $("shop").addEventListener("click",e=>{const b=e.target.closest("[data-type]");if(!b||state.viewing)return;haptic();selectBuild(b.dataset.type);pointer=null;});

@@ -1576,7 +1576,7 @@ function addRoom3D(){
   floor=new THREE.Mesh(new THREE.BoxGeometry(slabSize,slabDepth,slabSize),floorMaterials);
   floor.position.set(n/2-.1075,-slabDepth/2,n/2-.1075);floor.castShadow=false;floor.receiveShadow=true;threeFloorGroup.add(floor);
   threeFloorGroup.userData.basementFloor=floor;applyBasementTextures();
-  const wallH=.98,wallThickness=.24;
+  const wallH=1.2,wallThickness=.24;
   const leftWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallLeftTex,roughness:.92,metalness:.02}));
   const rightWallMat=Array.from({length:6},()=>new THREE.MeshStandardMaterial({color:0xffffff,map:basementWallRightTex,roughness:.92,metalness:.02}));
   const splitTexturedWall=(axis,materials)=>{
@@ -1597,7 +1597,7 @@ function addRoom3D(){
   boxMesh(threeFloorGroup,n/2,-.12,n/2,n+.08,.12,n+.08,slabMat);
   floor=new THREE.Mesh(new THREE.BoxGeometry(n,.025,n),floorMat);
   floor.position.set(n/2,-.0075,n/2);floor.receiveShadow=true;threeFloorGroup.add(floor);
-  const wallH=.98,wallBase=-.12,wallHeight=wallH+.12;
+  const wallH=1.2,wallBase=-.12,wallHeight=wallH+.12;
   const splitWall=(axis)=>{
    const doorOn=isDoorOn(axis),center=axis==="z"?Number(entrance?.posX??entrance?.x+.5):Number(entrance?.posZ??entrance?.y+.5);
    const add=(along,len,y,h)=>{if(len<=.005||h<=.005)return;boxMesh(threeFloorGroup,axis==="z"?along:-.11,y,axis==="z"?-.11:along,axis==="z"?len:.22,h,axis==="z"?.22:len,wallMat);};
